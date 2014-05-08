@@ -17,7 +17,9 @@ app.tetris.GameView = Backbone.View.extend({
 		this.oGameIo = this.options.oGameIo || {};
 		
 		this.bEventBind = this.options.bEventBind;
-		
+
+        this._fnKeyEvent = $.proxy(this._onKeyAction, this);
+        
 		this.initResources();
 		
 		if(this.model !== undefined){
@@ -41,9 +43,9 @@ app.tetris.GameView = Backbone.View.extend({
 		this.bFullScreen = false;
 		
 		if(this.bEventBind){
-			
 			this.setTouchEvents();
 		}
+        
 		var iOS = ( navigator.userAgent.match(/(iPad|iPhone|iPod)/i) ? true : false );
 		
 		this.isMobile = iOS;
@@ -496,12 +498,10 @@ app.tetris.GameView = Backbone.View.extend({
 	setKeyEvents : function(){
 		
 		this.htKeyState = {};
-		
+
 		$(document)
-			.unbind('keydown keyup', $.proxy(this._onKeyAction, this))
-			.bind('keydown keyup', $.proxy(this._onKeyAction, this));
-		
-		
+			.unbind('keydown keyup', this._fnKeyEvent)
+			.bind('keydown keyup', this._fnKeyEvent);
 	},
 	
 	setTouchEvents : function(){
@@ -1064,15 +1064,18 @@ app.tetris.GameView = Backbone.View.extend({
 		}
 	},
 
-	/**
+    clearLongPress: function () {
+        clearInterval(this.keyLongPressChecker);
+        this.nLongPressCnt = 0;
+    }, 
+    
+    /**
 	 * SpaceBar로 빠르게 블럭을 내린다 
 	 */
 	moveHardDown : function(){
-		var that = this;
-		
-		setTimeout(function(){
-			that.controlSound('harddrop', 'play');
-		},50);
+        this.clearLongPress();
+        
+		setTimeout($.proxy(this.controlSound('harddrop', 'play'), this));
 		
 		var rst = false;
 		for(var i = 0, nRows = this.model.get('nRows'); i < nRows; i++){
@@ -1103,17 +1106,13 @@ app.tetris.GameView = Backbone.View.extend({
 			this.keyLongPressChecker = setInterval(function(){
 				that.nLongPressCnt++;
 				that.keyPressFlag  = (that.nLongPressCnt > 5) ? true : false;
-				
-			}, 100);
+			}, 400);
 		}
 		
 		if(htData.type =='keyup'){
 			this.htKeyState[htData.keyCode || htData.which] = false;
 			this.nLongPressCnt = 0;
-			
 			clearInterval(this.keyLongPressChecker);
-			
-
 		}
 
 		if(htData.type === 'keyup'){
@@ -1233,6 +1232,7 @@ app.tetris.GameView = Backbone.View.extend({
 		// $('#other_1').parent().find('.pause').remove();
 		// $('#other_1').parent().prepend(
 			// '<div class="pause" style="z-index:500;width:100px;height:200px;margin:13px;margin-top:15px;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
-			// '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:70px;">'+string+'</div></div>');	}
+			// '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:70px;">'+string+'</div></div>');
+	}
 
 });

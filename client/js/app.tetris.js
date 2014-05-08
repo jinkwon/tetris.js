@@ -2,7 +2,7 @@ app.tetris = app.tetris ? app.tetris : {};
 
 app.tetris.config = {
 	"sName": "Tetris",
-	"sMode" : "staging" // production, staging, developement
+	"sMode" : "development" // production, staging, developement
 };
 
 var sServerUrl = '';

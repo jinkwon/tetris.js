@@ -111,6 +111,7 @@ requirejs.config({
 });
 
 requirejs([
+    'jquery',
 	'app.webgl.util',
 	'app.tetris.network',
 	'app.tetris.util',
@@ -120,9 +121,8 @@ requirejs([
 	'app.tetris.gamemodel',
 	'app.tetris.gameview',
 	'app.tetris.uiview',
-	'app.mobile',
-	], function(){
-
+	'app.mobile'
+	], function($){
 
 	
 	$(document).ready(function(){
