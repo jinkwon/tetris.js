@@ -1,0 +1,309 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ko" xml:lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Tetris</title>
+
+<link rel="stylesheet" href="css/login.css" />
+<link href="css/mobile.css" rel="stylesheet" type="text/css" />
+<link href="css/sidetap.css" rel="stylesheet" type="text/css"/>
+<link href="theme/default/default.css" type="text/css" rel="stylesheet" media="screen" />
+
+<script type="text/javascript">
+var iOS = true;
+</script>
+</head>
+ 
+<body>
+    <div class="sidetap">
+      <div class="stp-nav">
+        <div>
+          <nav>
+            <a href="javascript:void(0)" class="header-button _btns main selected">Main</a>
+            <a href="javascript:void(0)" class="header-button _btns single_game">Single Game</a>
+            <a href="javascript:void(0)" class="header-button _btns online_game">Online Game</a>
+            <a href="javascript:void(0)" class="header-button _btns gameboard">Game Board</a>
+            
+            <a href="javascript:void(0)" class="header-button _btns info">About This</a>
+          </nav>
+        </div>
+      </div>
+
+      <div class="stp-content" id="content">
+        <header class="stp-fake-header">&nbsp;</header>
+        <div class="stp-overlay nav-toggle">&nbsp;</div>
+
+        <!-- Main -->
+        <div class="stp-content-panel hidden" id="main">
+          <header>
+            <a href="javascript:void(0)" class="header-button icon menu _btns"><span>Menu</span></a>
+            
+            <a href="javascript:void(0)" class="header-button icon logout right _btns">Logout<span>LOGOUT</span></a>
+            <h1>M Tetris</h1>
+          </header>
+          
+          <div class="stp-content-frame">
+            <div class="stp-content-body">
+              <div class="container">
+                
+                Welcome to Tetris<br>
+                <span id="welcome_str"> </span>
+				
+				<div style="margin:auto;">
+                <button type="button" name="" value="" class="main_btn start_btn _btns">Single Game</button><br>
+                <br>
+                <button type="button" name="" value="" class="main_btn ready_btn _btns">Online Game</button><br>
+                <br>
+                <button type="button" name="" value="" class="main_btn gameboard _btns">Game Board</button><br>
+                </div>
+                
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Main End -->
+
+ 		<!-- GameBoard -->
+        <div class="stp-content-panel hidden" id="gameboard">
+          <header>
+            <a href="javascript:void(0)" class="header-button icon menu _btns"><span>Menu</span></a>
+            
+            <a href="javascript:void(0)" class="header-button icon logout right _btns">Logout<span>LOGOUT</span></a>
+            <h1>M Tetris</h1>
+          </header>
+          
+          <div class="stp-content-frame">
+            <div class="stp-content-body">
+              <div class="container">
+
+	
+	<div style="margin:10px 0px;margin-bottom:10px;">
+		
+		<div id="_welcome" style="position:absolute;top:10px;border:2px solid #CCC;background-color:#FFF;padding:5px;left:300px;"> </div>
+		
+		<div style="float:left;">
+			<div>
+				현재 접속자 : <span id="_currentConnectedPeople">0</span>명
+				현재 준비/게임자 : <span id="_currentGamePeople">0</span>명
+			</div>
+		</div>
+		
+		
+		
+		<div style="float:right;margin-top:10px;margin-right:10px;">
+			<button type="button" class="main_btn ready_btn _btns">참가</button>
+		</div>
+		
+		<div style="float:right;margin-top:10px;margin-right:10px;">
+			<button type="button" name="" value="" id="_start" style="display:none;" class="main_btn _btns">시작</button>
+		</div>
+		
+		<div style="float:right;margin-top:10px;margin-right:10px;">
+			<button type="button" name="" value="" id="_stop" style="display:none;" class="main_btn _btns">종료</button>
+		</div>
+		
+	</div>
+	
+	<div style="clear:both;"> </div>
+		
+	<div style="float:left;width:140px;height:150px;overflow-y:scroll;float:left;border:1px solid #AAA;">
+		<ul id="_connectedPeople" class="ul_list" style="width:100%;height:100%;border-radius:10px;">
+			
+		</ul>
+	</div>
+	<div style="float:left;width:140px;height:150px;overflow-y:scroll;border:1px solid #AAA;">
+		<ul id="_gamePeople" class="ul_list" style="width:100%;height:100%;border-radius:10px;">
+			
+		</ul>
+	</div>
+	
+	<div class="stage" id="stage">
+		<ul id="_watch">
+						
+		</ul>
+	</div>
+		
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+		<!-- Gameboard End -->
+               
+       	<!-- Login -->
+        <div class="stp-content-panel" id="login">
+          <header>
+            <a href="javascript:void(0)" class="header-button icon menu _btns"><span>Menu</span></a>
+            <a href="javascript:void(0)" class="header-button icon info right _btns"><span>Info</span></a>
+            
+            
+            <h1>Login</h1>
+          </header>
+          
+          <div class="stp-content-frame">
+            <div class="stp-content-body">
+              <div class="container" style="background-color:#FFF;padding-left:0;padding-right:0;">
+
+
+<div id="login-box" style="margin:auto;margin-top:0px;height:350px;width:100%;overflow:hidden;">
+	<div class="login_title">
+		<div style="padding:20px;">
+			<H2>Login</H2>
+			<div style="color:#AAA;font-size:15px;">Welcome To Tetris</div>
+		</div>
+	</div>
+	<div style="border-top:1px solid #CCC;width:100%;box-shadow:0 0 10px #AAA;">
+
+		<div style="margin:auto;width:300px;background-color:#FFF;">
+			<div class="login-box-field" style="margin-bottom:5px;">
+				<div class="label">Name</div>
+				<input id="_name" name="q" class="form_input" title="Username" maxlength="2048" />
+			</div>
+			
+			<div style="clear:both;border-top:1px solid #EEE;"> </div>
+			
+			<div class="login-box-field" style="margin-bottom:7px;">
+				<div class="label">ID</div>
+				<input id="_id" name="q" class="form_input" title="UserId" maxlength="2048" />
+			</div>
+
+			<div style="clear:both;"> </div>
+			
+		</div>	
+	</div>
+	
+	<div style="text-align:center;margin-top:0px;clear:both;padding-top:20px;">
+		<input type="button" id="_login" class="login_btn _btns" value="Login"></input>
+	</div>
+	
+</div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Login End -->
+        
+        <!-- About page -->
+        <div class="stp-content-panel hidden" id="about">
+          <header>
+            
+            <a href="javascript:void(0)" class="header-button cancel right _btns">Done</a>
+
+            <h1>What's This?</h1>
+          </header>
+
+          <div class="stp-content-frame">
+            <div class="stp-content-body">
+              <div class="container">
+                This is (a demo of)<br>
+                Online Web Tetris<br>
+                By JK (lee.jinkwon@nhncorp.com)
+                
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- About End -->
+
+  <!-- Play Game page -->
+        <div class="stp-content-panel hidden" id="game">
+          <header>
+            <a href="javascript:void(0)" class="header-button cancel right _btns">End</a>
+            <h1 class="game_title">Single Game</h1>
+          </header>
+          
+<div class="container" style="height:350px;">
+	
+	<div style="position:absolute;float:left;margin-left:0px;width:300px;z-index:1000;bottom:10px;display:block;">
+		<div class="jpad" id="up" style="margin-left:47px;">▲</div>
+		<div style="clear:both;">
+		<div class="jpad" id="left">◀</div><div class="jpad" id="down">▼</div>
+		<div class="jpad" id="right">▶</div>
+		</div>
+	</div>
+	
+	<div style="position:absolute;right:0;bottom:10px;z-index:1000;">
+		<div class="jpad" id="start_touch" style="margin-right:15px;">S</div>	
+		<div class="jpad" id="harddown" style="margin-right:15px;">●</div>
+	</div>
+
+			
+	<div id="app" class="app" style="background-image:none;">
+				
+		<div class="field_container" id="touch_area" style="background:none;z-index:0;position:absolute;top:50px;width:100%;">
+		
+			<div class="" style="width:100%;margin:auto;">
+				<div class="field">
+					<div id="debug_area" class="debug_area"> </div>
+					<canvas id="game_area" class="game_area" width="220" height="448" style="width:220px;height:448px;box-shadow:0 0 10px #333;border:2px solid #000;background-color:#111;border-radius:10px;margin-left:75px;"> </canvas>
+					<canvas id="game_area2" class="game_area" width="220" height="448" style="width:220px;height:100%;position:absolute;border:1px dashed #555;z-index:100;left:0px;display:none;"> </canvas>
+				</div>
+				
+				<div class="col3" style="position:absolute;z-index:200;top:0px;left:0px;">
+					<div class="next_block">
+						<div class="next_block_container"> </div>
+					</div>
+					<div class="next_block_group">
+						<div class="next_group_block_container"> </div>
+					</div>
+					
+					<div>
+						<span class="score">10000</span>
+					</div>
+					
+					<div class="user_id_txt" style="">
+						초보<br>[호칭없음]
+					</div>
+				
+					<div class="play_time">
+						 <ul class="time_hour" style="margin-right:0;">
+							<li>&nbsp;</li>
+							<li>&nbsp;</li>
+						</ul>
+						<ul style="float:left;margin:5px;margin-top:10px;">
+							<li>:</li>
+						</ul>
+						<ul class="time_min">
+							<li>&nbsp;</li>
+							<li>&nbsp;</li>
+						</ul>
+					</div>
+				
+				</div>
+			
+			</div>
+			
+
+
+
+			
+		</div>
+		
+		<div class="other_user_container" style="display:none;position:relative;">
+			<canvas id="other_1" width="100" height="215" class="other_user_canvas"> </canvas>
+			<canvas id="other_2" width="100" height="215" class="other_user_canvas"> </canvas>
+			
+		</div>
+	
+	</div>
+</div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- About End -->
+        
+        
+      </div>
+    </div>
+    
+
+<script data-main="js/game.loader" src="js/lib/require.js"></script>
+</body>
+</html>
