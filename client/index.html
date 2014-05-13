@@ -1,10 +1,35 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-US">
 <head>
-	<meta charset="UTF-8">
-	<meta http-equiv="refresh" content="0; url=./game.mobile.html">
+    <meta charset="UTF-8">
+    <title>HTML5 Web Tetris</title>
+
+    <link rel="stylesheet" href="res/css/default.css"/>
+    <script data-main="src/loader" src="lib/require.js"></script>
+
+    <style type="text/css">
+        
+    </style>
 </head>
 <body>
-	
+
+<div id="_container">
+    
+    <div id="_header" class="header"></div>
+    
+    <div class="panel_container">
+        <div style="position:fixed;right:10px;top:10px;display:none;font-size:50px;content: 'x';color: #333;font-weight: 300;font-family: Arial, sans-serif;" class="_close">x</div>
+
+        <div class="_screen" id="_credit_view"></div>
+        <div class="_screen" id="_start_view"></div>
+        <div class="_screen" id="_menu_view"></div>
+        <div class="_screen" id="_gameboard_view"></div>
+    </div>
+    
+    <div id="_footer" class="footer"></div>
+
+    <div id="_option"></div>
+</div>
+
 </body>
 </html>

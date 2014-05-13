@@ -1,0 +1,5 @@
+.project
+.settings
+.git
+.jshintrc
+node_modules

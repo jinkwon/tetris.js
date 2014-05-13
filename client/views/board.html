@@ -1,0 +1,60 @@
+<link rel="stylesheet" href="res/css/jquery-ui.css" />
+<link rel="stylesheet" href="res/css/gameboard.css" />
+
+<div class="container">
+    <div style="margin:10px 0px;margin-bottom:10px;">
+
+        <div id="_welcome" style="position:absolute;top:10px;border:2px solid #CCC;background-color:#FFF;padding:5px;left:300px;"> </div>
+
+        <div style="float:left;">
+            <div class="current_members">
+                현재 접속자 : <span id="_currentConnectedPeople">0</span>명,
+                현재 준비/게임자 : <span id="_currentGamePeople">0</span>명
+            </div>
+
+            <div style="width:300px;text-align:left;margin:10px;">
+                Ctrl + Click! 과 Drag 로 다중 사용자 선택 가능
+            </div>
+
+        </div>
+
+        <div id="_logout" style="float:right;margin-top:10px;margin-right:10px;display:block">
+            <a href="#" class="btn _move_to_menu">메뉴로</a>
+        </div>
+
+
+        <div id="_join" style="float:right;margin-top:10px;margin-right:10px;display:none">
+            <a href="game.html" class="btn">참가</a>
+        </div>
+
+
+        <div style="float:right;margin-top:10px;margin-right:10px;">
+            <a id="_start" href="#" style="display:none" class="btn">시작</a>
+        </div>
+
+        <div style="float:right;margin-top:10px;margin-right:10px;">
+            <a id="_stop" href="#" style="display:none" class="btn">종료</a>
+        </div>
+
+    </div>
+
+    <div style="clear:both;"> </div>
+
+    <div style="float:left;width:100px;height:600px;overflow-y:scroll;border:5px solid #AAA;">
+        <ul id="_connectedPeople" class="ul_list" style="width:232px;height:600px;border-radius:10px;">
+
+        </ul>
+    </div>
+    <div style="float:left;width:150px;height:600px;overflow-y:scroll;border:5px solid #AAA;">
+        <ul id="_gamePeople" class="ul_list" style="width:232px;height:600px;border-radius:10px;">
+
+        </ul>
+    </div>
+
+    <div class="stage" id="stage">
+        <ul id="_watch">
+
+        </ul>
+    </div>
+
+</div>
