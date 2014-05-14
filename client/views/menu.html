@@ -11,6 +11,7 @@
 
         font-size:15px;padding:7px;
         border-bottom:1px dashed #EEE;
+        cursor:pointer;
 
         text-shadow:0 1px 2px rgba(50,50,50, 0.2);
     }
@@ -51,11 +52,17 @@
     <div class="_welcome" class="animated" style="font-size:11px;border-radius:2px;position:absolute;background-color:#CCC;padding:4px 7px;margin-top:-4px;">
         Hi! <%=sName%>
     </div>
+
+    <div class="_conn_user_cnt" class="animated" style="font-size:10px;border-radius:2px;position:absolute;right:0;background-color:#CCC;padding:4px 7px;margin-top:-4px;">
+        Con.<span><%=nConnectedUser%></span>
+    </div>
+    
     <ul class="screen_menu">
         <li><a href="#" class="_menu_item" data-navigate="single">Single Game</a></li>
         <li class="_menu_item" data-navigate="multi"><a>Multi Game</a></li>
         <li class="_menu_item" data-navigate="board"><a>Live Board</a></li>
         <li class="_menu_item" data-navigate="credit"><a>Credit</a></li>
+        <li class="_menu_item" data-navigate="logout"><a>Logout</a></li>
     </ul>
 
     <div style="font-size:10px;color:#DDD;margin-top:10px;">

@@ -1,18 +1,22 @@
 /**
  * Gameboard 메인 클래스
  */
+
+
 app.tetris.Board.init = function(htOptions){
     if(app.tetris.Board.bInitialized){
         return;
     }
     
+    var oMonitorIo = io.connect(app.tetris.config.sMonitorUrl);
+    
+    
 	var htOptions = htOptions ? htOptions : {}
 //	  , oView = new app.tetris.GameView({el : $('#stage'), bEventBind : false})
-	  , oMonitorIo = io.connect(app.tetris.config.sMonitorUrl)
 	  , nGamePeopleCount = 0
 	  , aSelectedGamePeople = []
-	  , sEmpNo = $.cookie('sEmpNo')
-	  , sEmpNm = $.cookie('sEmpNm')
+	  , sEmpNo = 'nt1234'
+	  , sEmpNm = 'names'
 	  , sDeptNm = $.cookie('sDeptNm');
 	
 	var iOS = ( navigator.userAgent.match(/(iPad|iPhone|iPod)/i) ? true : false );
@@ -54,13 +58,8 @@ app.tetris.Board.init = function(htOptions){
 	};
 
     var setNetworkEvents = function() {
-        oMonitorIo.on('connect', function () {
-            $.unblockUI();
-            $('#selectable').empty();
 
-            oMonitorIo.emit('reqAdmin', sEmpNo);
-        });
-
+        
         oMonitorIo.on('resAdmin', function (sStatus) {
 
             if (sStatus === 'ok') {
@@ -136,8 +135,6 @@ app.tetris.Board.init = function(htOptions){
 		}
 
 		$( "#selectable" ).selectable();
-		$.blockUI({timeout: 5000});
-        
         setNetworkEvents();
         
         $('#_join').show();	

@@ -26,6 +26,13 @@ app.tetris.ui = {};
 /**
  * @namespace
  */
+app.tetris.Account = {};
+
+app.tetris.ui.Start = {};
+
+/**
+ * @namespace
+ */
 app.tetris.ui.Footer = {};
 
 /**

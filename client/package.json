@@ -7,6 +7,7 @@
   "scripts": {
     "test": "grunt qunit"
   },
+    
   "devDependencies": {
     "grunt": "~0.4.1",
     "grunt-regarde": "~0.1.1",

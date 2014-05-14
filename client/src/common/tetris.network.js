@@ -22,6 +22,7 @@ app.tetris.Network.init = (function(htOptions){
 		}
 	};
 	
+    
 	var initialize = function(){
 		
 		if(sEmpNo == '' || sEmpNo == null || sEmpNm == '' || sEmpNm == null){
@@ -104,4 +105,21 @@ app.tetris.Network.init = (function(htOptions){
 		oChatIo : oChatIo,
 		bindViewer : bindViewer
 	};
+});
+
+
+app.tetris.Network.oSessionIo = io.connect(app.tetris.config.sSessionUrl);
+
+var oSessionIo = app.tetris.Network.oSessionIo;
+
+oSessionIo.on('resConnectionCount', function(htRes){
+    console.log(htRes);
+    app.tetris.Network.Model.set('nConnectedUser', htRes.nConnectedUser);
+});
+
+oSessionIo.on('connect', function () {
+    $.unblockUI();
+    $('#selectable').empty();
+
+    oSessionIo.emit('reqConnectionCount');
 });

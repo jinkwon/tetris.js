@@ -8,6 +8,7 @@ requirejs.config({
 	urlArgs : "bust="+ (new Date()).getTime(),
 	waitSeconds : 45,
 	paths : {
+        'move' : '../vendor/move.js/move.min',
 		'underscore' : '../lib/underscore-min',
 		'backbone' : '../lib/backbone',
 		'jquery' : '../lib/jquery',
@@ -20,9 +21,7 @@ requirejs.config({
 		'glmatrix' : '../lib/glmatrix',
 		'hammer' : '../lib/hammer',
 		'jq-specialevt' : '../lib/jquery.specialevent.hammer',
-		'buzz' : '../lib/buzz',
-		'sidetap' : '../lib/sidetap.min',
-		'fastclick' : '../lib/fastclick'
+		'buzz' : '../lib/buzz'
 	},
 	shim : {
 		'backbone' : {
@@ -50,10 +49,6 @@ requirejs.config({
 			deps : ['jquery']
 		},
 		
-		'sidetap' : {
-			deps : ['jquery']	
-		},
-		
 		'jq-hammer' : {
 			deps : ['jquery', 'hammer', 'jq-specialevt']	
 		},
@@ -75,7 +70,7 @@ requirejs.config({
 		},
 		
 		'game/tetris.game' : {
-			deps : ['jq-cookie', 'tetris', 'jq-hammer', 'buzz', 'sidetap', 'fastclick']
+			deps : ['jq-cookie', 'tetris', 'jq-hammer', 'buzz']
 		},
 
         'game/tetris.gamemodel' : {
@@ -91,7 +86,7 @@ requirejs.config({
 		},
 		
 		'tetris.network' : {
-			deps : ['socket.io', 'tetris', 'jq-cookie']
+			deps : ['socket.io', 'tetris', 'jq-cookie', 'tetris.config']
 		},
 		
 		'tetris' : {
@@ -102,17 +97,25 @@ requirejs.config({
             deps : ['backbone']
         },
         
+        'common/tetris.network' : {
+            deps : ['backbone', 'common/tetris.network.model']
+        },
+
+        'tetris.config' : {
+            deps : ['namespace', 'backbone']
+        },
+        
         'board/tetris.board' : {
-            deps : ['tetris.config', 'jq-cookie', 'jquery-ui', 'jq-blockui', 'board/tetris.board.view']
+            deps : ['tetris.config', 'jq-cookie', 'jquery-ui', 'jq-blockui', 'board/tetris.board.view', 'common/tetris.network']
         },
         
         'menu/tetris.menu.view' : {
         
-            deps : ['namespace', 'backbone']
+            deps : ['namespace', 'backbone', 'common/tetris.network.model']
         },
         
         'ui/tetris.ui.header.view' : {
-            deps : ['namespace', 'backbone']
+            deps : ['namespace', 'backbone', 'common/tetris.network.model']
         },
         
         'ui/tetris.ui.footer.view' : {
@@ -127,20 +130,41 @@ requirejs.config({
             deps : ['namespace', 'backbone']
         },
         
+        'ui/tetris.ui.start.view' : {
+            deps : ['namespace', 'backbone']
+        },
+
+        'account/tetris.account.network' : {
+        
+            deps : ['namespace', 'backbone', 'tetris.config']
+        },
+        
+        'account/tetris.account.view' :{
+            deps : ['namespace', 'backbone', 'account/tetris.account.network']
+        },
+        
+        'account/tetris.accountinfo' : {
+            deps : ['namespace', 'backbone']
+        },
+        
         'tetris.router' : {
-            deps : ['backbone', 
-                'tetris', 
+            deps : ['backbone',
+                'tetris',
                 'namespace',
 
                 'menu/tetris.menu.view',
-                
+
 
                 'common/tetris.network.model',
                 'common/TemplateManager',
 
+                'account/tetris.accountinfo',
+                'account/tetris.account.view',
+
                 'board/tetris.board',
                 'credit/app.tetris.credit.view',
                 
+                'ui/tetris.ui.start.view',
                 'ui/tetris.ui.footer.view',
                 'ui/tetris.ui.header.view'
             ]

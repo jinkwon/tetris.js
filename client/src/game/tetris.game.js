@@ -12,7 +12,6 @@ app.tetris.game = (function(htOptions){
 	  , oModel
 	  , oGameView
 	  , oUIView
-	  , oBlockCollection
 	  , sEmpNo = $.cookie('sEmpNo')
 	  , sEmpNm = $.cookie('sEmpNm')
 	  , sDeptNm = $.cookie('sDeptNm');
@@ -37,7 +36,6 @@ app.tetris.game = (function(htOptions){
 			$(document).on('resize', function(){
 			resizeGameArea();	
 			});
-			
 		}
 		
 		replaceElement();
@@ -52,13 +50,14 @@ app.tetris.game = (function(htOptions){
 		
 		// app.tetris.block.model.js
 		var Blocks = Backbone.Collection.extend({model : app.BlockModel});
-		oBlockCollection = new Blocks();
+		var oBlockCollection = new Blocks();
 		oBlockCollection.add(app.arBlockList);
 	
 		// app.tetris.gamemodel.js
 		oModel = new app.tetris.GameModel({
 			oBlockCollection  : oBlockCollection 
 		});
+        
 		oModel.set('sGuid', app.tetris.util.makeGuid());
 		
 		// app.tetris.gameview.js

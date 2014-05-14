@@ -8,17 +8,19 @@ var sSrvUrl = '';
 
 switch(app.tetris.config.sMode){
     case 'production' :
-        sSrvUrl = 'uit.nhncorp.com';
+        sSrvUrl = '';
     break;
     case 'staging' :
-        sSrvUrl = 'srv.bdyne.net';
+        sSrvUrl = 'srv.bdyne.net:8888';
     break;
     default : 
-        sSrvUrl = document.location.hostname;
+        sSrvUrl = document.location.hostname + ':8888';
     break;
 }
 
 app.tetris.config.sHost = sSrvUrl;
-app.tetris.config.sMonitorUrl = 'http://' + sSrvUrl + ':8888/monitor';
-app.tetris.config.sGameUrl = 'http://' + sSrvUrl + ':8888/game';
-app.tetris.config.sChatUrl = 'http://' + sSrvUrl + ':8888/chat';
+app.tetris.config.sAccountUrl = 'http://' + sSrvUrl + '/account';
+app.tetris.config.sSessionUrl = 'http://' + sSrvUrl + '/session';
+app.tetris.config.sMonitorUrl = 'http://' + sSrvUrl + '/monitor';
+app.tetris.config.sGameUrl = 'http://' + sSrvUrl + '/game';
+app.tetris.config.sChatUrl = 'http://' + sSrvUrl + '/chat';
