@@ -19,6 +19,8 @@
     "backbone": "~1.1.2",
     "socket.io": "~0.9.15",
     "underscore": "~1.6.0",
-    "hammerjs": "~1.1.2"
+    "hammerjs": "~1.1.2",
+    "move.js": "~0.3.3",
+    "animate.css": "~3.1.1"
   }
 }

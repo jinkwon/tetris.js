@@ -35,9 +35,12 @@ var HeaderView = Backbone.View.extend({
         var htVars = {
             connectedUser : this.model.get('connectedUser')
         };
-        
+        this.$el.addClass('animated').removeClass('pulse');
+
         TemplateManager.get(this.template, htVars, $.proxy(function(template){
             this.$el.html(template);
+            this.$el.addClass('animated').hide().addClass('pulse').show();
+
         }, this));
 
         return this;

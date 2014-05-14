@@ -15,7 +15,6 @@ body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, form, fieldset, p, button
     padding: 0
 }
 body, h1, h2, h3, h4, input, button {
-    font-family: '나눔고딕', dotum, Helvetica, sans-serif;
     font-size: 12px;
     color: #383d41
 }

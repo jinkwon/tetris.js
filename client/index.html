@@ -2,23 +2,50 @@
 <html lang="en-US">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Lato">
+
     <title>HTML5 Web Tetris</title>
 
     <link rel="stylesheet" href="res/css/default.css"/>
+    <link rel="stylesheet" href="vendor/animate.css/animate.min.css"/>
     <script data-main="src/loader" src="lib/require.js"></script>
 
     <style type="text/css">
-        
+
+        body{
+            height:100%;
+            font-family: 'Lato', serif;
+            font-size: 48px;
+            background: #ffffff; /* Old browsers */
+            background: -moz-linear-gradient(top,  #ffffff 0%, #c9c9c9 100%); /* FF3.6+ */
+            background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#c9c9c9)); /* Chrome,Safari4+ */
+            background: -webkit-linear-gradient(top,  #ffffff 0%,#c9c9c9 100%); /* Chrome10+,Safari5.1+ */
+            background: -o-linear-gradient(top,  #ffffff 0%,#c9c9c9 100%); /* Opera 11.10+ */
+            background: -ms-linear-gradient(top,  #ffffff 0%,#c9c9c9 100%); /* IE10+ */
+            background: linear-gradient(to bottom,  #ffffff 0%,#c9c9c9 100%); /* W3C */
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#c9c9c9',GradientType=0 ); /* IE6-9 */
+
+
+        }
+
+        ._screen{
+            display:none;
+            position:absolute;
+            width:100%;
+            height:100%;
+        }
     </style>
 </head>
 <body>
 
-<div id="_container">
+<div id="_container" style="height:100%;">
     
     <div id="_header" class="header"></div>
     
-    <div class="panel_container">
-        <div style="position:fixed;right:10px;top:10px;display:none;font-size:50px;content: 'x';color: #333;font-weight: 300;font-family: Arial, sans-serif;" class="_close">x</div>
+    <div class="panel_container" style="height:100%;width:100%;">
+        <div style="position:fixed;z-index:100;right:10px;top:10px;display:none;font-size:50px;content: 'X';color: #333;font-weight: 300;font-family: Arial, sans-serif;" class="_close">X</div>
 
         <div class="_screen" id="_credit_view"></div>
         <div class="_screen" id="_start_view"></div>

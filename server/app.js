@@ -24,6 +24,8 @@ oSocketIo.configure(function(){
 
 var oMonitorIo = oSocketIo.of('/monitor').on('connection', function(oMonitor){
 	pushPeopleInfo();
+    console.log('connected');
+    
 	htMonitor[oMonitor.id] = oMonitor;
 	
 	oMonitor.on('disconnect', function(){

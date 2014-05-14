@@ -24,11 +24,19 @@
         },
 
         show : function(){
-            this.$el.hide().stop().fadeIn(300);
+            this.$el.show();
+            this.$el.addClass('animated').removeClass('fadeInUp').addClass('fadeInDown');
         },
 
         hide : function(){
-            this.$el.hide();
+//            this.$el.hide();
+            this.$el.addClass('animated').removeClass('fadeInDown').addClass('fadeInUp');
+
+//            var self = this;
+//            this.$el.one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+//                self.$el.hide();
+//            });
+
         },
 
         render : function(){

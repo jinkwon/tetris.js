@@ -3,15 +3,15 @@ function setGlobalEvents() {
         window.history.back();
     });
 
-    
+
 }
 
 app.tetris.ui.BackButton = {
     show : function(){
-        $('#_container').find('._close').show();
+        $('#_container').find('._close').show().addClass('animated').addClass('rotateIn');
     },
     hide : function(){
-        $('#_container').find('._close').hide();
+        $('#_container').find('._close').hide().removeClass('animated').removeClass('rotateIn');;
     }
 };
 

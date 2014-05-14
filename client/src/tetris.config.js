@@ -14,7 +14,7 @@ switch(app.tetris.config.sMode){
         sSrvUrl = 'srv.bdyne.net';
     break;
     default : 
-        sSrvUrl = 'localhost';
+        sSrvUrl = document.location.hostname;
     break;
 }
 

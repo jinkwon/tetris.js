@@ -2,6 +2,9 @@
  * Gameboard 메인 클래스
  */
 app.tetris.Board.init = function(htOptions){
+    if(app.tetris.Board.bInitialized){
+        return;
+    }
     
 	var htOptions = htOptions ? htOptions : {}
 //	  , oView = new app.tetris.GameView({el : $('#stage'), bEventBind : false})
@@ -129,12 +132,10 @@ app.tetris.Board.init = function(htOptions){
 	var initalize = function(){
         
         if(sEmpNo === '' || sEmpNo === null){
-			moveToLogin();
+//			moveToLogin();
 		}
 
-        app.tetris.Board.View.show();
-        
-		$( "#selectable" ).selectable();	
+		$( "#selectable" ).selectable();
 		$.blockUI({timeout: 5000});
         
         setNetworkEvents();
@@ -160,7 +161,8 @@ app.tetris.Board.init = function(htOptions){
 			oMonitorIo.emit('sendStop');
 		});
 
-        
+
+        app.tetris.Board.bInitialized = true;
 	};
 
     

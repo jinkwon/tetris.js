@@ -22,11 +22,15 @@
         },
         
         show : function(){
-            this.$el.hide().stop().fadeIn(300);
+            this.$el.show();
+            this.$el.addClass('animated').removeClass('fadeOutUp').addClass('fadeInDown');
+            this.$el.find('._welcome').addClass('animated').addClass('tada');
         },
         
         hide : function(){
-            this.$el.show().fadeOut(1000);
+//            this.$el.hide();
+            this.$el.addClass('animated').removeClass('fadeInDown').addClass('fadeOutUp');
+
         },
         
         render : function(){

@@ -23,6 +23,7 @@
             var welContainer = $('#_container');
 
             welContainer.find('._screen').hide();
+            welContainer.removeClass('animated').removeClass('fadeInDown');
 
             t.ui.Header.View.hide();
             t.ui.Footer.View.hide();
@@ -40,12 +41,18 @@
 
         moveToIndex : function(){
             this._hideAllScreens();
-            t.Menu.View.show();
+
+
+//            t.Menu.View.show();
         },
         
         moveToCredit : function(){
-            this._hideAllScreens();
+
+;
+            t.Menu.View.hide();
+
             t.Credit.View.show();
+
             t.ui.BackButton.show();
         },
         
@@ -57,6 +64,8 @@
         moveToGameBoard : function(){
             this._hideAllScreens();
             t.Board.init();
+            t.Board.View.show();
+
             t.ui.Header.View.show();
             t.ui.Footer.View.show();
         },
