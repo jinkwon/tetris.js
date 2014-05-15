@@ -7,10 +7,12 @@ app.tetris.Network.init = (function(htOptions){
 	  , oView
 	  , oGameIo
 	  , oChatIo
-	  , sEmpNo = $.cookie('sEmpNo')
-	  , sEmpNm = $.cookie('sEmpNm')
-	  , sDeptNm = $.cookie('sDeptNm');
+	  , sEmpNo = ''
+	  , sEmpNm = ''
+	  , sDeptNm = '';
 	
+    iOS = false;
+    
 	var moveToLogin = function(){
 		
 		if(iOS){
@@ -24,17 +26,12 @@ app.tetris.Network.init = (function(htOptions){
 	
     
 	var initialize = function(){
-		
-		if(sEmpNo == '' || sEmpNo == null || sEmpNm == '' || sEmpNm == null){
-			return moveToLogin();
-		}
-		
 		initGameIo();
 		initChatIo();
 	}
 	
 	var initGameIo = function(){
-		oGameIo = io.connect(app.tetris.htServer.sGame);
+		oGameIo = io.connect(app.tetris.config.sGameUrl);
 		
 		
 		oGameIo.on('connect', function(){
@@ -49,7 +46,7 @@ app.tetris.Network.init = (function(htOptions){
 		}).on('disconnect', function(){
 			//alert('서버와의 접속이 끊어졌습니다.');
 			//moveToLogin();
-			oGameIo = io.connect(app.tetris.htServer.sGame);
+			oGameIo = io.connect(app.tetris.config.sGameUrl);
 			
 		}).on('resJoin', function(htData){
 			if(htData.sStatus === 'ok'){
@@ -83,7 +80,7 @@ app.tetris.Network.init = (function(htOptions){
 	}
 	
 	var initChatIo = function(){
-		oChatIo = io.connect(app.tetris.htServer.sChat);
+		oChatIo = io.connect(app.tetris.sChatUrl);
 		
 		oChatIo.on('connect', function(){
 			oChatIo.emit('sendJoin', {
@@ -118,8 +115,6 @@ oSessionIo.on('resConnectionCount', function(htRes){
 });
 
 oSessionIo.on('connect', function () {
-    $.unblockUI();
     $('#selectable').empty();
-
     oSessionIo.emit('reqConnectionCount');
 });

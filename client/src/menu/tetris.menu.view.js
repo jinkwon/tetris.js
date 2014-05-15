@@ -21,8 +21,7 @@
         onChangeConnedUserCount: function (sValue) {
             this.$el.find('._conn_user_cnt span').html(sValue);
             this.$el.find('._conn_user_cnt')
-                .removeClass('pulse')
-                .addClass('animated').addClass('pulse').show();
+                .removeClass('pulse').hide().addClass('pulse').show();
         },
     
         onClickMenu : function(we){
@@ -32,9 +31,14 @@
         },
         
         show : function(){
+            this.render();
+            
             this.$el.show();
+            this.$el.find('._welcome').addClass('animated').addClass('pulse');
             this.$el.addClass('animated').removeClass('fadeOutUp').addClass('fadeInDown');
-            this.$el.find('._welcome').addClass('animated').addClass('tada');
+            this.$el.find('._conn_user_cnt')
+                .removeClass('pulse')
+                .addClass('animated').addClass('pulse').show();
         },
         
         hide : function(){
@@ -45,11 +49,11 @@
         
         render : function(){
             var htVars = {
-                sName : app.tetris.AccountInfo.userId,
+                sName : app.tetris.Account.Info.userId,
                 nConnectedUser : app.tetris.Network.Model.get('nConnectedUser')
             };
-            
-            TemplateManager.get(this.template, htVars, $.proxy(function(template){
+
+            app.tetris.TemplateManager.get(this.template, htVars, $.proxy(function(template){
                 this.$el.html(template);
             }, this));
     

@@ -5,35 +5,47 @@
     ul.screen_menu{
         margin-top:5px;
 
+        background-color:rgba(255,255,255,.05);
+        overflow:hidden;
+        border-radius:50%;
+        height:180px;
+        padding-top:15px;
+        border:2px solid #FFF;
+        box-shadow:1px 1px 2px rgba(0,0,0,.3), inset 1px 1px 2px rgba(0,0,0,.3);
     }
 
     .screen_menu li{
 
         font-size:15px;padding:7px;
-        border-bottom:1px dashed #EEE;
+        border-bottom:1px dashed rgba(255,255,255,.3);
         cursor:pointer;
 
         text-shadow:0 1px 2px rgba(50,50,50, 0.2);
     }
     .screen_menu li a{
-        color:#888;
+        color:#FFF;
     }
 
     .screen_menu li:first-child{
-        border-top:1px solid #CCC;
+        border-top:1px solid transparent;
     }
 
     .screen_menu li:last-child{
-        border-bottom:1px solid #CCC;
+        border-bottom:1px solid transparent;
     }
 
     .title{
         font-size:25px;
     }
 </style>
+
+<div class="_conn_user_cnt" class="animated" style="font-size:11px;border-radius:2px;position:absolute;right:0;bottom:0;padding:4px 7px;margin-top:-4px;">
+    Connected Users. <span><%=nConnectedUser%></span>
+</div>
+
         
 <div style="width: 200px;
-	height: 250px;
+	height: 280px;
 
 	position: absolute;
 	top:0;
@@ -43,20 +55,17 @@
 
 	margin: auto;
 ">
-    
+
+    <div class="_welcome" class="animated" style="font-size:100px;text-align:left;line-height:.9;color:rgba(255,255,255,.2);display:inline;position:absolute;z-index:-1;padding:4px 0px;left:-40px;top:-100px;">
+        <font style="font-size:40px;">Welcome!</font><br>
+        <%=sName%>
+    </div>
 
     <div style="text-align:center;">
         <h1 class="title">Tetris.js</h1>
     </div>
 
-    <div class="_welcome" class="animated" style="font-size:11px;border-radius:2px;position:absolute;background-color:#CCC;padding:4px 7px;margin-top:-4px;">
-        Hi! <%=sName%>
-    </div>
 
-    <div class="_conn_user_cnt" class="animated" style="font-size:10px;border-radius:2px;position:absolute;right:0;background-color:#CCC;padding:4px 7px;margin-top:-4px;">
-        Con.<span><%=nConnectedUser%></span>
-    </div>
-    
     <ul class="screen_menu">
         <li><a href="#" class="_menu_item" data-navigate="single">Single Game</a></li>
         <li class="_menu_item" data-navigate="multi"><a>Multi Game</a></li>
@@ -65,9 +74,9 @@
         <li class="_menu_item" data-navigate="logout"><a>Logout</a></li>
     </ul>
 
-    <div style="font-size:10px;color:#DDD;margin-top:10px;">
+    <div style="font-size:9px;color:#FFF;margin-top:15px;opacity:0.7;">
         Powered with MEBN Stack<br>
         by lee.jinkwon<br>
-        <a href="http://github.com">http://github.com</a>
+        <a href="http://github.com" style="color:#FFF;">http://github.com</a>
     </div>
 </div>

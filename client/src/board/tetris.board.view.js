@@ -36,7 +36,7 @@
         },
 
         render : function(){
-            TemplateManager.get(this.template, {}, $.proxy(function(template){
+            app.tetris.TemplateManager.get(this.template, {}, $.proxy(function(template){
                 this.$el.html(template);
             }, this));
 

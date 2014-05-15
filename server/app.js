@@ -24,8 +24,8 @@ var account = require('./src/account');
 account.init(oSocketIo);
 sess.init(oSocketIo);
 
-game.init(oSocketIo, monitor);
-monitor.init(oSocketIo, game);
+var oMonitorIo = monitor.init(oSocketIo);
+game.init(oSocketIo, oMonitorIo);
 
 
 

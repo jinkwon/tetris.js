@@ -17,7 +17,7 @@ app.tetris.Board.init = function(htOptions){
 	  , aSelectedGamePeople = []
 	  , sEmpNo = 'nt1234'
 	  , sEmpNm = 'names'
-	  , sDeptNm = $.cookie('sDeptNm');
+	  , sDeptNm = '';
 	
 	var iOS = ( navigator.userAgent.match(/(iPad|iPhone|iPod)/i) ? true : false );
 	

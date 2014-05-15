@@ -1,12 +1,15 @@
 app.tetris.Network.oAccountIo = io.connect(app.tetris.config.sAccountUrl);
 
 app.tetris.Network.oAccountIo
+    .on('connect_failed', function (err) {
+        console.log(err);
+    })
     .on('resLogin', function(htData){
-        app.tetris.AccountInfo.bAvail = htData.bAvail;
-        if(app.tetris.AccountInfo.bAvail){
-            app.tetris.AccountInfo.broadcast('onSuccessLogin');
+        app.tetris.Account.Info.bAvail = htData.bAvail;
+        if(app.tetris.Account.Info.bAvail){
+            app.tetris.Account.Info.broadcast('onSuccessLogin');
         } else {
-            app.tetris.AccountInfo.broadcast('onFailLogin');
+            app.tetris.Account.Info.broadcast('onFailLogin');
         }
     })
     .on('resJoin', function(htData){
@@ -17,19 +20,20 @@ app.tetris.Network.oAccountIo
             return;
         }
         
-        app.tetris.AccountInfo.on('onSuccessLogin', function () {
-            app.tetris.AccountInfo.save();
+        app.tetris.Account.Info.on('onSuccessLogin', function () {
+            app.tetris.Account.Info.save();
+            app.tetris.Menu.View.render();
             app.tetris.Router.navigate('menu', {trigger: true});
         });
         
-        app.tetris.Network.oAccountIo.emit('reqLogin', app.tetris.AccountInfo.getAccount());
+        app.tetris.Network.oAccountIo.emit('reqLogin', app.tetris.Account.Info.getAccount());
     });
 
-app.tetris.AccountInfo.load();
+app.tetris.Account.Info.load();
 
 //setInterval(function(){
 app.tetris.Network.oAccountIo.emit('reqLogin', {
-    userId : app.tetris.AccountInfo.userId,
-    passwd : app.tetris.AccountInfo.passwd
+    userId : app.tetris.Account.Info.userId,
+    passwd : app.tetris.Account.Info.passwd
 });
 //}, 1000);

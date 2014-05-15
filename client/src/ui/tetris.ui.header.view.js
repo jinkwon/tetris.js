@@ -1,6 +1,8 @@
 
 (function(){
     
+var DEFAULT_STR = 'HEADER';
+    
 var HeaderView = Backbone.View.extend({
     el : '#_container #_header',
     template : 'ui/header',
@@ -11,6 +13,8 @@ var HeaderView = Backbone.View.extend({
 
 
     initialize : function(){
+        
+        this.sTitle = DEFAULT_STR;
         this.setEvents();
         this.render();
     },
@@ -24,20 +28,32 @@ var HeaderView = Backbone.View.extend({
     },
 
     show : function(){
+        this.render();
         this.$el.show();
+
+        return this;
     },
 
     hide : function(){
         this.$el.hide();
+        this.sTitle = DEFAULT_STR;
+    },
+    
+    changeTitle : function(sTitle){
+    
+        this.sTitle = sTitle;
+        
+        return this;
     },
     
     render : function(){
         var htVars = {
+            sTitle : this.sTitle,
             nConnectedUser : this.model.get('nConnectedUser')
         };
 //        this.$el.addClass('animated').removeClass('pulse');
 
-        TemplateManager.get(this.template, htVars, $.proxy(function(template){
+        app.tetris.TemplateManager.get(this.template, htVars, $.proxy(function(template){
             this.$el.html(template);
 //            this.$el.addClass('animated').hide().addClass('pulse').show();
 

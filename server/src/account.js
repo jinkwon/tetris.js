@@ -56,7 +56,16 @@ var onReqLogin = function(htData, oAccount){
     console.log('onReqLogin'.green);
 
     isAvailLoginId(htData.userId, htData.passwd, function(bResult, doc){
-        User.where('userId', htData.userId).update({login_at : new Date});
+        
+        if(bResult){
+            User.findOne({'userId' : htData.userId}, function(err, doc){
+                if(!err){
+                    doc.login_at = new Date();
+                    doc.save();
+                }
+            });
+        }
+        
         oAccount.emit('resLogin', {bAvail : bResult});
     });
 };

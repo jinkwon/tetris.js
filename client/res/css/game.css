@@ -1,0 +1,26 @@
+
+.single_block {
+    position: absolute;
+}
+
+.single_block .empty_block {
+    background-color: transparent;
+    float: left;
+}
+
+.single_block .fill_block_16{
+    float: left;
+    background-image:url('../img/mino_next_16.png');
+}
+
+.single_block .fill_block_12{
+    float: left;
+    background-image:url('../img/mino_next_10.png');
+}
+
+.next_block{
+    height:80px;
+    border:1px solid #AAA;
+    border-radius:10px;
+    background-color:rgba(200,200,200, 0.2);
+}

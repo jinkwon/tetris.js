@@ -11,6 +11,11 @@ app.tetris = app.tetris ? app.tetris : {};
 /**
  * @namespace
  */
+app.tetris.Game = {};
+
+/**
+ * @namespace
+ */
 app.tetris.Board = {};
 
 /**
@@ -21,14 +26,21 @@ app.tetris.Menu = {};
 /**
  * @namespace
  */
-app.tetris.ui = {};
+app.tetris.Rules = {};
 
+/**
+ * @namespace
+ */
+app.tetris.Util = {};
 /**
  * @namespace
  */
 app.tetris.Account = {};
 
-app.tetris.ui.Start = {};
+/**
+ * @namespace
+ */
+app.tetris.ui = {};
 
 /**
  * @namespace
@@ -53,5 +65,5 @@ app.tetris.Credit = {};
 /**
  * @namespace
  */
-app.webgl = app.webgl ? app.webgl : {};
+app.tetris.Webgl = {};
 

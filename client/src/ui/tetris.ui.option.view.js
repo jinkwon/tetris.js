@@ -16,7 +16,7 @@ app.tetris.ui.Option.View = Backbone.View.extend({
     },
 
     render : function(){
-        TemplateManager.get(this.template, {}, $.proxy(function(template){
+        app.tetris.TemplateManager.get(this.template, {}, $.proxy(function(template){
             this.$el.html(template).show();
         }, this));
         return this;

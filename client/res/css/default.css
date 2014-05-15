@@ -6,9 +6,10 @@
 html, body {
     width: 100%;
     height: 100%
+    
 }
 html {
-    overflow-y: scroll
+    overflow-y: hidden;
 }
 body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, form, fieldset, p, button {
     margin: 0;
@@ -16,13 +17,17 @@ body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, form, fieldset, p, button
 }
 body, h1, h2, h3, h4, input, button {
     font-size: 12px;
-    color: #383d41
+    color: #FFF;
 }
 body {
     background-color: #fff;
     text-align: center;
     *word-break: break-all;
-    -ms-word-break: break-all
+    -ms-word-break: break-all;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+
+    background-size: 100% 100%;
+    background-image:url(../img/blur_img.jpg);
 }
 img, fieldset, iframe {
     border: 0 none

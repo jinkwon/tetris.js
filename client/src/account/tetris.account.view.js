@@ -29,23 +29,23 @@
             }
             
             this._updateAccount();
-            app.tetris.Network.oAccountIo.emit('reqJoin', app.tetris.AccountInfo.getAccount());
+            app.tetris.Network.oAccountIo.emit('reqJoin', app.tetris.Account.Info.getAccount());
         },
         
         _updateAccount : function(){
             var sUserId = this.$el.find('._id').val();
             var sPasswd = this.$el.find('._pw').val();
 
-            app.tetris.AccountInfo.setAccount(sUserId, sPasswd);
+            app.tetris.Account.Info.setAccount(sUserId, sPasswd);
         },
 
         _setAccountEvents: function () {
-            app.tetris.AccountInfo.on('onFailLogin', function () {
+            app.tetris.Account.Info.on('onFailLogin', function () {
                 alert('Invalid Id or Password');
             });
 
-            app.tetris.AccountInfo.on('onSuccessLogin', function () {
-                app.tetris.AccountInfo.save();
+            app.tetris.Account.Info.on('onSuccessLogin', function () {
+                app.tetris.Account.Info.save();
                 app.tetris.Router.navigate('menu', {trigger: true});
             });
         },
@@ -53,7 +53,7 @@
         _onClickLogin : function(){
             this._updateAccount();
             this._setAccountEvents();
-            app.tetris.Network.oAccountIo.emit('reqLogin', app.tetris.AccountInfo.getAccount());
+            app.tetris.Network.oAccountIo.emit('reqLogin', app.tetris.Account.Info.getAccount());
         },
         
         _onClickSplash : function(we){
@@ -62,7 +62,7 @@
                 .addClass('animated')
                 .addClass('fadeOutUp');
             
-            if(app.tetris.AccountInfo.isAuthenticated()){
+            if(app.tetris.Account.Info.isAuthenticated()){
                 app.tetris.Router.navigate('menu', {trigger : true});
             } else {
                 this.hide();
@@ -99,7 +99,7 @@
         },
         
         render : function(){
-            TemplateManager.get(this.template, {}, $.proxy(function(template){
+            app.tetris.TemplateManager.get(this.template, {}, $.proxy(function(template){
                 this.$el.html(template);
             }, this));
             return this;

@@ -7,40 +7,40 @@
     var TetrisRouter = Backbone.Router.extend({
     
         routes: {
-            '' : 'moveToStart',
+            login : "moveToStart",
             menu : "moveToMenu",
-            login : "moveToLogin",
+            
+            single : "moveToSingleGame",
+            multi : "moveToMultiGame",
+            board :'moveToGameBoard',
+            credit : "moveToCredit",
             logout : "moveToLogout",
             
-            singleGame : "moveToSingleGame",
-            multiGame : "moveToMultiGame",
-            credit : "moveToCredit",
-            board :'moveToGameBoard',
-            '*path':  'moveToIndex'
+            '':  'moveToStart'
         },
 
         execute: function(callback, args) {
             var sFrag = Backbone.history.fragment;
             
-            if(!app.tetris.AccountInfo.isAuthenticated() &&
-                sFrag !== 'login'
-            ){
-                this.navigate('login', {trigger : true});
-                return;
+            if(!app.tetris.Account.Info.isAuthenticated() && sFrag !== 'login'){
+//                this.navigate('login', {trigger : true});
+//                return;
             }
             
             if (callback) callback.apply(this, args);
         },
         
         initialize : function(){
+            this._welContainer = $('#_container');
+            
             this._hideAllScreens();
         },
 
         _hideAllScreens : function(){
-            var welContainer = $('#_container');
+            
 
-            welContainer.find('._screen').hide();
-            welContainer.removeClass('animated').removeClass('fadeInDown');
+            this._welContainer.find('._screen').hide();
+            this._welContainer.removeClass('animated').removeClass('fadeInDown');
 
             t.ui.Header.View.hide();
             t.ui.Footer.View.hide();
@@ -48,52 +48,58 @@
         },
 
         moveToStart : function(){
-            t.ui.Start.View.show();
-        },
-
-        moveToLogout : function(){
-            app.tetris.AccountInfo.clear();
-            this.navigate('login', {trigger : true});
-        },
-        
-        moveToLogin : function(){
             this._hideAllScreens();
             t.Account.View.show();
         },
-        
-        moveToIndex : function(){
-            this._hideAllScreens();
-//            t.Menu.View.show();
+
+        moveToLogout : function(){
+            app.tetris.Account.Info.clear();
+            this.navigate('login', {trigger : true});
         },
-        
-        moveToCredit : function(){
-            this._hideAllScreens();
-            t.Credit.View.show();
-            t.ui.BackButton.show();
-        },
-        
+
+
         moveToMultiGame : function(){
             this._hideAllScreens();
             t.Menu.View.show();
         },
-
+        
         moveToGameBoard : function(){
             this._hideAllScreens();
+            
+            
             t.Board.init();
             t.Board.View.show();
 
-            t.ui.Header.View.show();
+            t.ui.Header.View.changeTitle('GameBoard').show();
             t.ui.Footer.View.show();
+
+            t.ui.BackButton.show();
+        },
+
+        moveToCredit : function(){
+            this._hideAllScreens();
+            t.Credit.View.show();
+            t.ui.Header.View.changeTitle('Credit').show();
+            
+            t.ui.BackButton.show();
         },
 
         moveToSingleGame : function(){
             this._hideAllScreens();
-            new t.Menu.View();
+
+            t.ui.BackButton.show();
+            t.Game.StageView.show();
             
-            var oTetris = t.game({
-                sTargetId  : 'app',
-                bUseWebGL : iOS ? false : false
+            // Game Init
+            var oTetris = t.Game.init({
+                sTargetId  : 'game_area',
+                bUseWebGL : true
             });
+            
+            oTetris.on('ready', function(context){
+                context.oGameView.show();
+            });
+            
         },
 
         moveToMenu : function(){

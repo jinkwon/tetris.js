@@ -2,19 +2,18 @@
  * 테트리스 메인 클래스
  * Model : app.tetris.gamemodel.js
  * View : app.tetris.gameview.js
- * 모델과 뷰가 독립되어 있으며 Backbone.js 라이브러리를 기초로 한다
  * @author JK Lee
  */
-app.tetris.game = (function(htOptions){
-	var htOptions = htOptions ? htOptions : {};
+app.tetris.Game.init = (function(htOptions){
+	htOptions = htOptions ? htOptions : {};
 	
 	var oNetwork
 	  , oModel
 	  , oGameView
 	  , oUIView
-	  , sEmpNo = $.cookie('sEmpNo')
-	  , sEmpNm = $.cookie('sEmpNm')
-	  , sDeptNm = $.cookie('sDeptNm');
+	  , sEmpNo = ''
+	  , sEmpNm = ''
+	  , sDeptNm = '';
 	  	
   	var welMain = $('#main')
       , welLogin = $('#login')
@@ -22,12 +21,15 @@ app.tetris.game = (function(htOptions){
       , welGameboard = $('#gameboard')
       , welAbout = $('#about');
       
-    var st = sidetap();
 	
+    
+    
 	var replaceElement = function(){
-		$('#welcome_str').html($.cookie('sEmpNm') + '님 환영합니다');
+		$('#welcome_str').html('환영합니다');
 	};
-	
+
+    var iOS = false;
+    
 	var initialize = function(){
 	
 		var sTargetId = htOptions.sTargetId;
@@ -41,37 +43,24 @@ app.tetris.game = (function(htOptions){
 		replaceElement();
 	
 		// app.tetris.network
-		oNetwork = app.tetris.Network({
-			fRunLogin : function(){
-				resetCookie();
-				st.show_section(welLogin);
-			}
-		});
+		oNetwork = app.tetris.Network.init();
 		
-		// app.tetris.block.model.js
-		var Blocks = Backbone.Collection.extend({model : app.BlockModel});
-		var oBlockCollection = new Blocks();
-		oBlockCollection.add(app.arBlockList);
-	
 		// app.tetris.gamemodel.js
-		oModel = new app.tetris.GameModel({
-			oBlockCollection  : oBlockCollection 
-		});
+		
+//		oGameView = new app.tetris.Game.View({
+//			el : $('#' + sTargetId), 
+//			model : new app.tetris.Game.Model(),
+//			bEventBind : true,
+//			bUseWebGL : htOptions.bUseWebGL, 
+//			oWebGLView : new app.tetris.Game.WebGLView()
+////			oGameIo : oNetwork.oGameIo,
+////			oChatIo : oNetwork.oChatIo
+//		});
+//		
         
-		oModel.set('sGuid', app.tetris.util.makeGuid());
-		
-		// app.tetris.gameview.js
-		oGameView = new app.tetris.GameView({
-			el : $('#'+sTargetId), 
-			model : oModel,
-			bEventBind : true,
-			bUseWebGL : htOptions.bUseWebGL, 
-			oWebGLView : new app.WebGLView(),		// app.webgl.js
-			oGameIo : oNetwork.oGameIo,
-			oChatIo : oNetwork.oChatIo
-		});
-		
 		// app.tetris.ui.view.js
+        
+        /*
 		oUIView = new app.tetris.UIView({
 			el : $('#'+sTargetId), 
 			model : oModel, 
@@ -79,8 +68,14 @@ app.tetris.game = (function(htOptions){
 		});
 		
 		oNetwork.bindViewer(oGameView);
-		
-		setInterfaceEvents();
+		*/
+//		setInterfaceEvents();
+        
+        if(_.where(listeners, {sEvent : 'ready'}).length){
+            _.where(listeners, {sEvent : 'ready'})[0].fn({
+                oGameView : oGameView
+            });
+        }
 	};
 	
 	
@@ -117,13 +112,10 @@ app.tetris.game = (function(htOptions){
 		$('#game_area').css('height', height + 'px');
 		$('#game_area').css('width', height / 2 + 'px');
   	};
-
-	
 	
 	var setInterfaceEvents = function(){
 		
 		if($.cookie('sEmpNo') !== '' && $.cookie('sEmpNo') !== null){
-	    	st.show_section(welMain);
 		}
 	    
 	    
@@ -141,24 +133,19 @@ app.tetris.game = (function(htOptions){
 	    $(".header-button.menu").on("mousedown touchstart",st.toggle_nav);
 	    
 	    $('.info').click(function() {
-	      return st.show_section(welAbout, {
-	        animation: 'upfrombottom'
-	      });
+	      
 	    });
 	    
 	    $('.main').click(function() {
-	    	st.toggle_nav();
+	    	
 	    });
 	    
 	    $('.stp-nav a').click(function(){
-	    	st.toggle_nav();
+	    	
 	    });
 	    
 	    $('.stp-nav .gameboard').click(function(){
 	    	
-	    	st.show_section(welGameboard, {
-				animation: 'infromright'
-			});
 	    });
 	    
 	    $('.stp-nav .single_game').click(function() {
@@ -226,24 +213,32 @@ app.tetris.game = (function(htOptions){
 	    $('header .logout').click(function(){
 	    	resetCookie();
 			
-	    	return st.show_section(welLogin, {
-	        animation: 'infromleft'
-	      });
+//	    	return st.show_section(welLogin, {
+//	        animation: 'infromleft'
+//	      });
 	    });
 			
 		$('#_login').on('click', function(){
 			
-			setLogin();
+//			setLogin();
 			
 			st.show_section(welMain, {
 	        	animation: 'infromleft'
 			});
 		});
 	};
+
+//    app.tetris.TemplateManager.get('stage/stage.mobile', {}, function(sTemplate){
+//        $('#' + htOptions.sTargetId).html(sTemplate);
+//        initialize();
+//    });
 	
-	initialize();
-	
+	var listeners = [];
+    
 	return {
-		view : oGameView
+        
+        on : function(sEvent, fn){
+            listeners.push({sEvent : sEvent, fn : fn});
+        }
 	};
 });
