@@ -104,16 +104,12 @@ app.tetris.Game.View = Backbone.View.extend({
 	initAudio : function(){
 		this.htSound = {};
 		var ext = 'mp3';
-		if(buzz.isOGGSupported()){
-			ext = 'ogg';
-		}
-		this.htSound['harddrop'] = new buzz.sound('../res/sound/TE_SE_harddrop.'+ext, {preload : true});
-		this.htSound['softdrop'] = new buzz.sound('../res/sound/TE_SE_softdrop.'+ext, {preload : true});
-		this.htSound['lockdown'] = new buzz.sound('../res/sound/TE_SE_lockdown.'+ext, {preload : true});
-		this.htSound['bgm'] = new buzz.sound('sound/tetris_bgm.'+ext, {preload : true});
+
+		this.htSound['harddrop'] = new Howl({urls: ['../res/sound/TE_SE_harddrop.'+ext], volume: 0.9});
+		this.htSound['softdrop'] = new Howl({urls: ['../res/sound/TE_SE_softdrop.'+ext]});
+		this.htSound['lockdown'] = new Howl({urls: ['../res/sound/TE_SE_lockdown.'+ext]});
+		this.htSound['bgm'] = new Howl({urls: ['../res/sound/tetris_bgm.mp3'], buffer : true});
 		
-		this.htSound.harddrop.setVolume(80);
-		this.htSound.bgm.setVolume(10);
 	},
 	
 	/** 
@@ -128,9 +124,10 @@ app.tetris.Game.View = Backbone.View.extend({
 		if(sExcutor === 'play'){
 			
 			if(this.isMobile){
-				this.htSound[sSoundType].stop().play();
+				this.htSound[sSoundType].pause();
+
 			} else {
-				this.htSound[sSoundType].load().play();	
+                this.htSound[sSoundType].play();
 			}
 				
 		} else if(sExcutor === 'stop'){
@@ -513,7 +510,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		        var id = $(e.currentTarget).attr('id');    
 	
 				if(id === 'down'){
-					this.moveDown();
+					this.moveDown(true);
 				} else if(id === 'right'){
 					this.moveBlock('right');
 				} else if(id === 'left'){
@@ -591,7 +588,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		if(this.nLogicTickCnt > this.nLogicSpeed){
 			this.setGameStatus('play');
-			this.moveDown();
+			this.moveDown(true);
 			this.nLogicTickCnt -= this.nLogicSpeed;
 		}
 		
@@ -609,7 +606,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			return ;
 		}
 		
-		this.controlSound('bgm', 'play');
+//		this.controlSound('bgm', 'play');
 		
 		var wel = $(this.el);
 		
@@ -690,7 +687,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		$(document).unbind('keydown', $.proxy(this._onKeyAction, this));
 
 		this.setGameStatus('stop');
-		this.controlSound('bgm', 'stop');
+//		this.controlSound('bgm', 'stop');
 		$('.pause').remove();
 
         cancelAnimationFrame(this.ticker);
@@ -831,7 +828,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		return result;
 	},
 	
-	moveDown : function(){
+	moveDown : function(bPlaySound){
 		if(this.checkGameOver()){
 			return;
 		}
@@ -844,6 +841,10 @@ app.tetris.Game.View = Backbone.View.extend({
 			htBlockPos.nY++;
 			this.model.set({htBlockPos : htBlockPos});
 		}else{
+            if(bPlaySound){
+                this.htSound['softdrop'].pos(0.5).play();
+            }
+
 			this.setBlockToMatrix();
 			this.makeNewBlock();
 
@@ -1082,16 +1083,22 @@ app.tetris.Game.View = Backbone.View.extend({
 	 */
 	moveHardDown : function(){
         this.clearLongPress();
-        
-		setTimeout($.proxy(this.controlSound('harddrop', 'play'), this));
-		
+
+        this.$el
+            .removeClass().addClass('bounceDrops animatedDrops').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+                $(this).removeClass();
+            });
+
+		this.controlSound('harddrop', 'play');
+
 		var rst = false;
 		for(var i = 0, nRows = this.model.get('nRows'); i < nRows; i++){
 			if(rst == true){
 				this.model.get('htBlockPos').nY = -1;
 				break;
 			}else{
-				rst = this.moveDown();
+                var bPlaySound = false;
+				rst = this.moveDown(bPlaySound);
 			}
 		}
 	},
@@ -1152,7 +1159,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			break;
 			
 			case 40 :
-			this.moveDown();
+			this.moveDown(true);
 			break;
 			
 			case 90 :

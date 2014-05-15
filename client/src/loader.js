@@ -20,7 +20,7 @@ requirejs.config({
 		'glmatrix' : '../lib/glmatrix',
 		'hammer' : '../lib/hammer',
 		'jq-specialevt' : '../lib/jquery.specialevent.hammer',
-		'buzz' : '../lib/buzz'
+        'howler' : '../vendor/howler/howler.min'
 	},
 	shim : {
         // Libraries
@@ -156,7 +156,7 @@ requirejs.config({
                 'game/tetris.game.webglview',
                 
                 // LIB
-                'buzz'
+                'howler'
             ]
         },
 
