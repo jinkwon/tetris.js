@@ -1,5 +1,4 @@
 (function () {
-
     
     var t = app.tetris;
     

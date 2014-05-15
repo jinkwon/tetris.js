@@ -13,6 +13,7 @@ requirejs.config({
 		'jquery' : '../lib/jquery',
 		'jquery-ui' : '../lib/jquery-ui',
 		'jq-blockui' : '../lib/jquery.blockUI',
+        'iscroll' : '../vendor/iscroll/build/iscroll',
 		'jq-hammer' : '../lib/jquery.hammer',
 		'socket.io' : '../lib/socket.io',
 		'jq-slide' : '../lib/slides.min.jquery',
@@ -38,6 +39,7 @@ requirejs.config({
                 'backbone',
                 'socket.io',
                 'tetris.config',
+                'iscroll',
                 'common/tetris.util'
             ]
         },
@@ -204,6 +206,7 @@ requirejs([
 	'tetris.router'
     ], function(){
 
+    
     app.tetris.init();
     
 });

@@ -39,6 +39,12 @@
             this.$el.find('._conn_user_cnt')
                 .removeClass('pulse')
                 .addClass('animated').addClass('pulse').show();
+
+            var self = this;
+            setTimeout(function(){
+                self.myScroll.refresh();
+            }, 200);
+            
         },
         
         hide : function(){
@@ -55,6 +61,17 @@
 
             app.tetris.TemplateManager.get(this.template, htVars, $.proxy(function(template){
                 this.$el.html(template);
+
+                this.myScroll = new IScroll('#wrapper_scroll', {
+                    scrollX: false,
+                    scrollY: true,
+                    momentum: true,
+                    snap: 'li',
+                    click: true,
+                    snapSpeed: 400,
+                    keyBindings: true
+                });
+
             }, this));
     
             return this;

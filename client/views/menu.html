@@ -3,15 +3,8 @@
 
 
     ul.screen_menu{
-        margin-top:5px;
-
-        background-color:rgba(255,255,255,.05);
+        margin-top:18px;
         overflow:hidden;
-        border-radius:50%;
-        height:180px;
-        padding-top:15px;
-        border:2px solid #FFF;
-        box-shadow:1px 1px 2px rgba(0,0,0,.3), inset 1px 1px 2px rgba(0,0,0,.3);
     }
 
     .screen_menu li{
@@ -20,7 +13,7 @@
         border-bottom:1px dashed rgba(255,255,255,.3);
         cursor:pointer;
 
-        text-shadow:0 1px 2px rgba(50,50,50, 0.2);
+        text-shadow:1px 1px 1px rgba(50,50,50, 0.3);
     }
     .screen_menu li a{
         color:#FFF;
@@ -66,14 +59,59 @@
     </div>
 
 
-    <ul class="screen_menu">
-        <li><a href="#" class="_menu_item" data-navigate="single">Single Game</a></li>
-        <li class="_menu_item" data-navigate="multi"><a>Multi Game</a></li>
-        <li class="_menu_item" data-navigate="board"><a>Live Board</a></li>
-        <li class="_menu_item" data-navigate="credit"><a>Credit</a></li>
-        <li class="_menu_item" data-navigate="logout"><a>Logout</a></li>
-    </ul>
+    <style type="text/css">
+        * {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
 
+        #wrapper_scroll {
+            border-radius:50%;
+            background-color:rgba(255,255,255,.05);
+            border:2px solid #FFF;
+            -webkit-mask-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);
+            box-shadow:1px 1px 2px rgba(0,0,0,.3), inset 1px 1px 2px rgba(0,0,0,.3);
+        }
+
+        #scrollers {
+            position: relative;
+            z-index: 1;
+            width:100%;
+            height:197px;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            -webkit-transform: translateZ(0);
+            -moz-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            -o-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-text-size-adjust: none;
+            -moz-text-size-adjust: none;
+            -ms-text-size-adjust: none;
+            -o-text-size-adjust: none;
+            text-size-adjust: none;
+        }
+        
+    </style>
+
+    <div id="wrapper_scroll" style="height:200px;">
+        <div id="scrollers">
+        <ul class="screen_menu">
+            <li><a href="#" class="_menu_item" data-navigate="single">Single Game</a></li>
+            <li class="_menu_item" data-navigate="multi"><a>Multi Game</a></li>
+            <li class="_menu_item" data-navigate="board"><a>Live Board</a></li>
+            <li class="_menu_item" data-navigate="credit"><a>Credit</a></li>
+            <li class="_menu_item" data-navigate="logout"><a>Logout</a></li>
+        </ul>
+        </div>
+    </div>
+
+    
     <div style="font-size:9px;color:#FFF;margin-top:15px;opacity:0.7;">
         Powered with MEBN Stack<br>
         by lee.jinkwon<br>
