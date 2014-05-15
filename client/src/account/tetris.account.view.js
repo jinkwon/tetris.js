@@ -19,11 +19,25 @@
             this.welPwRe = this.$el.find('._pw_re');
             this.welId = this.$el.find('._id');
         },
-        
-        _checkAccountValidation : function(){
-            
-            if(this.welId.val() === ''){
+
+        _checkLoginValidation : function(){
+            if(this.welId.val().trim() === ''){
                 alert('Please insert Id');
+                this.welId.focus();
+                return false;
+            }
+
+            if(this.welPw.val().trim() === ''){
+                alert('Please insert Password');
+                this.welPw.focus();
+                return false;
+            }
+
+            return true;
+        },
+
+        _checkJoinValidation : function(){
+            if(!this._checkLoginValidation()){
                 return false;
             }
             
@@ -34,8 +48,11 @@
             
             return true;
         },
-
+        
         _onClickLogin : function(){
+            if(!this._checkLoginValidation()){
+                return;
+            }
             
             app.tetris.Account.Network.connect($.proxy(function(){
                 this._updateAccount();
@@ -47,16 +64,17 @@
         _onClickJoin : function(){
             
             if(this.welPwRe.css('display') === 'none'){
-                this.welPwRe.show().css('height', 0).animate({height : this.welPw.outerHeight() + 'px'}, 250);
+                this.welPwRe.show().css('height', 0).animate({height : this.welPw.outerHeight() + 'px'}, 250, 'easeOutBounce');
                 return;
             }
             
-            if(!this._checkAccountValidation()){
+            if(!this._checkJoinValidation()){
                 return;
             }
             
             app.tetris.Account.Network.connect($.proxy(function(){
                 this._updateAccount();
+                this._setAccountEvents();
                 app.tetris.Account.Network.io.emit('reqJoin', app.tetris.Account.Info.getAccount());
             }, this));
         },
@@ -79,55 +97,62 @@
         },
         
         _onClickSplash : function(we){
-            this.$el.find('._start_btn')
-                .removeClass('flipInY')
-                .addClass('animated')
-                .addClass('fadeOutUp');
+            if(this.$el.find('#_login_form').css('display') !== 'none'){
+                this._resetDisplay();
+                return;
+            }
+            
+            this.$el.find('._start_btn').removeClass('flipInY').addClass('fadeOutUp');
             
             if(app.tetris.Account.Info.isAuthenticated()){
                 app.tetris.Router.navigate('menu', {trigger : true});
             } else {
                 this.hide();
-                this.$el.find('#_login_form')
-                    .addClass('animated')
-                    .addClass('flipInX')
-                    .show();
+                this.$el.find('#_login_form').addClass('flipInX').show();
+                this.welId.focus();
             }
             
             return false;
         },
 
         hide : function(){
-            this.$el.find('._title')
-                .addClass('animated')
-                .addClass('fadeOutUp')
-                .show();
+            this.$el.find('._title').addClass('fadeOutUp').show();
         },
-        
-        show : function(){
+
+        _updateInputs: function () {
             var htAccount = app.tetris.Account.Info.getAccount();
-            
             this.$el.find('._id').val(htAccount.userId);
             this.$el.find('._pw').val(htAccount.passwd);
             this.$el.find('._pw_re').val(htAccount.passwd);
-            
-            this.$el.show();
-            this.$el.find('#_login_form').hide();
+            this.welPwRe.hide();
+        },
 
+        _playShowAnimation: function () {
             this.$el.find('._start_btn')
                 .removeClass('flipOutX')
                 .removeClass('flipOutY')
-                .addClass('animated')
                 .addClass('flipInY');
-            
+
             this.$el.find('._title')
                 .removeClass('fadeOutUp')
-                .addClass('animated')
                 .addClass('flipInX');
         },
 
+        _hideLoginForm: function () {
+            this.$el.find('#_login_form').hide();
+        },
+
+        _resetDisplay: function () {
+            this._updateInputs();
+            this._hideLoginForm();
+            this._playShowAnimation();
+        },
         
-        
+        show : function(){
+            this._resetDisplay();
+            this.$el.show();
+        },
+
         render : function(){
             app.tetris.TemplateManager.get(this.template, {}, $.proxy(function(template){
                 this.$el.html(template);
