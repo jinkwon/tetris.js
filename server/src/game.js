@@ -1,3 +1,5 @@
+Async = require('async');
+
 module.exports = {
     init : function(oSocketIo, oMonitorIo){
 

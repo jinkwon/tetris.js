@@ -2,7 +2,6 @@
     
     var t = app.tetris;
     
-    
     var TetrisRouter = Backbone.Router.extend({
     
         routes: {
@@ -19,6 +18,7 @@
         },
 
         execute: function(callback, args) {
+            app.tetris.Account.Info.load();
             var sFrag = Backbone.history.fragment;
             
             if(!app.tetris.Account.Info.isAuthenticated() && sFrag !== 'login'){
@@ -102,6 +102,7 @@
         },
 
         moveToMenu : function(){
+            
             this._hideAllScreens();
             t.Menu.View.show();
         }
@@ -113,7 +114,6 @@
 
     var sNavigation = Backbone.history.fragment ? Backbone.history.fragment : false;
 
-    
     t.Router.navigate(sNavigation, {trigger: true});    
     
 })();

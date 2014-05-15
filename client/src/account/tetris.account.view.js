@@ -14,31 +14,59 @@
             this.render();
         },
 
-        _isValid : function(){
-            if(this.$el.find('._pw').val() !== this.$el.find('._pw_re').val()){
-                console.log('not same password');
+        assignElements: function () {
+            this.welPw = this.$el.find('._pw');
+            this.welPwRe = this.$el.find('._pw_re');
+            this.welId = this.$el.find('._id');
+        },
+        
+        _checkAccountValidation : function(){
+            
+            if(this.welId.val() === ''){
+                alert('Please insert Id');
+                return false;
+            }
+            
+            if(this.welPw.val() !== this.welPwRe.val()){
+                alert('Not same password');
                 return false;
             }
             
             return true;
         },
-        
+
+        _onClickLogin : function(){
+            
+            app.tetris.Account.Network.connect($.proxy(function(){
+                this._updateAccount();
+                this._setAccountEvents();
+                app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());    
+            }, this));
+        },
+
         _onClickJoin : function(){
-            if(!this._isValid()){
+            
+            if(this.welPwRe.css('display') === 'none'){
+                this.welPwRe.show().css('height', 0).animate({height : this.welPw.outerHeight() + 'px'}, 250);
                 return;
             }
             
-            this._updateAccount();
-            app.tetris.Network.oAccountIo.emit('reqJoin', app.tetris.Account.Info.getAccount());
+            if(!this._checkAccountValidation()){
+                return;
+            }
+            
+            app.tetris.Account.Network.connect($.proxy(function(){
+                this._updateAccount();
+                app.tetris.Account.Network.io.emit('reqJoin', app.tetris.Account.Info.getAccount());
+            }, this));
         },
-        
+
         _updateAccount : function(){
             var sUserId = this.$el.find('._id').val();
             var sPasswd = this.$el.find('._pw').val();
-
             app.tetris.Account.Info.setAccount(sUserId, sPasswd);
         },
-
+        
         _setAccountEvents: function () {
             app.tetris.Account.Info.on('onFailLogin', function () {
                 alert('Invalid Id or Password');
@@ -48,12 +76,6 @@
                 app.tetris.Account.Info.save();
                 app.tetris.Router.navigate('menu', {trigger: true});
             });
-        },
-        
-        _onClickLogin : function(){
-            this._updateAccount();
-            this._setAccountEvents();
-            app.tetris.Network.oAccountIo.emit('reqLogin', app.tetris.Account.Info.getAccount());
         },
         
         _onClickSplash : function(we){
@@ -83,6 +105,12 @@
         },
         
         show : function(){
+            var htAccount = app.tetris.Account.Info.getAccount();
+            
+            this.$el.find('._id').val(htAccount.userId);
+            this.$el.find('._pw').val(htAccount.passwd);
+            this.$el.find('._pw_re').val(htAccount.passwd);
+            
             this.$el.show();
             this.$el.find('#_login_form').hide();
 
@@ -97,10 +125,13 @@
                 .addClass('animated')
                 .addClass('flipInX');
         },
+
+        
         
         render : function(){
             app.tetris.TemplateManager.get(this.template, {}, $.proxy(function(template){
                 this.$el.html(template);
+                this.assignElements();
             }, this));
             return this;
         }

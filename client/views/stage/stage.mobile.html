@@ -1,22 +1,41 @@
+<style type="text/css">
+
+    .jpad {
+        float: left;
+        font-size: 30px;
+        cursor: pointer;
+        width:40px;height:40px;
+        margin:2px;
+        color:rgba(255,255,255,1.0);
+        text-align:center;
+        text-shadow: 0 0 7px #000;
+        box-shadow:0 0 10px #000;
+        background-color:rgba(255,255,255, .2);
+        border:1px solid rgba(255,255,255, .5);
+        border-radius:15%;
+    }
+
+</style>
 <link rel="stylesheet" href="res/css/game.css"/>
+
+<div style="position:absolute;float:left;margin-left:0px;width:300px;z-index:1000;bottom:10px;display:block;">
+    <div class="jpad" id="up" style="margin-left:47px;">▲</div>
+    <div style="clear:both;">
+        <div class="jpad" id="left">◀</div><div class="jpad" id="down">▼</div>
+        <div class="jpad" id="right">▶</div>
+    </div>
+</div>
+
+<div style="position:absolute;right:0;bottom:10px;z-index:1000;">
+    <div class="jpad" id="start_touch" style="margin-right:15px;">S</div>
+    <div class="jpad" id="harddown" style="margin-right:15px;">●</div>
+</div>
+        
 <div class="container">
     <div>
         <span class="score">10000</span>
     </div>
     
-    <div style="position:absolute;float:left;margin-left:0px;width:300px;z-index:1000;bottom:10px;display:block;">
-        <div class="jpad" id="up" style="margin-left:47px;">▲</div>
-        <div style="clear:both;">
-            <div class="jpad" id="left">◀</div><div class="jpad" id="down">▼</div>
-            <div class="jpad" id="right">▶</div>
-        </div>
-    </div>
-
-    <div style="position:absolute;right:0;bottom:10px;z-index:1000;">
-        <div class="jpad" id="start_touch" style="margin-right:15px;">S</div>
-        <div class="jpad" id="harddown" style="margin-right:15px;">●</div>
-    </div>
-
     <div class="col3" style="">
         <div class="next_block">11
             <div class="next_block_container"> </div>

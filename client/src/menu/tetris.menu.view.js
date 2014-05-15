@@ -12,7 +12,7 @@
 
         initialize : function(){
             this.render();
-
+            
             app.tetris.Network.Model.on('change:nConnectedUser', $.proxy(function(d, sValue){
                 this.onChangeConnedUserCount(sValue);
             }, this));

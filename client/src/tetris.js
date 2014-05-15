@@ -16,6 +16,4 @@ app.tetris.ui.BackButton = {
 
 app.tetris.init = function(){
     setGlobalEvents();
-
-    app.tetris.Account.Info.load();
 };

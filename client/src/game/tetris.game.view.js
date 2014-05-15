@@ -560,9 +560,12 @@ app.tetris.Game.View = Backbone.View.extend({
 		return this.model.get('sGameStatus');	
 	},
 
+    /**
+     * @todo 로직 개선 & 리펙토링
+     */
 	checkLevelUp : function(){
 		
-		if(this.model.get('nScore') >= 400 && this.level < 2){
+		if(this.model.get('nScore') >= 100 && this.level < 2){
 			this.level = 2;
 			this.nLogicSpeed = 250;
 		} else if(this.model.get('nScore') >= 1000 && this.level < 3){
@@ -577,7 +580,6 @@ app.tetris.Game.View = Backbone.View.extend({
 	renderCanvas : function(){
 		this.drawMyStage();
 		this.drawMovingBlock();
-		
 		this.drawGhostBlock();
 	},
 	
@@ -590,7 +592,6 @@ app.tetris.Game.View = Backbone.View.extend({
 		if(this.nLogicTickCnt > this.nLogicSpeed){
 			this.setGameStatus('play');
 			this.moveDown();
-			this.checkLevelUp();
 			this.nLogicTickCnt -= this.nLogicSpeed;
 		}
 		
@@ -616,11 +617,11 @@ app.tetris.Game.View = Backbone.View.extend({
 			wel.find('#start_btn').hide();
 			wel.find('#stop_btn').hide();
 			wel.find('#cancel_btn').hide();
-			this.bRealGame = true;
+//			this.bRealGame = true;
 		}else{
 			wel.find('#start_btn').hide();
 			wel.find('#stop_btn').show();
-			this.bRealGame = false;
+//			this.bRealGame = false;
 		}
 		
 		this.resetData();
@@ -634,11 +635,16 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.makeNewBlock();
 		this.setKeyEvents();
 
+        this.stopAnimationLoop();
         this.startAnimationLoop();
         
 		this.tick();
 	},
 	
+    stopAnimationLoop : function(){
+        cancelAnimationFrame(this.ticker);
+    },
+    
     startAnimationLoop : function(){
         this.ticker = requestAnimationFrame($.proxy(this.startAnimationLoop, this));
         this.tick();
@@ -788,6 +794,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		this.model.setBlockPosXY(4,-1);
 		this.drawNextBlock();
+        this.checkLevelUp();
 	},
 	
 	checkCollision : function(htBlockPos, aBlock, forward){

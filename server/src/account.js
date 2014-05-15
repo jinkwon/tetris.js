@@ -14,13 +14,13 @@ var success = function(){
 var onReqJoin = function(htData, oAccount){
 
     isExistId(htData.userId, function(bResult){
-
+        console.log('onReqJoin', htData);
+        
         if(bResult === true){
             oAccount.emit('resJoin', error('Already exist Id', 400));
             return;
         }
         
-        console.log('onReqJoin', htData);
         new User({
             userId : htData.userId,
             passwd : htData.passwd,
@@ -66,7 +66,7 @@ var onReqLogin = function(htData, oAccount){
             });
         }
         
-        oAccount.emit('resLogin', {bAvail : bResult});
+        oAccount.emit('resLogin', {id : htData.userId, bAvail : bResult});
     });
 };
 
@@ -74,7 +74,9 @@ module.exports = {
     init : function(oSocketIo){
 
         oAccountIo = oSocketIo.of('/account').on('connection', function(oAccount){
-            oAccount.on('reqJoin', function(htData){
+            oAccount
+            .on('reqJoin', function(htData){
+                    console.log(htData);
                 onReqJoin(htData, oAccount);
             })
             .on('reqLogin', function(htData){
