@@ -606,7 +606,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			return ;
 		}
 		
-//		this.controlSound('bgm', 'play');
+		this.controlSound('bgm', 'play');
 		
 		var wel = $(this.el);
 		
@@ -687,7 +687,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		$(document).unbind('keydown', $.proxy(this._onKeyAction, this));
 
 		this.setGameStatus('stop');
-//		this.controlSound('bgm', 'stop');
+		this.controlSound('bgm', 'stop');
 		$('.pause').remove();
 
         cancelAnimationFrame(this.ticker);
@@ -1068,7 +1068,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			$(document).unbind('keydown', $.proxy(this.keyAction, this));
 			
 			this.htSound.bgm.stop();
-			
+
 			return false;
 		}
 	},
