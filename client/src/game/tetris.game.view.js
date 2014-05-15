@@ -54,7 +54,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.nTickCnt = 0;
 		this.tickTime = 35;
 		this.nLogicTickCnt = 0;
-		this.nLogicSpeed = 500;
+		this.nLogicSpeed = 1500;
 		this.nLongPressCnt = 0;
 		this.level = 1;
 		this.model.set('nGameStartTime', 0);
@@ -633,13 +633,17 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		this.makeNewBlock();
 		this.setKeyEvents();
-        
-		clearInterval(this.timer);
-		this.timer = setInterval($.proxy(this.tick, this), this.tickTime);
 
+        this.startAnimationLoop();
+        
 		this.tick();
 	},
 	
+    startAnimationLoop : function(){
+        this.ticker = requestAnimationFrame($.proxy(this.startAnimationLoop, this));
+        this.tick();
+    },
+    
 	debugStart : function(){
 		if(this.getGameStatus() === 'start'){
 			return ;
@@ -682,8 +686,8 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.setGameStatus('stop');
 		this.controlSound('bgm', 'stop');
 		$('.pause').remove();
-		
-		clearInterval(this.timer);
+
+        cancelAnimationFrame(this.ticker);
 		
 		$(this.el).find('#active').remove();
 		this.initMatrix();
@@ -1048,7 +1052,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		if(nCnt > 0){
 			$(this.el).find('#active').remove();
-			clearInterval(this.timer);
+            cancelAnimationFrame(this.ticker);
 			
 			this.setGameStatus('end');
 			this.createDimmedLayer('Game Over');
