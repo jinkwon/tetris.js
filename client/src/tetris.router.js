@@ -110,10 +110,4 @@
 
 
     t.Router = new TetrisRouter();
-    Backbone.history.start();
-
-    var sNavigation = Backbone.history.fragment ? Backbone.history.fragment : false;
-
-    t.Router.navigate(sNavigation, {trigger: true});    
-    
 })();

@@ -106,12 +106,26 @@
                 this._initTimer();
                 this.startTimer();
             } else if(sGameStatus === 'play'){
+                $('.field .pause').remove();
                 this.startTimer();
             } else if(sGameStatus === 'pause'){
                 this.stopTimer();
+                this.createDimmedLayer('Pause');
+                
             } else if(sGameStatus === 'stop'){
                 this._initTimer();
-            } else {
+                this.createDimmedLayer('Hello TETRIS');
+                
+            } else if(sGameStatus === 'ready'){
+                this.createDimmedLayer('Ready');
+                
+            } else if(sGameStatus === 'game'){
+                this.createDimmedLayer('Already Started');
+                
+            } else if(sGameStatus === 'end'){
+                this.createDimmedLayer('Game Over');
+                
+            }else {
                 this.stopTimer();
             }
         },
@@ -190,6 +204,23 @@
                 }
                 
             });
+        },
+
+
+        /**
+         * 딤드 레이어 생성용 메서드
+         * @param {String} string
+         */
+        createDimmedLayer : function(string){
+            $('.field .pause').remove();
+            $('#_dimmed_section').prepend(
+                '<div class="pause" style="z-index:50;width:100%;height:100%;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
+                    '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>');
+
+            // $('#other_1').parent().find('.pause').remove();
+            // $('#other_1').parent().prepend(
+            // '<div class="pause" style="z-index:500;width:100px;height:200px;margin:13px;margin-top:15px;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
+            // '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:70px;">'+string+'</div></div>');
         }
     });
 

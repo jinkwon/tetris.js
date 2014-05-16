@@ -18,6 +18,7 @@
 </style>
 <link rel="stylesheet" href="res/css/game.css"/>
 
+        
 <div style="position:absolute;float:left;margin-left:0px;width:300px;z-index:1000;bottom:10px;display:block;">
     <div class="jpad" id="up" style="margin-left:47px;">▲</div>
     <div style="clear:both;">
@@ -31,13 +32,37 @@
     <div class="jpad" id="harddown" style="margin-right:15px;">●</div>
 </div>
         
+<div id="_dimmed_section"></div>
+        
 <div class="container">
-    <div>
+
+    <div style="position:absolute;top:50px;color:rgba(255,255,255,.2);text-align:left;left:50px;font-size:50px;z-index:-1;">
+        Score<br>
         <span class="score">10000</span>
     </div>
     
+    <div style="height:100px;">
+
+        <div style="width:100%;border-top:5px dotted rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.8);"></div>
+        
+        <div style="position:absolute;left:50%;border-left:1px solid #FFF;margin-top:2px;">
+            <div style="width: 0;margin-left:-6px;margin-top:-1px;height: 0;border-left: 5px solid transparent;border-right: 5px solid transparent;border-bottom: 5px solid #FFF;"></div>
+            <div style="padding:1px 3px;border-radius:0 5px 0 0;text-align:left;margin-top:8px;border-bottom:1px solid #FFF;font-size:11px;background-color:rgba(255,255,255,.3)">
+                You are <b>50st</b>
+            </div>
+        </div>
+            
+        <div style="opacity:.5;">
+            <div style="float:left;margin:5px 0 0 0;-webkit-transform:rotate(90deg);">1st</div>
+            
+            <div style="float:right;margin:5px 0 0 0;-webkit-transform:rotate(90deg);">last</div>
+        </div>
+    </div>
+    
+    
+    
     <div class="col3" style="">
-        <div class="next_block">11
+        <div class="next_block">
             <div class="next_block_container"> </div>
         </div>
         <div class="next_block_group">
@@ -63,7 +88,7 @@
     <div class="field_container" id="touch_area" style="background:none;z-index:0;position:absolute;top:50px;width:100%;margin:auto;">
         <div class="field">
             <div id="debug_area" class="debug_area"> </div>
-            <canvas id="game_area" class="game_area" width="220" height="448" style="width:220px;height:448px;box-shadow:0 0 10px #AAA;border: 1px solid #555;background-color:transparent;border-radius:10px;margin-left:75px;"> </canvas>
+            <canvas id="game_area" class="game_area" width="220" height="448" style="width:200px;height:400px;box-shadow:0 0 10px #AAA;border: 1px solid #555;background-color:transparent;border-radius:10px;"> </canvas>
             <canvas id="game_area2" class="game_area" width="220" height="448" style="width:220px;height:100%;position:absolute;border:1px dashed #555;z-index:100;left:0px;display:none;"> </canvas>
         </div>
     </div>

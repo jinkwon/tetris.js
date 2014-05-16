@@ -29,7 +29,7 @@ var HeaderView = Backbone.View.extend({
 
     show : function(){
         this.render();
-        this.$el.show();
+        this.$el.addClass('animated').addClass('fadeInUp').show();
 
         return this;
     },

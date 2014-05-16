@@ -109,7 +109,6 @@
             } else {
                 this.hide();
                 this.$el.find('#_login_form').addClass('flipInX').show();
-                this.welId.focus();
             }
             
             return false;

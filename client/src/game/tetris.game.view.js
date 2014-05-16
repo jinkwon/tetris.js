@@ -105,11 +105,12 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.htSound = {};
 		var ext = 'mp3';
 
-		this.htSound['harddrop'] = new Howl({urls: ['../res/sound/TE_SE_harddrop.'+ext], volume: 0.9});
+		this.htSound['harddrop'] = new Howl({urls: ['../res/sound/TE_SE_harddrop.'+ext], volume: 0.6});
 		this.htSound['softdrop'] = new Howl({urls: ['../res/sound/TE_SE_softdrop.'+ext]});
-		this.htSound['lockdown'] = new Howl({urls: ['../res/sound/TE_SE_lockdown.'+ext]});
-//		this.htSound['bgm'] = new Howl({urls: ['../res/sound/tetris_bgm.mp3'], buffer : true});
-		
+		this.htSound['lockdown'] = new Howl({urls: ['../res/sound/TE_SE_lockdown.'+ext], volume: 0.3});
+		this.htSound['bgm'] = new Howl({urls: ['../res/sound/FF_8_OST.mp3'], volume : 0.1, format : 'mp3'});
+
+        this.htSound['bgm'].play();
 	},
 	
 	/** 
@@ -226,7 +227,7 @@ app.tetris.Game.View = Backbone.View.extend({
 	 */
 	renderDOM : function(){
 		var nScore = this.model.get('nScore');
-		$('.score').empty().html(nScore + '점');
+		$('.score').empty().html(nScore);
 	},
 	
 	/**
@@ -490,6 +491,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		this.htKeyState = {};
 
+        return;
 		$(document)
 			.unbind('keydown keyup', this._fnKeyEvent)
 			.bind('keydown keyup', this._fnKeyEvent);
@@ -670,12 +672,10 @@ app.tetris.Game.View = Backbone.View.extend({
 	
 	pause : function(){
 		if(this.model.get('sGameStatus') == 'pause'){
-			$('.field .pause').remove();
 			this.setGameStatus('play');
 			this.timer = setInterval($.proxy(this.tick, this), this.tickTime);
 		}else{
 			clearTimeout(this.timer);
-			this.createDimmedLayer('Pause');
 			this.setGameStatus('pause');
 		}
 	},
@@ -697,8 +697,6 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.drawMyStage();
 		this.resetData();
 		
-		this.createDimmedLayer('Hello TETRIS');
-		
 		$('#debug_area').empty().hide();
 	},
 
@@ -714,8 +712,9 @@ app.tetris.Game.View = Backbone.View.extend({
 		wel.find('#cancel_btn').show();
 		wel.find('#stop_btn').hide();
 				
-		this.createDimmedLayer('Ready');
-		this.oGameIo.emit('reqReady');		
+		this.oGameIo.emit('reqReady');
+
+        this.setGameStatus('ready');
 	},
 	
 	resReady : function(htData){
@@ -728,7 +727,6 @@ app.tetris.Game.View = Backbone.View.extend({
 			wel.find('#cancel_btn').hide();
 			wel.find('#stop_btn').show();
 			
-			this.createDimmedLayer('Already Started');
 		}else{
 			var wel = $(this.el);
 			wel.find('#start_btn').show();
@@ -736,8 +734,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			wel.find('#cancel_btn').hide();
 			wel.find('#stop_btn').show();
 			
-			alert('resReady에서 오류가 났습니다.')
-			this.createDimmedLayer('Try again');
+			alert('resReady에서 오류가 났습니다.');
 		}
 	},
 	
@@ -749,7 +746,6 @@ app.tetris.Game.View = Backbone.View.extend({
 		wel.find('#stop_btn').hide();
 				
 		this.oGameIo.emit('reqCancel');
-		this.createDimmedLayer('Hello TETRIS');
 	},
 	
 	resCancel : function(htData){
@@ -842,7 +838,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			this.model.set({htBlockPos : htBlockPos});
 		}else{
             if(bPlaySound){
-                this.htSound['softdrop'].pos(0.5).play();
+                this.htSound['lockdown'].play();
             }
 
 			this.setBlockToMatrix();
@@ -1063,7 +1059,6 @@ app.tetris.Game.View = Backbone.View.extend({
             cancelAnimationFrame(this.ticker);
 			
 			this.setGameStatus('end');
-			this.createDimmedLayer('Game Over');
 			
 			$(document).unbind('keydown', $.proxy(this.keyAction, this));
 			
@@ -1232,22 +1227,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 		
 		$('#debug_area').show().empty().append(str.join(''));
-	},
-	
-	/**
-	 * 딤드 레이어 생성용 메서드 
- 	 * @param {String} string
-	 */
-	createDimmedLayer : function(string){
-		$('.field .pause').remove();
-		$('.field').prepend(
-			'<div class="pause" style="z-index:500;width:100%;height:448px;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
-			'<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>');
-			
-		// $('#other_1').parent().find('.pause').remove();
-		// $('#other_1').parent().prepend(
-			// '<div class="pause" style="z-index:500;width:100px;height:200px;margin:13px;margin-top:15px;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
-			// '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:70px;">'+string+'</div></div>');
 	}
+	
 
 });

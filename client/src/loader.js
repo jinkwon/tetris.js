@@ -180,6 +180,10 @@ requirejs.config({
             deps : ['namespace']
         },
         
+        'ui/tetris.ui.backbutton' : {
+            deps : ['namespace']
+        },
+        
         'tetris.router' : {
             deps : [
                 'tetris',
@@ -195,6 +199,7 @@ requirejs.config({
                 'game/tetris.game.stageview',
                 'credit/tetris.credit.view',
                 
+                'ui/tetris.ui.backbutton',
                 'ui/tetris.ui.footer.view',
                 'ui/tetris.ui.header.view'
             ]
