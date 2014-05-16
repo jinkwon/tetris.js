@@ -9,12 +9,19 @@ var onReqConnectionCount = function(){
     var htData = {
         nConnectedUser : aConnectedPeople.length,
         sId : this.id,
+        nRegisterUser : 0,
         nSingleGameUser : 10,
         nReadyGameUser : 10
     };
 
     console.info(('onReqConnectionCount').blue, htData);
-    oSessionIo.emit('resConnectionCount', htData);
+    
+    User.find({}, function(err, doc){
+        
+        htData.nRegisterUser = doc.length;
+        oSessionIo.emit('resConnectionCount', htData);    
+    })
+    
 };
 
 var onDisconnect = function(){

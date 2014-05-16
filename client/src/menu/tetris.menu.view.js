@@ -56,7 +56,8 @@
         render : function(){
             var htVars = {
                 sName : app.tetris.Account.Info.userId,
-                nConnectedUser : app.tetris.Network.Model.get('nConnectedUser')
+                nConnectedUser : app.tetris.Network.Model.get('nConnectedUser'),
+                nRegisterUser : app.tetris.Network.Model.get('nRegisterUser')
             };
 
             app.tetris.TemplateManager.get(this.template, htVars, $.proxy(function(template){

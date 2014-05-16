@@ -111,7 +111,10 @@ var oSessionIo = app.tetris.Network.oSessionIo;
 
 oSessionIo.on('resConnectionCount', function(htRes){
     console.log(htRes);
-    app.tetris.Network.Model.set('nConnectedUser', htRes.nConnectedUser);
+    app.tetris.Network.Model.set({
+        'nConnectedUser' : htRes.nConnectedUser,
+        'nRegisterUser' : htRes.nRegisterUser
+    });
 });
 
 oSessionIo.on('connect', function () {

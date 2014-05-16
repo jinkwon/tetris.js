@@ -3,7 +3,8 @@
     var networkModelSingleTon = Backbone.Model.extend({
        
         defaults : {
-            nConnectedUser : 0
+            nConnectedUser : 0,
+            nRegisterUser : 0
         },
         
         initialize : function(){

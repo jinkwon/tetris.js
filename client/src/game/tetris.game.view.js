@@ -108,7 +108,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.htSound['harddrop'] = new Howl({urls: ['../res/sound/TE_SE_harddrop.'+ext], volume: 0.9});
 		this.htSound['softdrop'] = new Howl({urls: ['../res/sound/TE_SE_softdrop.'+ext]});
 		this.htSound['lockdown'] = new Howl({urls: ['../res/sound/TE_SE_lockdown.'+ext]});
-		this.htSound['bgm'] = new Howl({urls: ['../res/sound/tetris_bgm.mp3'], buffer : true});
+//		this.htSound['bgm'] = new Howl({urls: ['../res/sound/tetris_bgm.mp3'], buffer : true});
 		
 	},
 	
@@ -606,7 +606,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			return ;
 		}
 		
-		this.controlSound('bgm', 'play');
+//		this.controlSound('bgm', 'play');
 		
 		var wel = $(this.el);
 		
@@ -687,7 +687,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		$(document).unbind('keydown', $.proxy(this._onKeyAction, this));
 
 		this.setGameStatus('stop');
-		this.controlSound('bgm', 'stop');
+//		this.controlSound('bgm', 'stop');
 		$('.pause').remove();
 
         cancelAnimationFrame(this.ticker);
@@ -1067,7 +1067,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			
 			$(document).unbind('keydown', $.proxy(this.keyAction, this));
 			
-			this.htSound.bgm.stop();
+//			this.htSound.bgm.stop();
 
 			return false;
 		}
