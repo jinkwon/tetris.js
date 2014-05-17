@@ -2,7 +2,6 @@
 .settings
 .git
 .jshintrc
-dist
 public
 vendor
 node_modules
