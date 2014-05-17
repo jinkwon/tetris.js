@@ -1,0 +1,7 @@
+.project
+.settings
+.git
+.jshintrc
+public
+vendor
+node_modules

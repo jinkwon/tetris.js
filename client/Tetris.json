@@ -1,0 +1,25 @@
+{
+  "name": "Tetris",
+  "title": "Tetris",
+  "description": "New Project",
+  "version": "0.1.0",
+  "homepage": "https://github.com/Jinkwon/tetris.js",
+  "author": {
+    "name": "LeeJinKwon",
+    "email": "lee.jinkwon@nhn.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Jinkwon/tetris.js.git"
+  },
+  "bugs": "https://github.com/Jinkwon/tetris.js/issues",
+  "licenses": [
+    {
+      "type": "MIT"
+    }
+  ],
+  "dependencies": {
+    "jquery": "*"
+  },
+  "keywords": []
+}

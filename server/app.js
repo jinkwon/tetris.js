@@ -1,18 +1,12 @@
-var console = require('clog'),
-	SocketIo = require('socket.io'),
-	Async = require('async');
+require('./src/db.js');
 
-var oSocketIo = SocketIo.listen(8888),
-	aRoom = [],
-	aConnectedPeople = [],
-	aGamePeople = [],
-	bRealGame = false,
-	htSelectedGamePeople = {},
-	htMonitor = {};
+var console = require('clog'),
+    SocketIo = require('socket.io');
+
+var oSocketIo = SocketIo.listen(process.env.port || 8888);
 
 oSocketIo.configure(function(){
-
-	oSocketIo.enable('browser client minification');  // send minified client
+    oSocketIo.enable('browser client minification');  // send minified client
     oSocketIo.enable('browser client etag');          // apply etag caching logic based on version number
     oSocketIo.enable('browser client gzip');          // gzip the file
     oSocketIo.enable('browser client etag');
@@ -22,285 +16,107 @@ oSocketIo.configure(function(){
     //oSocketIo.set('transports', htSocketConfig.aTransports);
 });
 
-var oMonitorIo = oSocketIo.of('/monitor').on('connection', function(oMonitor){
-	pushPeopleInfo();
-	htMonitor[oMonitor.id] = oMonitor;
-	
-	oMonitor.on('disconnect', function(){
-		// htSelectedGamePeople.splice(htSelectedGamePeople.indexOf(oMonitor.id), 1);
-		delete htSelectedGamePeople[oMonitor.id];
-		delete htMonitor[oMonitor.id];
-	}).on('reqAdmin', function(sEmpNo){
-		var sStatus = '';
-		sEmpNo = sEmpNo + '';
-		sEmpNo = sEmpNo.toUpperCase();
-		
-		switch(sEmpNo){
-			case 'NT10588':
-			case 'NT10725':
-			
-				if(bRealGame){
-					sStatus = 'game';
-				}else{
-					sStatus = 'ok';
-				}
-				break;
-			default :
-				sStatus = 'no';
-				break;
-		}
-		oMonitor.emit('resAdmin', sStatus);
-	}).on('sendStart', function(){
-		bRealGame = true;
-		oGameIo.in('game').emit('pushStart');
-	}).on('sendStop', function(){
-		bRealGame = false;
-		oGameIo.in('game').emit('pushStop');
-	}).on('sendSelectedGamePeople', function(aSelectedGamePeople){
-		htSelectedGamePeople[oMonitor.id] = aSelectedGamePeople;
-		
-		
-	});
+var sess = require('./src/session');
+var game = require('./src/game');
+var monitor = require('./src/monitor');
+var account = require('./src/account');
+
+sess.init(oSocketIo);
+account.init(oSocketIo, sess);
+
+
+var oMonitorIo = monitor.init(oSocketIo);
+game.init(oSocketIo, oMonitorIo);
+
+
+
+
+
+
+
+
+
+var express = require('express');
+var path = require('path');
+var favicon = require('static-favicon');
+var logger = require('morgan');
+var ejs = require('ejs');
+var cookieParser = require('cookie-parser');
+var session = require('express-session');
+var bodyParser = require('body-parser');
+
+var routes = require('./routes/index');
+var users = require('./routes/users');
+
+var app = express();
+
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+
+require('./src/oauth')(app);
+
+app.use(favicon());
+app.use(logger('dev'));
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded());
+app.use(cookieParser());
+app.use(session({
+    secret: 'keyboard cat'
+    , key: 'sid'
+}));
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use('/', function(req, res){
+    //
+    // 세션정보를 확인한다.
+    //
+    console.log(req.session);
+    
+    //
+    // req.user 는 아래에서 설명한다.
+    // 처음에 undefined 이나, 로그인 성공하면, profile 정보가 저장된다.
+    //
+//    console.log(req.user);
+   
+    res.render('index', { });
 });
 
-var oGameIo = oSocketIo.of('/game').on('connection', function(oGame){
-	oGame.on('reqJoin', function(htData){
-		var htRes = clone(htData);
-		if(isExistingUser(htData.sEmpNo)){
-			htRes.sStatus = 'exist';
-			console.debug('exist', htData.sEmpNo, oGame.id);
-		}else{
-			if(bRealGame === false){
-				htRes.sStatus = 'ok';
-				htData.sGameId = oGame.id;
-				oGame['htData'] = htData;
-				aConnectedPeople.push(htData);
-				pushPeopleInfo();	
-			}else{
-				htRes.sStatus = 'game';
-			}					
-		}		
-		oGame.emit('resJoin', htRes);
-		
-		console.debug('aConnectedPeople', aConnectedPeople);
-		//console.debug('aGamePeople', aConnectedPeople);
-	}).on('reqReJoin', function(htData){
-		var htRes = clone(htData);
-		
-		if(isExistingUser(htData.sEmpNo)){
-			var nUserIdx = getUserIndexFromArrayByEmpNo(aConnectedPeople, htData.sEmpNo);
-			
-			removeUserFromArray(aConnectedPeople, nUserIdx, function(){
-				console.log('removed', htData);
-			});
-			
-			if(bRealGame === false){
-				htRes.sStatus = 'ok';
-				htData.sGameId = oGame.id;
-				oGame['htData'] = htData;
-				aConnectedPeople.push(htData);
-				pushPeopleInfo();	
-			}else{
-				htRes.sStatus = 'game';
-			}
-	
-		}else{
-			if(bRealGame === false){
-				htRes.sStatus = 'ok';
-				htData.sGameId = oGame.id;
-				oGame['htData'] = htData;
-				aConnectedPeople.push(htData);
-				pushPeopleInfo();	
-			}else{
-				htRes.sStatus = 'game';
-			}					
-		}		
-		oGame.emit('resJoin', htRes);
-		
-		console.debug('aConnectedPeople', aConnectedPeople);
-		//console.debug('aGamePeople', aConnectedPeople);
-	}).on('reqReady', function(htData){
-		var htRes = {};
-		if(bRealGame){
-			htRes.sStatus = 'game';
-		}else{
-			if(ready(oGame)){
-				htRes.sStatus = 'ok';	
-			}else{
-				htRes.sStatus = 'err';
-			}
-		}
-		oGame.emit('resReady', htRes);
-	}).on('reqCancel', function(htData){
-		var htRes = {};
-		if(bRealGame){
-			htRes.sStatus = 'game';
-		}else{
-			cancelFromReady(oGame);
-			htRes.sStatus = 'ok';
-		}
-		oGame.emit('resCancel', htRes);
-	}).on('disconnect', function(){
-		if(oGame.id){
-			disconnect(oGame.id);
-		}
-	}).on('sendGameInfo', function(htData){
-		
-		if(!htData){
-			console.log('Error 113 Line : ', htData);
-			return false;
-		}
-		putGameScore(oGame, htData.nScore);
-		pushGameInfo(oGame.htData.sEmpNo, oGame.htData.sEmpNm, htData.aMatrix, htData.nScore);
-	});
+/// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+    var err = new Error('Not Found');
+    err.status = 404;
+    next(err);
+});
+
+/// error handlers
+
+// development error handler
+// will print stacktrace
+if (app.get('env') === 'development') {
+    app.use(function(err, req, res, next) {
+        res.status(err.status || 500);
+        res.render('error', {
+            message: err.message,
+            error: err
+        });
+    });
+}
+
+// production error handler
+// no stacktraces leaked to user
+app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+        message: err.message,
+        error: {}
+    });
 });
 
 
-var oChatIo = oSocketIo.of('/chat').on('connection', function(oChat){
-	oChat.on('sendJoin', function(htData){
-		// console.debug('sendJoin', htData);
-	});
-});
 
-var pushGameInfo = function(sEmpNo, sEmpNm, aMatrix, nScore){
-	for(sKey in htSelectedGamePeople){
-		if(htSelectedGamePeople[sKey].length > 0){
-			for(var i=0, nCnt=htSelectedGamePeople[sKey].length; i<nCnt; i++){
-				if(htSelectedGamePeople[sKey][i] === sEmpNo){
-					htMonitor[sKey].emit('pushGameInfo', {
-						sEmpNo : sEmpNo,
-						sEmpNm : sEmpNm,
-						aMatrix : aMatrix,
-						nScore : nScore
-					});
-				}
-			}
-		}
-	}
-};
+module.exports = app;
 
-var putGameScore = function(oGame, nScore){
-	var nUserIndex = getUserIndexFromArrayByGameId(aGamePeople, oGame.id);
-	if(nUserIndex > -1){
-		aGamePeople[nUserIndex]['nScore'] = parseInt(nScore, 10);
-		pushPeopleInfo(); // 아무래도 부하예상,,,,1초나 0.5초마다 한번씩 보내도록 해야 할것 같음
-	}
-};
+app.listen(3030);
 
-var pushPeopleInfo = function(){
-	oMonitorIo.emit('pushPeopleInfo', {
-		aConnectedPeople : aConnectedPeople,
-		aGamePeople : aGamePeople,
-		bRealGame : bRealGame
-	});
-};
-
-var disconnect = function(sGameId){
-	Async.waterfall([
-		function(fCb){
-			removeUserFromArray(aConnectedPeople, sGameId, function(){
-				fCb(null);
-			});		
-		},
-		function(fCb){
-			removeUserFromArray(aGamePeople, sGameId, function(){
-				fCb(null);
-			});		
-		}
-	], function(err, aResult){
-		pushPeopleInfo();
-	});
-};
-
-var removeUserFromArray = function(aArray, sGameId, fCb){
-	var nUserIndex = getUserIndexFromArrayByGameId(aArray, sGameId);
-	if(nUserIndex > -1){
-		aArray.splice(nUserIndex, 1);
-	}
-	(fCb = fCb || function () {})();
-};
-
-var isExistingUser = function(sEmpNo){
-	if(getUserIndexFromArrayByEmpNo(aConnectedPeople, sEmpNo) > -1){
-		return true;
-	}else{
-		return false;
-	}
-};
-
-var ready = function(oGame){
-	var htUser = getUserFromArrayByGameId(aConnectedPeople, oGame.id);
-	if(!htUser){
-		return false;
-	}else{
-		aGamePeople.push(htUser);
-		oGame.join('game');
-		pushPeopleInfo();
-		return true;
-	}
-};
-
-var cancelFromReady = function(oGame){
-	oGame.leave('game');
-	removeUserFromArray(aGamePeople, oGame.id, function(){
-		pushPeopleInfo();
-	});
-}
-
-var getUserIndexFromArrayByEmpNo = function(aArray, sEmpNo){
-	for(var i=0, nCount=aArray.length; i<nCount; i++){
-		if(aArray[i]['sEmpNo'] === sEmpNo){
-			return i;
-		}
-	}
-	return -1;
-};
-
-var getUserIndexFromArrayByGameId = function(aArray, sGameId){
-	for(var i=0, nCount=aArray.length; i<nCount; i++){
-		if(aArray[i]['sGameId'] === sGameId){
-			return i;
-		}
-	}
-	return -1;
-};
-
-var getUserFromArrayByGameId = function(aArray, sGameId){
-	var nIndex = getUserIndexFromArrayByGameId(aArray, sGameId);
-	if(nIndex > -1){
-		return aArray[nIndex]; 
-	}
-	return false;
-}
-
-function clone(obj) {
-    if (typeof obj !== 'object' || obj == null) {
-        return obj;
-    }
- 
-    var c = obj instanceof Array ? [] : {};
- 
-    for (var i in obj) {
-        var prop = obj[i];
- 
-        if (typeof prop == 'object') {
-           if (prop instanceof Array) {
-               c[i] = [];
- 
-               for (var j = 0; j < prop.length; j++) {
-                   if (typeof prop[j] != 'object') {
-                       c[i].push(prop[j]);
-                   } else {
-                       c[i].push(clone_obj(prop[j]));
-                   }
-               }
-           } else {
-               c[i] = clone(prop);
-           }
-        } else {
-           c[i] = prop;
-        }
-    }
- 
-    return c;
-}
