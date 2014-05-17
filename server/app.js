@@ -21,8 +21,9 @@ var game = require('./src/game');
 var monitor = require('./src/monitor');
 var account = require('./src/account');
 
-account.init(oSocketIo);
 sess.init(oSocketIo);
+account.init(oSocketIo, sess);
+
 
 var oMonitorIo = monitor.init(oSocketIo);
 game.init(oSocketIo, oMonitorIo);

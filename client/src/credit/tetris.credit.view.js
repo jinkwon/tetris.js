@@ -43,10 +43,8 @@
             var htVars = {
             };
 
-            app.tetris.TemplateManager.get(this.template, htVars, $.proxy(function(template){
-                this.$el.html(template);
-
-            }, this));
+            var template = app.tetris.TemplateManager.get(this.template, htVars);
+            this.$el.html(template);
 
             return this;
         }

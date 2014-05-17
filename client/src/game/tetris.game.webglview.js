@@ -7,7 +7,7 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		nHeight : 0,
 		arCameraEye : [0.0,0.0,0.0],
 		arCameraLookAt : [0.0,0.0,0.0],
-		fAngleYZ : 0,
+		fAngleYZ : 100,
 		fAngleXZ : 0,
 		fCameraDistance : 0,
 		bCameraPerspective : false,
@@ -15,20 +15,21 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		ctx : null,
 		bWebGLAvailable : false
 	},
-	
+
 	isAvailWebGL : function(){
-		return this.bWebGLAvailable;
+		return !!window.WebGLRenderingContext;
 	},
-	
+
 	initCanvas : function(){
-		var canvas = document.getElementById('game_area2');
-		this.nWidth = canvas.width;
-		this.nHeight = canvas.height;
-		this.arCameraEye = [0.0,0.0,100.0];
+        var elCanvas = this.$el[0];
+
+		this.nWidth = elCanvas.width;
+		this.nHeight = elCanvas.height;
+		this.arCameraEye = [0.0,0.0,0.0];
 		this.arCameraLookAt = [0.0,0.0,0.0];
 		this.fAngleYZ = 0.0;
-		this.fAngleXZ = Math.PI/2.0;
-		this.fCameraDistance = 900.0;
+		this.fAngleXZ = Math.PI / 2.0;
+		this.fCameraDistance = 100.0;
 		this.bCameraPerspective = false;
 		this.nFov = 45;
 
@@ -36,24 +37,28 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		this.ctx = null;
 		for(var index=0; index<names.length; ++index){
 			try{
-				this.ctx = canvas.getContext(names[index]);
+				this.ctx = elCanvas.getContext(names[index]);
 			}
 			catch(e){
 				break;
 			}
 			if(this.ctx != null) break;
 		}
-		
+
 		if(this.ctx == null){
 			this.bWebGLAvailable = false;
 		} else {
 			this.bWebGLAvailable = true;
 		}
+
+        this.initResource();
+		this.initShader();
+		this.clear();
 	},
-	
+
 	initResource : function(){
 		var gl = this.ctx;
-		
+
 		/////////////////////////////////////////////////////////////////////////////////////// VertexData
 		var vertices = [-0.5,-0.5,0.5,	0.5,-0.5,0.5,	0.5,0.5,0.5,	-0.5,0.5,0.5,	// Front face
 						-0.5,-0.5,-0.5,	-0.5,0.5,-0.5,	0.5,0.5,-0.5,	0.5,-0.5,-0.5,	// Back face
@@ -68,7 +73,7 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		this.gl_VB_Position_Cube.itemSize = 3;
         this.gl_VB_Position_Cube.numItems = 24;
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
-		
+
 		var colors = [	1.0,1.0,1.0,1.0,	1.0,1.0,1.0,1.0,	1.0,1.0,1.0,1.0,	1.0,1.0,1.0,1.0,	// Front face
 						1.0,1.0,1.0,1.0,	1.0,1.0,1.0,1.0,	1.0,1.0,1.0,1.0,	1.0,1.0,1.0,1.0,	// Back face
 						1.0,1.0,1.0,1.0,	1.0,1.0,1.0,1.0,	1.0,1.0,1.0,1.0,	1.0,1.0,1.0,1.0,	// Top face
@@ -82,7 +87,7 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		this.gl_VB_Color_Cube.itemSize = 4;
         this.gl_VB_Color_Cube.numItems = 24;
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
-		
+
 		var cordinate = [0.0,0.0,	1.0,0.0,	1.0,1.0,	0.0,1.0,	// Front face
 						0.0,0.0,	1.0,0.0,	1.0,1.0,	0.0,1.0,	// Back face
 						0.0,0.0,	1.0,0.0,	1.0,1.0,	0.0,1.0,	// Top face
@@ -96,7 +101,7 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		this.gl_VB_Cordinate_Cube.itemSize = 2;
         this.gl_VB_Cordinate_Cube.numItems = 24;
 		gl.bindBuffer(gl.ARRAY_BUFFER, null);
-		
+
 		/////////////////////////////////////////////////////////////////////////////////////// IndexData
 		var indices = [	0,1,2,		0,2,3,    // Front face
 						4,5,6,		4,6,7,    // Back face
@@ -113,18 +118,19 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
 
 		/////////////////////////////////////////////////////////////////////////////////////// Texture
+
 		this.gl_Tex_Cube = gl.createTexture();
-		WebGLUtil.loadImage(gl, this.gl_Tex_Cube, 'img/mino_main2.png');
+		WebGLUtil.loadImage(gl, this.gl_Tex_Cube, 'res/img/mino_main2.png');
 	},
-	
+
 	initShader : function(){
 		var gl = this.ctx;
-		
+
 		/////////////////////////////////////////////////////////////////////////////////////// Shader
 		this.gl_Shader_RenderProgram = gl.createProgram();
-		var vertexShaderText = WebGLUtil.loadShader('shader/model.vs');
+		var vertexShaderText = this.vertexShaderText;
 		var vertexShader = WebGLUtil.createShader(gl, vertexShaderText, gl.VERTEX_SHADER);
-		var fragmentShaderText = WebGLUtil.loadShader('shader/model.fs');
+		var fragmentShaderText = this.fragmentShaderText;
 		var fragmentShader = WebGLUtil.createShader(gl, fragmentShaderText, gl.FRAGMENT_SHADER);
 		if( vertexShader == null || fragmentShader == null ){
 			alert("Shader can not compile");
@@ -134,42 +140,32 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		gl.attachShader(this.gl_Shader_RenderProgram, fragmentShader);
 		gl.deleteShader(vertexShader);
 		gl.deleteShader(fragmentShader);
-		
+
 		gl.linkProgram(this.gl_Shader_RenderProgram);
 		if( !gl.getProgramParameter(this.gl_Shader_RenderProgram, gl.LINK_STATUS) ){
 			alert("Could not initialize shaders");
 			return false;
 		}
 		gl.useProgram(this.gl_Shader_RenderProgram);
-		
+
 		this.gl_Attribute_VertexPosition = gl.getAttribLocation(this.gl_Shader_RenderProgram, "aVertexPosition");
 		this.gl_Attribute_VertexColor = gl.getAttribLocation(this.gl_Shader_RenderProgram, "aVertexColor");
 		this.gl_Attribute_VertexCordinate = gl.getAttribLocation(this.gl_Shader_RenderProgram, "aVertexCordinate");
-		
+
 		this.gl_Uniform_WorldMatrix = gl.getUniformLocation(this.gl_Shader_RenderProgram, "uWorldMatrix");
 		this.gl_Uniform_ViewMatrix = gl.getUniformLocation(this.gl_Shader_RenderProgram, "uViewMatrix");
 		this.gl_Uniform_ProjectionMatrix = gl.getUniformLocation(this.gl_Shader_RenderProgram, "uProjectionMatrix");
-		
+
 		this.gl_Uniform_Texture = gl.getUniformLocation(this.gl_Shader_RenderProgram, "uTexture");
 		this.gl_Uniform_ModulateCordinate = gl.getUniformLocation(this.gl_Shader_RenderProgram, "uModulateCordinate");
 		this.gl_Uniform_Color = gl.getUniformLocation(this.gl_Shader_RenderProgram, "uColor");
-		
+
 		gl.useProgram(null);
 	},
-	
+
 	initialize : function(){
-        return;
-		this.initCanvas();
-		
-		if(!this.isAvailWebGL()){
-			//alert("WebGL is not available");
-			return false;
-		}
-		
-		this.initResource();
-		this.initShader();
-		
-		this.clear();
+        this.vertexShaderText = WebGLUtil.loadShader('res/shader/model.vs');
+        this.fragmentShaderText = WebGLUtil.loadShader('res/shader/model.fs');
 	},
 
 	drawBlock : function(nPosX, nPosY, nBlockSize, nTexturePos, vColor){
@@ -179,10 +175,11 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		gl.enableVertexAttribArray(this.gl_Attribute_VertexPosition);
 		gl.enableVertexAttribArray(this.gl_Attribute_VertexColor);
 		gl.enableVertexAttribArray(this.gl_Attribute_VertexCordinate);
-		   
+
+
 		var arCameraGap = [0.0,0.0,0.0];
-		arCameraGap[1] = this.fCameraDistance * Math.sin(this.fAngleYZ);	//Y
-		arCameraGap[0] = this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.cos(this.fAngleXZ);	//X
+        arCameraGap[0] = this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.cos(this.fAngleXZ);	//X
+        arCameraGap[1] = this.fCameraDistance * Math.sin(this.fAngleYZ);	//Y
 		arCameraGap[2] = this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.sin(this.fAngleXZ);	//Z
 		this.arCameraEye[0] = this.arCameraLookAt[0] + arCameraGap[0];
 		this.arCameraEye[1] = this.arCameraLookAt[1] + arCameraGap[1];
@@ -208,7 +205,7 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 			gl.bindTexture(gl.TEXTURE_2D, this.gl_Tex_Cube);
 			gl.uniform1i(this.gl_Uniform_Texture, 0);
 		}
-		gl.uniform4fv(this.gl_Uniform_ModulateCordinate, [0.0625,1.0,0.0625*nTexturePos,0.0]);
+		gl.uniform4fv(this.gl_Uniform_ModulateCordinate, [0.0625, 1.0, 0.0625*nTexturePos, 0.0]);
 		gl.uniform4fv(this.gl_Uniform_Color, vColor);
 		
 		gl.enable(gl.DEPTH_TEST);

@@ -62,17 +62,18 @@
         },
 
         _onClickJoin : function(){
-            
+
             if(this.welPwRe.css('display') === 'none'){
                 this.welPwRe.show().css('height', 0).animate({height : this.welPw.outerHeight() + 'px'}, 250, 'easeOutBounce');
                 return;
             }
-            
+
             if(!this._checkJoinValidation()){
                 return;
             }
-            
+
             app.tetris.Account.Network.connect($.proxy(function(){
+
                 this._updateAccount();
                 this._setAccountEvents();
                 app.tetris.Account.Network.io.emit('reqJoin', app.tetris.Account.Info.getAccount());
@@ -119,6 +120,7 @@
         },
 
         _updateInputs: function () {
+
             var htAccount = app.tetris.Account.Info.getAccount();
             this.$el.find('._id').val(htAccount.userId);
             this.$el.find('._pw').val(htAccount.passwd);
@@ -137,11 +139,11 @@
                 .addClass('flipInX');
         },
 
-        _hideLoginForm: function () {
+        _hideLoginForm : function () {
             this.$el.find('#_login_form').hide();
         },
 
-        _resetDisplay: function () {
+        _resetDisplay : function () {
             this._updateInputs();
             this._hideLoginForm();
             this._playShowAnimation();
@@ -153,10 +155,9 @@
         },
 
         render : function(){
-            app.tetris.TemplateManager.get(this.template, {}, $.proxy(function(template){
-                this.$el.html(template);
-                this.assignElements();
-            }, this));
+            var template = app.tetris.TemplateManager.get(this.template, {});
+            this.$el.html(template);
+            this.assignElements();
             return this;
         }
     });

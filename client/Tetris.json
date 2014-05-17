@@ -15,8 +15,7 @@
   "bugs": "https://github.com/Jinkwon/tetris.js/issues",
   "licenses": [
     {
-      "type": "GPL-2.0",
-      "url": "https://github.com/Jinkwon/tetris.js/blob/master/LICENSE-GPL-2.0"
+      "type": "MIT"
     }
   ],
   "dependencies": {

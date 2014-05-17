@@ -2,23 +2,24 @@
 app.tetris.TemplateManager = {
     templates : {},
 
-    get : function(id, htVars, callback){
+    get : function(id, htVars){
         var template = this.templates[id];
 
         if (template) {
 
             var result = _.template(template, htVars);
-            callback(result);
+            return(result);
 
         } else {
-            var that = this;
-            $.get("/views/" + id + ".html", function(template){
-                that.templates[id] = template;
 
-                var result = _.template(template, htVars);
+            template = $.ajax({
+                url : "./views/" + id + ".html",
+                async : false
+            }).responseText;
 
-                callback(result);
-            });
+            this.templates[id] = template;
+            var result = _.template(template, htVars);
+            return(result);
         }
     }
 

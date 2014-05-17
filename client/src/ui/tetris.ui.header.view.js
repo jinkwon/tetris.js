@@ -53,11 +53,9 @@ var HeaderView = Backbone.View.extend({
         };
 //        this.$el.addClass('animated').removeClass('pulse');
 
-        app.tetris.TemplateManager.get(this.template, htVars, $.proxy(function(template){
-            this.$el.html(template);
+        var template = app.tetris.TemplateManager.get(this.template, htVars);
+        this.$el.html(template);
 //            this.$el.addClass('animated').hide().addClass('pulse').show();
-
-        }, this));
 
         return this;
     }

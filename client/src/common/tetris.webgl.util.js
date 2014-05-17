@@ -2,6 +2,7 @@ var WebGLUtil = {};
 
 WebGLUtil.createShader = function( gl, src, type ) {
 	var shader = gl.createShader( type );
+
 	gl.shaderSource(shader, src);
 	gl.compileShader(shader);
 

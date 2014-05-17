@@ -5,33 +5,93 @@
         template : 'stage/stage.mobile',
         
         initialize : function(){
+            this.arColorPos = {
+                'red' : 1,
+                'orange' : 2,
+                'yellow' : 3,
+                'green' : 4,
+                'sky' : 5,
+                'blue' : 6,
+                'purple' : 7,
+                'sand' : 8,
+                'leaf' : 9,
+                'brown' : 10,
+                'leaf2' : 11,
+                'sky2' : 12,
+                'sand2' : 13,
+                'stone' : 14
+            };
+
             this.focusMenu('tip');
             
             this.model = new app.tetris.Game.Model();
             
             this._initTimer();
             this.model.bind('change:sGameStatus', this.watchGameStatus, this);
-    
+
+            this.model.bind('change:htBlockPos', this.onBlockChange, this);
             this.setEvents();
-            
-            $("#slides").slides({
-                pagination: false,
-                generatePagination : false,
-                start: 1,
-                effect: 'slide',
-                slideSpeed: 500,
-                play: 2500,
-                pause: 0
-            });
             
             this.render();
         },
-    
+
+        onBlockChange : function(){
+            this.drawNextBlock();
+        },
+
+        /**
+         * 다음 블럭을 그린다
+         */
+        drawNextBlock : function(){
+            var aBlocks = this.model.get('oBlockCollection');
+            var nBlock = this.model.get('nextBlock')[0];
+
+            var sBlock = this.getBlockString(aBlocks.at(nBlock).get('aMatrix'), aBlocks.at(nBlock).get('sColor'), 16, 'next');
+
+            $('.next_block_container').empty().append(sBlock);
+
+            if(this.drawNextGroupBlock){
+                $('.next_group_block_container').empty();
+
+                for(var i = 0; i < 3; i++){
+                    nBlock = this.model.get('nextBlock')[i+1];
+                    var sBlock = this.getBlockString(aBlocks.at(nBlock).get('aMatrix'), aBlocks.at(nBlock).get('sColor'), 12, 'next_'+i);
+                    $('.next_group_block_container').append(sBlock + '<div style="clear:both;height:43px;"></div>');
+                }
+            }
+
+        },
+
+        getPosPixelByColor : function(sColor, nSize){
+            return this.arColorPos[sColor] * nSize;
+        },
+
+        getBlockString : function(aBlock, sColor, nSize, sId){
+            var str = ['<div class="single_block" style="clear:both;" id="'+sId+'">'];
+            var nPosX;
+
+            for(var i = 0; i < aBlock.length; i++){
+                for(var j = 0; j < aBlock[i].length; j++){
+                    if(aBlock[i][j] == 1){
+
+                        nPosX = this.getPosPixelByColor(sColor, nSize);
+
+                        str.push('<div class="fill_block_'+nSize+'" style="width:'+nSize+'px;height:'+nSize+'px;background-position:-'+nPosX+'px 0;"></div>');
+                    }else{
+                        str.push('<div class="empty_block" style="width:'+nSize+'px;height:'+nSize+'px;"></div>');
+                    }
+                }
+                str.push('<div class="clear"></div>');
+            }
+            str.push('</div><br>');
+
+            return str.join('');
+        },
+
         render : function(){
-            app.tetris.TemplateManager.get(this.template, {}, $.proxy(function(template){
-                this.$el.html(template);
-            }, this));
-    
+            var template = app.tetris.TemplateManager.get(this.template, {});
+            this.$el.html(template);
+
             return this;
         },
         
@@ -40,12 +100,35 @@
             this.$el.show();
 
             this.oGameView = new app.tetris.Game.View({
-                el : $('#game_area'),
+                el : '#single_game_area',
                 model : this.model,
                 bEventBind : true,
-                bUseWebGL : false,
-                oWebGLView : new app.tetris.Game.WebGLView()
+                bUseWebGL : true
             });
+
+            this.oGameView2 = new app.tetris.Game.View({
+                el : '#other_1_game_area',
+                model : new app.tetris.Game.Model(),
+                bEventBind : true,
+                bUseWebGL : true
+            });
+
+            this.oGameView3 = new app.tetris.Game.View({
+                el : '#other_2_game_area',
+                model : new app.tetris.Game.Model(),
+                bEventBind : true,
+                bUseWebGL : false
+            });
+
+            setInterval(function(){
+
+                $('#other_1_game_area').parent().removeClass('tada').hide().addClass('tada').show();
+            }, 2000);
+
+            setInterval(function(){
+                $('#other_2_game_area').parent().removeClass('tada').hide().addClass('tada').show();
+            }, 3000);
+
 
             var wel = $(this.$el);
             this._setGameEvents(wel);

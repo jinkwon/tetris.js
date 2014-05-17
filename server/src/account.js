@@ -2,6 +2,7 @@ var mongoose = require('mongoose');
 var User = mongoose.model('User');
 var _ = require('underscore');
 var oAccountIo;
+var oSess;
 
 var error = function(sMessage, nCode){
     return {bAvail : false, sMessage : sMessage, code : nCode};
@@ -29,6 +30,8 @@ var onReqJoin = function(htData, oAccount){
         }).save(function(err){
             if (!err) {
                 console.log('Successfully Saved');
+
+                oSess.broadCastConnectionCount();
             } else {
                 console.log(err);
             }
@@ -71,7 +74,8 @@ var onReqLogin = function(htData, oAccount){
 };
 
 module.exports = {
-    init : function(oSocketIo){
+    init : function(oSocketIo, oSessionIo){
+        oSess = oSessionIo;
 
         oAccountIo = oSocketIo.of('/account').on('connection', function(oAccount){
             oAccount

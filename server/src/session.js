@@ -4,8 +4,7 @@ var User = mongoose.model('User');
 
 var aConnectedPeople = [];
 
-var onReqConnectionCount = function(){
-    
+broadCastConnectionCount = function(){
     var htData = {
         nConnectedUser : aConnectedPeople.length,
         sId : this.id,
@@ -15,12 +14,17 @@ var onReqConnectionCount = function(){
     };
 
     console.info(('onReqConnectionCount').blue, htData);
-    
+
     User.find({}, function(err, doc){
-        
+
         htData.nRegisterUser = doc.length;
-        oSessionIo.emit('resConnectionCount', htData);    
+        oSessionIo.emit('resConnectionCount', htData);
     })
+};
+
+var onReqConnectionCount = function(){
+    
+    broadCastConnectionCount();
     
 };
 
@@ -54,5 +58,9 @@ module.exports = {
             onConnection(oSessionIo, oSession);
         });
         return oSessionIo;
+    },
+
+    broadCastConnectionCount : function(){
+        broadCastConnectionCount();
     }
 };

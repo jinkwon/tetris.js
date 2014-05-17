@@ -28,9 +28,9 @@
         
         render : function(){
 
-            app.tetris.TemplateManager.get(this.template, {}, $.proxy(function(template){
-                this.$el.html(template);
-            }, this));
+            var template = app.tetris.TemplateManager.get(this.template, {});
+            this.$el.html(template);
+
             return this;
         }
     });

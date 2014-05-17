@@ -55,6 +55,11 @@ app.tetris.ui.Header = {};
 /**
  * @namespace
  */
+app.tetris.ui.Option = {};
+
+/**
+ * @namespace
+ */
 app.tetris.Network = {};
 
 /**

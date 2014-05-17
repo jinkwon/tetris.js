@@ -12,16 +12,21 @@
 
         initialize : function(){
             this.render();
-            
-            app.tetris.Network.Model.on('change:nConnectedUser', $.proxy(function(d, sValue){
-                this.onChangeConnedUserCount(sValue);
+
+            this.oBgm = new Howl({urls: ['../res/sound/FF_8_OST.mp3'], volume : 0.1, format : 'mp3'});
+
+            app.tetris.Network.Model.on('change:nRegisterUser change:nConnectedUser', $.proxy(function(oModel){
+                this.onChangeCount(oModel);
             }, this));
         },
-        
-        onChangeConnedUserCount: function (sValue) {
-            this.$el.find('._conn_user_cnt span').html(sValue);
-            this.$el.find('._conn_user_cnt')
-                .removeClass('pulse').hide().addClass('pulse').show();
+
+        onChangeCount: function (oModel) {
+
+            var welUserCnt = this.$el.find('._conn_user_cnt');
+            welUserCnt.find('._con_user').html(oModel.get('nConnectedUser'));
+            welUserCnt.find('._reg_user').html(oModel.get('nRegisterUser'));
+
+            welUserCnt.removeClass('pulse').hide().addClass('pulse').show();
         },
     
         onClickMenu : function(we){
@@ -42,8 +47,13 @@
 
             var self = this;
             setTimeout(function(){
-                self.myScroll.refresh();
+                if(self.myScroll){
+                    self.myScroll.refresh();
+                }
             }, 200);
+
+//            this.oBgm.stop();
+//            this.oBgm.play();
             
         },
         
@@ -51,6 +61,7 @@
 //            this.$el.hide();
             this.$el.addClass('animated').removeClass('fadeInDown').addClass('fadeOutUp');
 
+//            this.oBgm.stop();
         },
         
         render : function(){
@@ -60,21 +71,17 @@
                 nRegisterUser : app.tetris.Network.Model.get('nRegisterUser')
             };
 
-            app.tetris.TemplateManager.get(this.template, htVars, $.proxy(function(template){
-                this.$el.html(template);
+            var template = app.tetris.TemplateManager.get(this.template, htVars);
+            this.$el.html(template);
 
-                this.myScroll = new IScroll('#wrapper_scroll', {
-                    scrollX: false,
-                    scrollY: true,
-                    momentum: true,
-                    snap: 'li',
-                    click: true,
-                    snapSpeed: 400,
-                    keyBindings: true
-                });
+            this.myScroll = new IScroll('#wrapper_scroll', {
+                scrollX: false,
+                scrollY: true,
+                momentum: true,
+                click: true
+            });
 
-            }, this));
-    
+
             return this;
         }
     });
