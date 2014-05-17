@@ -1,5 +1,4 @@
 (function () {
-    
     var t = app.tetris;
     
     var TetrisRouter = Backbone.Router.extend({
@@ -108,6 +107,15 @@
         }
     });
 
+    // Router is singleton
+    app.tetris.Router = {
+        _oInstance : null,
+        getInstance : function() {
+            if (this._oInstance === null) {
+                this._oInstance = new TetrisRouter();
+            }
 
-    t.Router = new TetrisRouter();
+            return this._oInstance;
+        }
+    };
 })();
