@@ -15,7 +15,7 @@ module.exports = function (grunt) {
         banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' + '<%= grunt.template.today("yyyy-mm-dd") %>\n' + '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' + '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' + ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n',
         // Task configuration.
         clean: {
-            files: ['dist', 'public/releases']
+            files: ['www', 'public/releases']
         },
         concat: {
             options: {
@@ -32,7 +32,7 @@ module.exports = function (grunt) {
                     'src/tetris.router.js',
                     'src/tetris.js'
                 ],
-                dest: 'dist/<%= pkg.name %>.js'
+                dest: 'www/<%= pkg.name %>.js'
             }
         },
         uglify: {
@@ -41,11 +41,11 @@ module.exports = function (grunt) {
             },
             dist: {
                 src: '<%= concat.dist.dest %>',
-                dest: 'dist/<%= pkg.name %>.min.js'
+                dest: 'www/<%= pkg.name %>.min.js'
             },
             loader: {
-                src: 'dist/loader.js',
-                dest: 'dist/loader.js'
+                src: 'www/loader.js',
+                dest: 'www/loader.js'
             }
         },
         qunit: {
@@ -71,7 +71,6 @@ module.exports = function (grunt) {
                 src: ['test/**/*.js']
             },
         },
-
         connect: {
             livereload: {
                 options: {
@@ -83,7 +82,6 @@ module.exports = function (grunt) {
                 }
             }
         },
-
         // Configuration to be run (and then tested)
         regarde: {
             style: {
@@ -109,30 +107,29 @@ module.exports = function (grunt) {
                 }
             }
         },
-        copy : {
+        copy: {
             lib : {
                 src: ['lib/**', 'vendor/**', 'res/css/**', 'res/img/**', 'res/shader/**', 'res/sound/**'
                 ],
-                dest: 'dist/'
+                dest: 'www/'
             },
 
             view : {
                 src: ['views/**', 'index.html'],
-                dest: 'dist/'
+                dest: 'www/'
             },
 
             package : {
                 src : ['package.json'],
-                dest : 'dist/'
+                dest : 'www/'
             },
 
             loader : {
                 src : ['loader.dist.js'],
-                dest : 'dist/loader.js'
+                dest : 'www/loader.js'
             }
 
         },
-
         nodewebkit: {
             options: {
                 app_name : 'Tetris',
@@ -142,13 +139,19 @@ module.exports = function (grunt) {
                 linux32: false, // We don't need linux32
                 linux64: false // We don't need linux64
             },
-            src: ['./dist/**/*'] // Your node-webkit app
+            src: ['./www/**/*'] // Your node-webkit app
         },
-
         phonegap: {
             config: {
-                root: 'dist',
-                config: 'dist/config.xml',
+                root: 'www',
+                template: '_myConfig.xml',
+                data: {
+                    id: 'com.grunt-phonegap.example',
+                    version: '0.1',
+                    name: 'tetris'
+                },
+
+                config: 'config.xml',
                 cordova: '.cordova',
                 html : 'index.html', // (Optional) You may change this to any other.html
                 path: 'public/phonegap',
@@ -186,62 +189,62 @@ module.exports = function (grunt) {
                 },
 
                 // Set an app icon at various sizes (optional)
-                icons: {
-                    android: {
-                        ldpi: 'icon-36-ldpi.png',
-                        mdpi: 'icon-48-mdpi.png',
-                        hdpi: 'icon-72-hdpi.png',
-                        xhdpi: 'icon-96-xhdpi.png'
-                    },
-                    wp8: {
-                        app: 'icon-62-tile.png',
-                        tile: 'icon-173-tile.png'
-                    },
-                    ios: {
-                        icon29: 'icon29.png',
-                        icon29x2: 'icon29x2.png',
-                        icon40: 'icon40.png',
-                        icon40x2: 'icon40x2.png',
-                        icon57: 'icon57.png',
-                        icon57x2: 'icon57x2.png',
-                        icon60x2: 'icon60x2.png',
-                        icon72: 'icon72.png',
-                        icon72x2: 'icon72x2.png',
-                        icon76: 'icon76.png',
-                        icon76x2: 'icon76x2.png'
-                    }
-                },
+//                icons: {
+//                    android: {
+//                        ldpi: 'icon-36-ldpi.png',
+//                        mdpi: 'icon-48-mdpi.png',
+//                        hdpi: 'icon-72-hdpi.png',
+//                        xhdpi: 'icon-96-xhdpi.png'
+//                    },
+//                    wp8: {
+//                        app: 'icon-62-tile.png',
+//                        tile: 'icon-173-tile.png'
+//                    },
+//                    ios: {
+//                        icon29: 'icon29.png',
+//                        icon29x2: 'icon29x2.png',
+//                        icon40: 'icon40.png',
+//                        icon40x2: 'icon40x2.png',
+//                        icon57: 'icon57.png',
+//                        icon57x2: 'icon57x2.png',
+//                        icon60x2: 'icon60x2.png',
+//                        icon72: 'icon72.png',
+//                        icon72x2: 'icon72x2.png',
+//                        icon76: 'icon76.png',
+//                        icon76x2: 'icon76x2.png'
+//                    }
+//                },
 
                 // Set a splash screen at various sizes (optional)
                 // Only works for Android and IOS
-                screens: {
-                    android: {
-                        ldpi: 'screen-ldpi-portrait.png',
-                        // landscape version
-                        ldpiLand: 'screen-ldpi-landscape.png',
-                        mdpi: 'screen-mdpi-portrait.png',
-                        // landscape version
-                        mdpiLand: 'screen-mdpi-landscape.png',
-                        hdpi: 'screen-hdpi-portrait.png',
-                        // landscape version
-                        hdpiLand: 'screen-hdpi-landscape.png',
-                        xhdpi: 'screen-xhdpi-portrait.png',
-                        // landscape version
-                        xhdpiLand: 'www/screen-xhdpi-landscape.png'
-                    },
-                    ios: {
-                        // ipad landscape
-                        ipadLand: 'screen-ipad-landscape.png',
-                        ipadLandx2: 'screen-ipad-landscape-2x.png',
-                        // ipad portrait
-                        ipadPortrait: 'screen-ipad-portrait.png',
-                        ipadPortraitx2: 'screen-ipad-portrait-2x.png',
-                        // iphone portrait
-                        iphonePortrait: 'screen-iphone-portrait.png',
-                        iphonePortraitx2: 'screen-iphone-portrait-2x.png',
-                        iphone568hx2: 'screen-iphone-568h-2x.png'
-                    }
-                },
+//                screens: {
+//                    android: {
+//                        ldpi: 'screen-ldpi-portrait.png',
+//                        // landscape version
+//                        ldpiLand: 'screen-ldpi-landscape.png',
+//                        mdpi: 'screen-mdpi-portrait.png',
+//                        // landscape version
+//                        mdpiLand: 'screen-mdpi-landscape.png',
+//                        hdpi: 'screen-hdpi-portrait.png',
+//                        // landscape version
+//                        hdpiLand: 'screen-hdpi-landscape.png',
+//                        xhdpi: 'screen-xhdpi-portrait.png',
+//                        // landscape version
+//                        xhdpiLand: 'www/screen-xhdpi-landscape.png'
+//                    },
+//                    ios: {
+//                        // ipad landscape
+//                        ipadLand: 'screen-ipad-landscape.png',
+//                        ipadLandx2: 'screen-ipad-landscape-2x.png',
+//                        // ipad portrait
+//                        ipadPortrait: 'screen-ipad-portrait.png',
+//                        ipadPortraitx2: 'screen-ipad-portrait-2x.png',
+//                        // iphone portrait
+//                        iphonePortrait: 'screen-iphone-portrait.png',
+//                        iphonePortraitx2: 'screen-iphone-portrait-2x.png',
+//                        iphone568hx2: 'screen-iphone-568h-2x.png'
+//                    }
+//                },
 
                 // Android-only integer version to increase with each release.
                 // See http://developer.android.com/tools/publishing/versioning.html
@@ -259,11 +262,11 @@ module.exports = function (grunt) {
                 // If you want to use the Phonegap Build service to build one or more
                 // of the platforms specified above, include these options.
                 // See https://build.phonegap.com/
-                remote: {
-                    username: 'your_username',
-                    password: 'your_password',
-                    platforms: ['android', 'blackberry', 'ios', 'symbian', 'webos', 'wp7']
-                },
+//                remote: {
+//                    username: 'master@bdyne.net',
+//                    password: 'your_password',
+//                    platforms: ['android', 'blackberry', 'ios', 'symbian', 'webos', 'wp7']
+//                },
 
                 // Set an explicit Android permissions list to override the automatic plugin defaults.
                 // In most cases, you should omit this setting. See 'Android Permissions' in README.md for details.
@@ -282,8 +285,8 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-contrib-compress');
     grunt.loadNpmTasks('grunt-sloc');
 
-    grunt.loadNpmTasks('grunt-phonegap');
     grunt.loadNpmTasks('grunt-node-webkit-builder');
+    grunt.loadNpmTasks('grunt-phonegap');
     grunt.loadNpmTasks('grunt-sloc');
 
     // livereload
@@ -309,5 +312,6 @@ module.exports = function (grunt) {
 
     // deploy task.
     grunt.registerTask('deploy', ['fly', 'nodewebkit']);
+    grunt.registerTask('pg', ['phonegap:build:ios']);
 
 };

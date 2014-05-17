@@ -307,6 +307,16 @@
         }
     });
 
-    app.tetris.Game.StageView = new StageView();
+    // Stage view is Singleton
+    app.tetris.Game.StageView = {
+        _oInstance : null,
+        getInstance : function() {
+            if (this._oInstance === null) {
+                this._oInstance = new StageView();
+            }
+
+            return this._oInstance;
+        }
+    };
 
 })();

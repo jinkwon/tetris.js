@@ -52,6 +52,6 @@ requirejs([
     'tetris'
 ], function(){
 
-    app.tetris.init();
+    app.tetris.init('staging');
 
 });

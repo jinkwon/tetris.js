@@ -37,7 +37,7 @@ app.tetris.Game.Model = Backbone.Model.extend({
         var Blocks = Backbone.Collection.extend({model : app.tetris.Game.BlockModel});
 
         var oBlockCollection = new Blocks();
-        oBlockCollection.add(app.tetris.Rules.arBlockList);
+        oBlockCollection.add(app.tetris.Rules.BlockList.create());
 
         this.set('oBlockCollection', oBlockCollection);
         
