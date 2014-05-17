@@ -1,4 +1,4 @@
-/*! Tetris - v0.1.0 - 2014-05-17
+/*! Tetris - v0.1.0 - 2014-05-18
 * https://github.com/Jinkwon/tetris.js
 * Copyright (c) 2014 LeeJinKwon; Licensed MIT */
 var app = app ? app : {};
@@ -92,7 +92,7 @@ app.tetris.config._refresh = function(){
             sSrvUrl = 'http://serverurl';
             break;
         case 'staging' :
-            sSrvUrl = 'http://localhost:8888';
+            sSrvUrl = 'http://192.168.1.10:8888';
             break;
         default :
             sSrvUrl = 'http://' + document.location.hostname + ':8888';

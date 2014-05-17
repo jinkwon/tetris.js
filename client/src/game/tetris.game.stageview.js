@@ -103,31 +103,34 @@
                 el : '#single_game_area',
                 model : this.model,
                 bEventBind : true,
-                bUseWebGL : true
+                bUseWebGL : true,
+                bUseSound : true
             });
 
             this.oGameView2 = new app.tetris.Game.View({
                 el : '#other_1_game_area',
                 model : new app.tetris.Game.Model(),
                 bEventBind : true,
-                bUseWebGL : true
+                bUseWebGL : true,
+                bUseSound : false
             });
 
             this.oGameView3 = new app.tetris.Game.View({
                 el : '#other_2_game_area',
                 model : new app.tetris.Game.Model(),
                 bEventBind : true,
-                bUseWebGL : false
+                bUseWebGL : true,
+                bUseSound : false
             });
 
-            setInterval(function(){
-
-                $('#other_1_game_area').parent().removeClass('tada').hide().addClass('tada').show();
-            }, 2000);
-
-            setInterval(function(){
-                $('#other_2_game_area').parent().removeClass('tada').hide().addClass('tada').show();
-            }, 3000);
+//            setInterval(function(){
+//
+//                $('#other_1_game_area').parent().removeClass('tada').hide().addClass('tada').show();
+//            }, 2000);
+//
+//            setInterval(function(){
+//                $('#other_2_game_area').parent().removeClass('tada').hide().addClass('tada').show();
+//            }, 3000);
 
 
             var wel = $(this.$el);

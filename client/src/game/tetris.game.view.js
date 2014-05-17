@@ -20,6 +20,9 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		this.bEventBind = options.bEventBind;
 
+        this._bUseSound = false;
+        this._bUseSound = options.bUseSound;
+
         this._fnKeyEvent = $.proxy(this._onKeyAction, this);
         
 		this.initResources();
@@ -110,6 +113,12 @@ app.tetris.Game.View = Backbone.View.extend({
 	 * 오디오 초기화 
 	 */
 	initAudio : function(){
+        this.htSound = {};
+
+        if(!this._bUseSound){
+            return;
+        }
+
 		this.htSound = {
             harddrop : new Howl({urls: ['../res/sound/TE_SE_harddrop.mp3'], volume: 0.3}),
             softdrop : new Howl({urls: ['../res/sound/TE_SE_softdrop.mp3'], volume: 0.3}),
@@ -121,7 +130,8 @@ app.tetris.Game.View = Backbone.View.extend({
 	 * 사운드 제어 
 	 */
 	controlSound : function(sSoundType, sExcutor){
-		if(!this.htSound[sSoundType]){
+
+		if(!this.htSound[sSoundType] || !this._bUseSound){
 			return false;
 		}
 		
@@ -841,7 +851,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			this.model.set({htBlockPos : htBlockPos});
 		}else{
             if(bPlaySound){
-                this.htSound['lockdown'].play();
+                this.controlSound('lockdown','play');
             }
 
 			this.setBlockToMatrix();

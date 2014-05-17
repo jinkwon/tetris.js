@@ -1,7 +1,7 @@
 app.tetris.ui.BackButton = {
 
     setEvents : function(){
-        $(document).on('click', '._close', $.proxy(function (we) {
+        $(document).on('click touchstart', '._close', $.proxy(function (we) {
             this._clearAnimationClass($(we.currentTarget));
 
             $(we.currentTarget)
