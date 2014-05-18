@@ -23,6 +23,9 @@
             if(!app.tetris.Account.Info.isAuthenticated() && sFrag !== 'login'){
 //                this.navigate('login', {trigger : true});
 //                return;
+                app.tetris.Account.Network.connect(function(){
+                    app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
+                });
             }
             
             if (callback) callback.apply(this, args);

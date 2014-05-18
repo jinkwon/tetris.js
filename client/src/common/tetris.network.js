@@ -23,7 +23,7 @@ app.tetris.Network.init = (function(htOptions){
 			window.location.href = 'login.html';
 		}
 	};
-	
+
     
 	var initialize = function(){
 		initGameIo();
@@ -32,7 +32,6 @@ app.tetris.Network.init = (function(htOptions){
 	
 	var initGameIo = function(){
 		oGameIo = io.connect(app.tetris.config.sGameUrl);
-		
 		
 		oGameIo.on('connect', function(){
 			
@@ -43,6 +42,7 @@ app.tetris.Network.init = (function(htOptions){
 			};
 	
 			oGameIo.emit('reqJoin', htReq);
+
 		}).on('disconnect', function(){
 			//alert('서버와의 접속이 끊어졌습니다.');
 			//moveToLogin();

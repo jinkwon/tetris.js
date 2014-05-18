@@ -10,6 +10,14 @@ var User = new Schema({
     "created_at" : Date
 });
 
+var League = new Schema({
+    'seq' : Number,
+    'users' : Array,
+    'created_at' : Date
+});
+
 mongoose.model('User', User);
+
+mongoose.model('League', League);
 
 mongoose.connect('mongodb://localhost/tetrisJS');

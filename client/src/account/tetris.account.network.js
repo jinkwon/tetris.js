@@ -31,7 +31,8 @@ app.tetris.Account.Network.connect = function(cb){
                 alert('Connect failed');
             })
             .on('resLogin', function(htData){
-                
+
+                console.log(htData.bAvail);
                 app.tetris.Account.Info.bAvail = htData.bAvail;
                 if(app.tetris.Account.Info.bAvail){
                     app.tetris.Account.Info.broadcast('onSuccessLogin');

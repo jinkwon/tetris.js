@@ -137,7 +137,11 @@ requirejs.config({
         'game/tetris.rules' : {
             deps : ['tetris', 'game/tetris.game.blockmodel']
         },
-        
+
+        'game/tetris.game.network' : {
+            deps : ['tetris']
+        },
+
         'game/tetris.game' : {
             deps : [
                 'backbone',
@@ -147,6 +151,7 @@ requirejs.config({
                 'game/tetris.game.blockmodel',
                 'game/tetris.game.view',
                 'game/tetris.game.webglview',
+                'game/tetris.game.network',
                 
                 // LIB
                 'howler'

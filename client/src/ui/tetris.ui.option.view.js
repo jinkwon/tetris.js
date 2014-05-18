@@ -6,10 +6,8 @@ app.tetris.ui.Option.View = Backbone.View.extend({
         "click ._menu_item" : "onClickMenu"
     },
 
-    initialize : function(options){
-        this._setOptionListIdx(options.aList || []);
+    initialize : function(){
 
-        this.sTitle = options.sTitle || 'Options';
     },
 
     _setOptionListIdx : function(aList){
@@ -21,21 +19,26 @@ app.tetris.ui.Option.View = Backbone.View.extend({
     },
 
     onClickMenu : function(we){
+        this.unbind();
+
         var nIdx = $(we.currentTarget).attr('data-idx');
         var bClose = true;
 
-        if(this.aOptionList[nIdx].fn){
-            bClose = this.aOptionList[nIdx].fn() || bClose;
+        if (this.aOptionList[nIdx].fn) {
+            bClose = this.aOptionList[nIdx].fn();
         }
 
         if(bClose){
             this.hide();
         }
 
+
         return false;
     },
 
-    show : function(){
+    show : function(options){
+        this._setOptionListIdx(options.aList || []);
+        this.sTitle = options.sTitle || 'Options';
 
         this.showDimmedLayer();
 
@@ -43,6 +46,10 @@ app.tetris.ui.Option.View = Backbone.View.extend({
 
         this.render();
         this.$el.show();
+
+        this.$el.find('.option_container').removeClass('animated flipInY').addClass('animated flipInY').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+            $(this).removeClass('animated flipInY');
+        });
 
     },
 
@@ -65,7 +72,7 @@ app.tetris.ui.Option.View = Backbone.View.extend({
         string = string || '';
 
         $('.field .pause').remove();
-        $('#_dimmed_section').prepend(
+        $('#_dimmed_section').html(
                 '<div class="pause" style="z-index:50;width:100%;height:100%;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
                 '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>').show();
 
@@ -85,3 +92,5 @@ app.tetris.ui.Option.View = Backbone.View.extend({
         return this;
     }
 });
+
+app.tetris.ui.Option.View = new app.tetris.ui.Option.View();

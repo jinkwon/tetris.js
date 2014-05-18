@@ -1,7 +1,15 @@
 require('./src/db.js');
 
 var console = require('clog'),
+    cron = require('cron'),
     SocketIo = require('socket.io');
+
+var async = require('async');
+
+var colors = require('colors');
+var _ = require('underscore');
+var mongoose = require('mongoose');
+var User = mongoose.model('User');
 
 var oSocketIo = SocketIo.listen(process.env.port || 8888);
 
@@ -16,17 +24,16 @@ oSocketIo.configure(function(){
     //oSocketIo.set('transports', htSocketConfig.aTransports);
 });
 
-var sess = require('./src/session');
-var game = require('./src/game');
+var oSessionIo = require('./src/session');
+var oGameIo = require('./src/game');
 var monitor = require('./src/monitor');
-var account = require('./src/account');
+var oAccountIo = require('./src/account');
 
-sess.init(oSocketIo);
-account.init(oSocketIo, sess);
-
+oSessionIo.init(oSocketIo);
+oAccountIo.init(oSocketIo, oSessionIo);
+oGameIo.init(oSocketIo, oAccountIo);
 
 var oMonitorIo = monitor.init(oSocketIo);
-game.init(oSocketIo, oMonitorIo);
 
 
 
@@ -79,8 +86,41 @@ app.use('/', function(req, res){
     // 처음에 undefined 이나, 로그인 성공하면, profile 정보가 저장된다.
     //
 //    console.log(req.user);
-   
-    res.render('index', { });
+
+    var getRoomInfoWithUserId = function(cb){
+        var finalResult = {};
+        var rooms = oSocketIo.sockets.manager.rooms;
+        var aFunc = [];
+
+        for(var roomName in rooms){
+            finalResult[roomName] = _.clone(rooms[roomName]);
+
+            var aRoomMembers = finalResult[roomName];
+
+            for(var i = 0; i < aRoomMembers.length; i++){
+
+                (function(idx, sRoomName) {
+                    aFunc.push(function (callback) {
+                        User.findOne({sessionId: aRoomMembers[idx]}, function (err, doc) {
+                            if (doc !== null) {
+                                finalResult[sRoomName][idx] = doc.userId;
+                            }
+                            callback();
+                        });
+                    }.bind(this));
+                })(i, roomName);
+            }
+        }
+
+        async.series(aFunc, function(err, result){
+            cb(finalResult);
+        });
+    };
+
+    getRoomInfoWithUserId(function(info){
+        res.render('index', { roomInfo : info });
+    });
+
 });
 
 /// catch 404 and forward to error handler

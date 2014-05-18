@@ -414,7 +414,7 @@ WebGLUtil.loadShader = function(url){
 app.tetris.ui.BackButton = {
 
     setEvents : function(){
-        $(document).on('click touchstart', '._close', $.proxy(function (we) {
+        $(document).on('click', '._close', $.proxy(function (we) {
             this._clearAnimationClass($(we.currentTarget));
 
             $(we.currentTarget)
@@ -474,11 +474,14 @@ app.tetris.ui.BackButton = {
     
             return false;
         },
-    
+
         show : function(){
-            this.$el.show();
+            this.render();
+            this.$el.addClass('animated').addClass('fadeInDown').show();
+
+            return this;
         },
-        
+
         hide : function(){
             this.$el.hide();
         },
@@ -3599,8 +3602,6 @@ app.tetris.Rules.BlockList = {
             var template = app.tetris.TemplateManager.get(this.template, htVars);
             this.$el.html(template);
 
-
-            return;
             this.myScroll = new IScroll('#wrapper_scroll', {
                 scrollX: false,
                 scrollY: true,
@@ -3667,9 +3668,10 @@ app.tetris.init = function(sMode){
         },
 
         _hideAllScreens : function(){
-            
+            this._welContainer.find('#_dimmed_section').hide();
 
             this._welContainer.find('._screen').hide();
+
             this._welContainer.removeClass('animated').removeClass('fadeInDown');
 
             t.ui.Header.View.hide();

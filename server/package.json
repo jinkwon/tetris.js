@@ -20,7 +20,9 @@
     "async": "~0.8.0",
     "ejs": "^1.0.0",
     "passport": "^0.2.0",
-    "passport-facebook": "^1.0.3"
+    "passport-facebook": "^1.0.3",
+    "cron": "^1.0.4",
+    "time": "^0.10.0"
   },
   "oauth": {
     "facebook": {

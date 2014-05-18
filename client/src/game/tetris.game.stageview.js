@@ -87,8 +87,8 @@
             }
 
             $('._next_block')
-                .removeClass('animated fadeInRight').addClass('animated fadeInRight').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-                    $(this).removeClass('animated fadeInRight');
+                .removeClass('animated fadeInDown').addClass('animated fadeInDown').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+                    $(this).removeClass('animated fadeInDown');
                 });
 
         },
@@ -245,21 +245,22 @@
                 this.startTimer();
             } else if(sGameStatus === 'pause'){
                 this.stopTimer();
-                this.createDimmedLayer('Pause');
+
+                this.openDimmedLayer('Pause');
                 
             } else if(sGameStatus === 'stop'){
                 this._initTimer();
-                this.createDimmedLayer('Hello TETRIS');
+                this.openDimmedLayer('Hello TETRIS');
                 
             } else if(sGameStatus === 'ready'){
-                this.createDimmedLayer('Ready');
+                this.openDimmedLayer('Ready');
                 
             } else if(sGameStatus === 'game'){
-                this.createDimmedLayer('Already Started');
+                this.openDimmedLayer('Already Started');
                 
             } else if(sGameStatus === 'end'){
                 this.stopTimer();
-                this.createDimmedLayer('Game Over');
+                this.openDimmedLayer('Game Over');
                 
             }else {
                 this.stopTimer();
@@ -334,37 +335,38 @@
             wel.find('#fullscreen_btn').bind('click', $.proxy(this._onClickFullScreen, this));
 
 
-
-            var aOptionList = [
-                { sLabel : 'Continue' },
-
-                { sLabel : 'Pause', fn : function(){
-                    }
-                },
-
-                { sLabel : 'Setting', fn : function(){
-
-                    }
-                },
-
-                { sLabel : 'Exit', fn : function(){
-                    app.tetris.Router.navigate('menu', {trigger : true});
-
-                    }
-                }
-             ];
-
-            this.oOptionView = new app.tetris.ui.Option.View({
-                aList : aOptionList
-            });
-
             this.$el.on('click', '._option', $.proxy(function(){
-                this._showOption();
+                this.openMenu();
+
             }, this));
         },
 
-        _showOption : function(){
-            this.oOptionView.show();
+        openMenu : function(){
+
+            var _onClickSetting = function(){
+                app.tetris.ui.Option.View.show({
+                    aList : [{sLabel : 'test'}, {sLabel : 'test2'}, {sLabel : 'Back', fn : $.proxy(this.openMenu, this)}]
+                });
+            };
+
+            var _onClickMenu = function(){
+                app.tetris.Router.navigate('menu', {trigger : true});
+            };
+
+            var _onClickPause = function(){
+                this.oGameView.pause();
+            };
+
+            app.tetris.ui.Option.View.show({
+                aList : [
+                    { sLabel : 'Continue' },
+                    { sLabel : 'Pause', fn : $.proxy(_onClickPause, this) },
+                    { sLabel : 'Setting', fn : $.proxy(_onClickSetting, this) },
+                    { sLabel : 'Menu', fn : $.proxy(_onClickMenu, this) }
+                ]
+            });
+
+            return false;
         },
 
         _onClickFullScreen : function(){
@@ -379,16 +381,11 @@
 
         },
 
-
-        /**
-         * 딤드 레이어 생성용 메서드
-         * @param {String} string
-         */
-        createDimmedLayer : function(string){
+        openDimmedLayer : function(string){
             $('.field .pause').remove();
-            $('#_dimmed_section').prepend(
+            $('#_dimmed_section').html(
                 '<div class="pause" style="z-index:50;width:100%;height:100%;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
-                    '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>');
+                    '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>').show();
 
             // $('#other_1').parent().find('.pause').remove();
             // $('#other_1').parent().prepend(

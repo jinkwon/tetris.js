@@ -25,7 +25,7 @@ var onReqJoin = function(htData, oAccount){
         new User({
             userId : htData.userId,
             passwd : htData.passwd,
-            sessionId : this.id,
+            sessionId : oAccount.id,
             created_at : new Date()
         }).save(function(err){
             if (!err) {
@@ -64,6 +64,7 @@ var onReqLogin = function(htData, oAccount){
             User.findOne({'userId' : htData.userId}, function(err, doc){
                 if(!err){
                     doc.login_at = new Date();
+                    doc.sessionId = oAccount.id;
                     doc.save();
                 }
             });
@@ -78,6 +79,8 @@ module.exports = {
         oSess = oSessionIo;
 
         oAccountIo = oSocketIo.of('/account').on('connection', function(oAccount){
+
+
             oAccount
             .on('reqJoin', function(htData){
                     console.log(htData);
