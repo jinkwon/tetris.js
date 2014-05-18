@@ -10,10 +10,13 @@
 
     <link rel="stylesheet" href="res/css/default.css"/>
     <link rel="stylesheet" href="vendor/animate.css/animate.min.css"/>
-    <script data-main="loader" src="lib/require.js"></script>
+    <script data-main="loader" src="vendor/requirejs/require.js"></script>
 
     <style type="text/css">
 
+        html{
+            overflow:hidden;
+        }
         body{
             height:100%;
             font-family: 'Lato', serif;
@@ -29,12 +32,15 @@
 </head>
 <body>
 
-<div id="_container" style="height:100%;">
+<div id="_container" style="overflow:hidden;height:100%;">
     
     <div id="_header" class="header" style="display:none;"></div>
-    
-    <div class="panel_container" style="overflow:hidden;height:100%;width:100%;">
-        <div class="_close animated" style="position:absolute;z-index:100;border:2px solid #FFF;border-radius:50%;width:30px;height:30px;right:10px;top:10px;display:none;line-height:1.1;content:'\2716';font-size:25px;color: #FFF;font-weight: 100;font-family: Arial, sans-serif;">&times;</div>
+
+    <div id="_option"></div>
+    <div id="_dimmed_section" style="z-index:2000;"></div>
+
+    <div class="panel_container" style="height:100%;width:100%;">
+        <div class="_close animated" style="cursor:pointer;position:absolute;z-index:1;border:2px solid #FFF;border-radius:50%;width:30px;height:30px;right:10px;top:10px;display:none;line-height:1.1;content:'\2716';font-size:25px;color: #FFF;font-weight: 100;font-family: Arial, sans-serif;">&times;</div>
 
         <div class="_screen" id="_single_view"></div>
         
@@ -46,7 +52,7 @@
     
     <div id="_footer" class="footer" style="display:none;"></div>
 
-    <div id="_option"></div>
+
 </div>
 
 </body>

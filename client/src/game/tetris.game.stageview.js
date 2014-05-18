@@ -24,20 +24,12 @@
 
             this.focusMenu('tip');
             
-            this.model = new app.tetris.Game.Model();
+
             
             this._initTimer();
 
 
 
-            this.model.bind('change:sGameStatus', this.watchGameStatus, this);
-            this.model.bind('change:htBlockPos', this.onBlockChange, this);
-            this.model.bind('change:nScore', this._renderScore, this);
-
-            this.model.bind('change:nScore change:htBlockPos', function(){
-
-                console.log('sendData');
-            });
 
 
 //            onChange : function(){
@@ -56,7 +48,6 @@
             
             this.render();
 
-            this._renderScore();
         },
 
         _renderScore : function(){
@@ -144,6 +135,23 @@
         
             this.$el.show();
 
+            if(this.oGameView){
+                this.oGameView.unbind();
+            }
+
+            this.initGame();
+            this._renderScore();
+        },
+
+        initGame : function(){
+            this.model = new app.tetris.Game.Model();
+            this.model.bind('change:sGameStatus', this.watchGameStatus, this);
+            this.model.bind('change:htBlockPos', this.onBlockChange, this);
+            this.model.bind('change:nScore', this._renderScore, this);
+            this.model.bind('change:nScore change:htBlockPos', function(){
+                console.log('sendData');
+            });
+
             this.oGameView = new app.tetris.Game.View({
                 el : '#single_game_area',
                 model : this.model,
@@ -151,6 +159,9 @@
                 bUseWebGL : false,
                 bUseSound : true
             });
+
+            this.startTimer();
+            this.oGameView.start();
 
 
             this.oGameView2 = new app.tetris.Game.View({
@@ -179,10 +190,9 @@
             var wel = $(this.$el);
             this._setGameEvents(wel);
         },
-        
+
         excuteTick : function(){
             var nGameStartTime = this.nGameStartTime;
-            
             nGameStartTime += 1000;
             
             var d = new Date(nGameStartTime)
@@ -192,19 +202,16 @@
             this.drawTime(sMin, sSec);
             
             this.nGameStartTime = nGameStartTime;
-            
             this.model.set('nGameStartTime', nGameStartTime);
         },
         
         
         drawTime : function(sMin, sSec){
-            var arElHour = $('.time_hour li').attr('class','').addClass('hold_num')
-             ,  arElMin = $('.time_min li').attr('class','').addClass('hold_num');
-            
-            $(arElHour[0]).addClass('n' + sMin.charAt(0));
-            $(arElHour[1]).addClass('n' + sMin.charAt(1));
-            $(arElMin[0]).addClass('n' + sSec.charAt(0));
-            $(arElMin[1]).addClass('n' + sSec.charAt(1));
+            this.$el.find('._play_time')
+                .html(sMin + ':' + sSec)
+                .removeClass('animated05 rubberBand').addClass('animated05 rubberBand').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+                    $(this).removeClass('animated05 rubberBand');
+                });
         },
         
         _initTimer : function(){
@@ -217,7 +224,7 @@
             
             this.nGameStartTime = this.model.get('nGameStartTime');
             this.stopTimer();
-            
+            this.excuteTick();
             this.timer = setInterval(function(){
                 that.excuteTick();
             },1000);
@@ -230,10 +237,9 @@
         
         watchGameStatus : function(){
             var sGameStatus = this.model.get('sGameStatus');
-            
+
             if(sGameStatus === 'start'){
-                this._initTimer();
-                this.startTimer();
+
             } else if(sGameStatus === 'play'){
                 $('.field .pause').remove();
                 this.startTimer();
@@ -252,6 +258,7 @@
                 this.createDimmedLayer('Already Started');
                 
             } else if(sGameStatus === 'end'){
+                this.stopTimer();
                 this.createDimmedLayer('Game Over');
                 
             }else {
@@ -306,7 +313,7 @@
                 that.focusMenu(sId);
             });
             
-            var wel = $(this.$el);
+            var wel = this.$el;
             
             
             wel.find('#ssamdi').on('click', $.proxy(function(){
@@ -324,18 +331,52 @@
             });
             
             
-            var that = this.oGameView;
-            wel.find('#fullscreen_btn').bind('click', function(){
-                if(that.bFullScreen == true){
-                    that.bFullScreen = false;
-                } else {
-                    var el = document.documentElement
-                    , rfs = el.requestFullScreen || el.webkitRequestFullScreen || el.mozRequestFullScreen;
-                    rfs.call(el);
-                    that.bFullScreen = true;	
+            wel.find('#fullscreen_btn').bind('click', $.proxy(this._onClickFullScreen, this));
+
+
+
+            var aOptionList = [
+                { sLabel : 'Continue' },
+
+                { sLabel : 'Pause', fn : function(){
+                    }
+                },
+
+                { sLabel : 'Setting', fn : function(){
+
+                    }
+                },
+
+                { sLabel : 'Exit', fn : function(){
+                    app.tetris.Router.navigate('menu', {trigger : true});
+
+                    }
                 }
-                
+             ];
+
+            this.oOptionView = new app.tetris.ui.Option.View({
+                aList : aOptionList
             });
+
+            this.$el.on('click', '._option', $.proxy(function(){
+                this._showOption();
+            }, this));
+        },
+
+        _showOption : function(){
+            this.oOptionView.show();
+        },
+
+        _onClickFullScreen : function(){
+            if(that.bFullScreen == true){
+                that.bFullScreen = false;
+            } else {
+                var el = document.documentElement
+                    , rfs = el.requestFullScreen || el.webkitRequestFullScreen || el.mozRequestFullScreen;
+                rfs.call(el);
+                that.bFullScreen = true;
+            }
+
         },
 
 

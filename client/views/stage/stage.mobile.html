@@ -1,29 +1,18 @@
 <style type="text/css">
-
-    .jpad {
-        float: left;
-        font-size: 30px;
-        line-height:1.10;
-        cursor: pointer;
-        width:40px;height:40px;
-        margin:0;
-        color:rgba(255,255,255,1.0);
-        text-align:center;
-
-        box-shadow:0 0 1px #222;
-        background-color:rgba(255,255,255, .2);
-        border:1px solid rgba(255,255,255, .5);
-        border-radius:0px;
+    .other_stage{
+        border-top:1px solid #FFF;
+        border-bottom:1px solid #FFF;
     }
 
-    ._multi{
-        display:none;
+    .option_btn{
+        cursor:pointer;z-index:1;position:absolute;top:10px;right:50px;font-size:14px;line-height:1.8;width:30px;height:30px;border:2px solid #FFF;border-radius:50%;
     }
+
 </style>
 <link rel="stylesheet" href="res/css/game.css"/>
 
 
-<div style="position:absolute;top:10px;right:50px;font-size:14px;line-height:1.8;width:30px;height:30px;border:2px solid #FFF;border-radius:50%;">
+<div class="_option option_btn">
     <i class="fa fa-cog"></i>
 </div>
 
@@ -60,12 +49,6 @@
 
     </div>
 
-    <style>
-        .other_stage{
-            border-top:1px solid #FFF;
-            border-bottom:1px solid #FFF;
-        }
-    </style>
     <div class="field_container" id="touch_area" style="box-sizing:border-box;background:none;z-index:0;position:absolute;top:0;bottom:0;width:100%;">
         <div style="position:absolute;top:50px;color:rgba(255,255,255,.2);text-align:left;margin-left:50px;font-size:50px;z-index:-1;">
             Score<br>
@@ -82,6 +65,10 @@
             </div>
 
 
+            <div class="" style="position:absolute;width:100%;left:0px;top:15px;overflow:hidden;">
+                <span class="_play_time" style="font-size:15px;width:100px;margin:auto;display:block;"></span>
+            </div>
+
             <div id="single_game_area" style="overflow:hidden;width:55%;position:absolute;left:22.5%;margin-top:-200px;top:50%;height:400px;background-color:rgba(50,50,50,.2);box-shadow:inset 0 0 5px #222;border:1px solid rgba(255,255,255,.7);"> </div>
 
             <div class="_multi animated" style="width:22.5%;padding:0 10px;right:0;top:50%;margin-top:-100px;bottom:0;position:absolute;height:120px;">
@@ -93,20 +80,6 @@
         </div>
     </div>
 
-
-    <div class="play_time" style="position:absolute;">
-        <ul class="time_hour" style="margin-right:0;">
-            <li>&nbsp;</li>
-            <li>&nbsp;</li>
-        </ul>
-        <ul style="float:left;margin:5px;margin-top:10px;">
-            <li>:</li>
-        </ul>
-        <ul class="time_min">
-            <li>&nbsp;</li>
-            <li>&nbsp;</li>
-        </ul>
-    </div>
 
     <div class="col3 _next_block" style="overflow:hidden;display:block;position:absolute;margin:auto;bottom:65px;right:5px;width:60px;height:60px;">
 

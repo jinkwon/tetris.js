@@ -74,8 +74,6 @@
             var template = app.tetris.TemplateManager.get(this.template, htVars);
             this.$el.html(template);
 
-
-            return;
             this.myScroll = new IScroll('#wrapper_scroll', {
                 scrollX: false,
                 scrollY: true,

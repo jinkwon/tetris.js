@@ -1,5 +1,43 @@
-<ul>
-    <li>Pause</li>
-    <li>Credit</li>
-    <li>Exit</li>
-</ul>
+<div style="position:absolute;z-index:1000;top:0;left:0;right:0;bottom:0;">
+
+    <style>
+        .option_layer{
+
+        }
+
+        .option_layer li{
+            border-top:1px solid rgba(255,255,255,.3);
+            font-size:17px;
+            padding:7px 0;
+            cursor:pointer;
+        }
+
+        .option_layer li:first-child{
+            border-top:0;
+        }
+
+        .option_container{
+            width:150px;margin:auto;height:150px;
+            position: absolute;
+            top:0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+
+            margin: auto;
+        }
+    </style>
+    <div class="option_container">
+
+    <div style="font-size:25px;padding-bottom:10px;border-bottom:1px solid #FFF;">
+        <%= sTitle %>
+    </div>
+
+    <ul class="option_layer">
+        <% _.each(aList, function(item) { %>
+            <li class="_menu_item" data-idx="<%=item.id %>"><%=item.sLabel %></li>
+        <% }); %>
+    </ul>
+    </div>
+
+</div>

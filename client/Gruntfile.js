@@ -310,7 +310,6 @@ module.exports = function (grunt) {
         'copy:view' ,
         'copy:loader',
         'copy:package',
-        'copy:phonegap',
         'concat',
         'uglify',
         'uglify:loader'

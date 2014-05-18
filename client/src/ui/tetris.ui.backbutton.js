@@ -1,13 +1,13 @@
 app.tetris.ui.BackButton = {
 
     setEvents : function(){
-        $(document).on('click touchstart', '._close', $.proxy(function (we) {
+        $(document).on('click', '._close', $.proxy(function (we) {
             this._clearAnimationClass($(we.currentTarget));
 
             $(we.currentTarget)
                 .addClass('bounceIn').show();
 
-            window.history.back();
+            app.tetris.Router.moveBack();
         }, this));
     },
 

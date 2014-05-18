@@ -35,9 +35,10 @@
         },
 
         _hideAllScreens : function(){
-            
+            this._welContainer.find('#_dimmed_section').hide();
 
             this._welContainer.find('._screen').hide();
+
             this._welContainer.removeClass('animated').removeClass('fadeInDown');
 
             t.ui.Header.View.hide();
@@ -80,6 +81,10 @@
             t.ui.Header.View.changeTitle('Credit').show();
             
             t.ui.BackButton.show();
+        },
+
+        moveBack : function(){
+            window.history.back();
         },
 
         moveToSingleGame : function(){
