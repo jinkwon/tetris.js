@@ -19,7 +19,15 @@
             padding:5px 0 5px 15px;
             margin-bottom:7px;
             box-shadow:inset 0 0 5px rgba(100,100,100, .2);
+            outline: none;
         }
+        .login input[type=text]:focus, .login input[type=password]:focus{
+            -webkit-box-shadow:0px 0px 20px #FFF;
+            -moz-box-shadow:0px 0px 20px #FFF;
+            -o-box-shadow:0px 0px 20px #FFF;
+            box-shadow:0px 0px 20px #FFF;
+        }
+
         
         .login_form{
             height:150px;
@@ -38,6 +46,33 @@
             padding:5px;
             margin-bottom:7px;
             box-shadow:inset 0 0 5px rgba(100,100,100, .2);
+            outline: none;
+        }
+        @-webkit-keyframes fade {
+            0%   {
+                -webkit-transform:scale(1);
+                -moz-transform:scale(1);
+                -ms-transform:scale(1);
+                -o-transform:scale(1);
+                transform:scale(1);
+            }
+            100% {
+                -webkit-transform:scale(0.9);
+                -moz-transform:scale(0.9);
+                -ms-transform:scale(0.9);
+                -o-transform:scale(0.9);
+                transform:scale(0.9);
+            }
+        }
+        .login_form .gr-btn:active{
+            -webkit-animation: fade 0.3s forwards ease;
+            -webkit-animation-iteration-count: 1;
+
+
+            -webkit-box-shadow:0px 0px 20px #FFF;
+            -moz-box-shadow:0px 0px 20px #FFF;
+            -o-box-shadow:0px 0px 20px #FFF;
+            box-shadow:0px 0px 20px #FFF;
         }
     </style>
 
@@ -60,7 +95,7 @@
             </ul>
 
             <div class="btn_section">
-                <input type="button" class="gr-btn _login_btn" style="margin-right:5px;background-color:rgba(0,0,0,.2);font-weight:bold;color:#FFF;" value="Sign In"/>
+                <input type="button" class="gr-btn _login_btn" style="margin-right:5px;font-weight:bold;color:#FFF;" value="Sign In"/>
                 <input type="button" class="gr-btn _join_btn" value="Sign Up"/>
             </div>
         </div>

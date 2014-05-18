@@ -1,0 +1,4 @@
+/*! Tetris - v0.1.0 - 2014-05-18
+* https://github.com/Jinkwon/tetris.js
+* Copyright (c) 2014 LeeJinKwon; Licensed MIT */
+requirejs.config({baseUrl:"",urlArgs:"bust="+(new Date).getTime(),waitSeconds:45,paths:{underscore:"lib/underscore-min",backbone:"lib/backbone",jquery:"lib/jquery","jquery-ui":"lib/jquery-ui",iscroll:"vendor/iscroll/build/iscroll","jq-hammer":"lib/jquery.hammer","socket.io":"lib/socket.io","jq-slide":"lib/slides.min.jquery",glmatrix:"lib/glmatrix",hammer:"lib/hammer","jq-specialevt":"lib/jquery.specialevent.hammer",howler:"vendor/howler/howler.min",tetris:"Tetris"},shim:{backbone:{deps:["underscore","jquery"],exports:"Backbone"},jquery:{exports:"$"},"jq-slide":{deps:["jquery"]},"jquery-ui":{deps:["jquery"]},"jq-specialevt":{deps:["jquery"]},"jq-hammer":{deps:["jquery","hammer","jq-specialevt"]},tetris:{deps:["backbone","jquery","jquery-ui","glmatrix","socket.io","iscroll","howler"]}}}),requirejs(["tetris"],function(){app.tetris.init("staging")});

@@ -37,7 +37,7 @@
         
         show : function(){
             this.render();
-            
+
             this.$el.show();
             this.$el.find('._welcome').addClass('animated').addClass('pulse');
             this.$el.addClass('animated').removeClass('fadeOutUp').addClass('fadeInDown');
@@ -74,13 +74,14 @@
             var template = app.tetris.TemplateManager.get(this.template, htVars);
             this.$el.html(template);
 
+
+            return;
             this.myScroll = new IScroll('#wrapper_scroll', {
                 scrollX: false,
                 scrollY: true,
                 momentum: true,
                 click: true
             });
-
 
             return this;
         }

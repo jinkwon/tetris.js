@@ -5,21 +5,21 @@
 app.tetris.Game.Model = Backbone.Model.extend({
 	defaults : function(){
 		return {
-		nScore : 0,
-		sGameStatus : 'stop',
-		nBlockPixel : null,
-		aBlocks : null,
-		nNumber : 2,
-		nCols : 0,
-		nRows : 0,
-		sGuid : '',
-		aMatrix : [],
-		nGameStartTime : 0,
-		oBlockCollection : {},
-		htBlockPos : {
-			nX : 0,
-			nY : 0
-		}
+            nScore : 0,
+            sGameStatus : 'stop',
+            nBlockPixel : null,
+            aBlocks : null,
+            nNumber : 2,
+            nCols : 0,
+            nRows : 0,
+            sGuid : '',
+            aMatrix : [],
+            nGameStartTime : 0,
+            oBlockCollection : {},
+            htBlockPos : {
+                nX : 0,
+                nY : 0
+            }
 		};
 	},
 	
@@ -49,7 +49,7 @@ app.tetris.Game.Model = Backbone.Model.extend({
 		var nScore = this.get('nScore');
 		this.set('nScore', nScore + (nScorePlus * 100));
 	},
-	
+
 	setBlockPosXY : function(nX, nY){
 		this.set({ htBlockPos : {nX : nX, nY : nY}});
 	},

@@ -4,7 +4,10 @@ app.tetris.Account.Network = {};
 
 app.tetris.Account.Network.connect = function(cb){
     if(!app.tetris.Account.Network.io){
-        app.tetris.Account.Network.io = io.connect(app.tetris.config.sAccountUrl);
+        app.tetris.Account.Network.io = io.connect(app.tetris.config.sAccountUrl, {
+            timeout : 5000
+        });
+
 
         app.tetris.Account.Network.io
             .on('connection', function(){
@@ -12,14 +15,20 @@ app.tetris.Account.Network.connect = function(cb){
                     cb();
                 }
             })
+            .on('disconnect', function(){
+
+                alert('disconnected');
+            })
             .on('error', function(){
                 alert('Cannot connect to Server');
+                app.tetris.Account.Network.io = null;
             })
             .on('reconnect_failed', function(){
                 console.log('reconnect_failed');
             })
             .on('connect_failed', function (err) {
                 console.log(err);
+                alert('Connect failed');
             })
             .on('resLogin', function(htData){
                 

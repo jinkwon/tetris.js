@@ -27,12 +27,47 @@
             this.model = new app.tetris.Game.Model();
             
             this._initTimer();
-            this.model.bind('change:sGameStatus', this.watchGameStatus, this);
 
+
+
+            this.model.bind('change:sGameStatus', this.watchGameStatus, this);
             this.model.bind('change:htBlockPos', this.onBlockChange, this);
-            this.setEvents();
+            this.model.bind('change:nScore', this._renderScore, this);
+
+            this.model.bind('change:nScore change:htBlockPos', function(){
+
+                console.log('sendData');
+            });
+
+
+//            onChange : function(){
+//            change:nScore
+//            chnage:aMatrix
+//
+//                var htData = {
+//                    sGuid : this.model.get('sGuid'),
+//                    aMatrix : this.model.get('aMatrix'),
+//                    nScore : this.model.get('nScore')
+//                };
+//                this.oGameIo.emit('sendGameInfo', htData);
+//            }
+
+            this.setUIEvents();
             
             this.render();
+
+            this._renderScore();
+        },
+
+        _renderScore : function(){
+            var nScore = this.model.get('nScore');
+
+            this.$el.find('.score')
+                .empty()
+                .html(nScore)
+                .parent().removeClass('animated pulse').addClass('animated pulse').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+                    $(this).removeClass('animated pulse');
+                });
         },
 
         onBlockChange : function(){
@@ -59,6 +94,11 @@
                     $('.next_group_block_container').append(sBlock + '<div style="clear:both;height:43px;"></div>');
                 }
             }
+
+            $('._next_block')
+                .removeClass('animated fadeInRight').addClass('animated fadeInRight').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+                    $(this).removeClass('animated fadeInRight');
+                });
 
         },
 
@@ -91,6 +131,11 @@
         render : function(){
             var template = app.tetris.TemplateManager.get(this.template, {});
             this.$el.html(template);
+            if(app.tetris.Util.isMobile()){
+                $('._mobile').show();
+            } else {
+                $('._mobile').hide();
+            }
 
             return this;
         },
@@ -103,24 +148,22 @@
                 el : '#single_game_area',
                 model : this.model,
                 bEventBind : true,
-                bUseWebGL : true,
+                bUseWebGL : false,
                 bUseSound : true
             });
+
 
             this.oGameView2 = new app.tetris.Game.View({
                 el : '#other_1_game_area',
                 model : new app.tetris.Game.Model(),
-                bEventBind : true,
-                bUseWebGL : true,
+                bUseWebGL : false,
                 bUseSound : false
             });
 
             this.oGameView3 = new app.tetris.Game.View({
                 el : '#other_2_game_area',
                 model : new app.tetris.Game.Model(),
-                bEventBind : true,
-                bUseWebGL : true,
-                bUseSound : false
+                bUseWebGL : false
             });
 
 //            setInterval(function(){
@@ -239,12 +282,15 @@
 
         _setGameEvents: function (wel) {
             wel.find('#start_btn').bind('click', $.proxy(this.oGameView.start, this.oGameView));
-            wel.find('#debug_btn').bind('click', $.proxy(this.oGameView.debugStart, this.oGameView));
             wel.find('#stop_btn').bind('click', $.proxy(this.oGameView.stop, this.oGameView));
             wel.find('#ready_btn').bind('click', $.proxy(this.oGameView.reqReady, this.oGameView));
             wel.find('#cancel_btn').bind('click', $.proxy(this.oGameView.reqCancel, this.oGameView));
-            $('#start_touch').bind('click', $.proxy(this.oGameView.start, this.oGameView));
-        }, setEvents : function(){
+            wel.find('#start_touch').bind('click', $.proxy(this.oGameView.start, this.oGameView));
+
+            wel.find('#debug_btn').bind('click', $.proxy(this.oGameView.debugStart, this.oGameView));
+        },
+
+        setUIEvents : function(){
             var that = this;
             
             $('.chat_input').on('keydown', function(e){

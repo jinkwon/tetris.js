@@ -93,7 +93,8 @@
                 sTargetId  : 'game_area',
                 bUseWebGL : true
             });
-            
+
+            return;
             oTetris.on('ready', function(context){
                 context.oGameView.show();
             });

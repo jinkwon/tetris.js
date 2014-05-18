@@ -3,54 +3,61 @@
     .jpad {
         float: left;
         font-size: 30px;
+        line-height:1.10;
         cursor: pointer;
         width:40px;height:40px;
-        margin:2px;
+        margin:0;
         color:rgba(255,255,255,1.0);
         text-align:center;
-        text-shadow: 0 0 7px #000;
-        box-shadow:0 0 5px #AAA;
+
+        box-shadow:0 0 1px #222;
         background-color:rgba(255,255,255, .2);
         border:1px solid rgba(255,255,255, .5);
-        border-radius:5%;
+        border-radius:0px;
     }
 
+    ._multi{
+        display:none;
+    }
 </style>
 <link rel="stylesheet" href="res/css/game.css"/>
 
-        
-<div style="position:absolute;margin-left:0px;left:10px;width:300px;z-index:1000;bottom:10px;display:block;">
-    <div class="jpad" id="up" style="margin-left:47px;">▲</div>
+
+<div style="position:absolute;top:10px;right:50px;font-size:14px;line-height:1.8;width:30px;height:30px;border:2px solid #FFF;border-radius:50%;">
+    <i class="fa fa-cog"></i>
+</div>
+
+<div class="_mobile" style="position:absolute;margin-left:0px;left:10px;width:300px;z-index:100;bottom:10px;display:block;">
+    <div class="jpad" id="up" style="margin-left:40px;border-bottom:0;"><i class="fa fa-angle-up"></i></div>
     <div style="clear:both;">
-        <div class="jpad" id="left">◀</div><div class="jpad" id="down">▼</div>
-        <div class="jpad" id="right">▶</div>
+        <div class="jpad" id="left" style="border-right:0;"><i class="fa fa-angle-left"></i></div><div class="jpad" id="down" style="box-shadow:none;border-right:1px solid rgba(255,255,255,0.9);"><i class="fa fa-angle-down"></i></div>
+        <div class="jpad" id="right" style="border-left:0;"><i class="fa fa-angle-right"></i></div>
     </div>
 </div>
 
-<div style="position:absolute;right:0;bottom:10px;z-index:1000;">
-    <div class="jpad" id="start_touch" style="margin-right:15px;">S</div>
-    <div class="jpad" id="harddown" style="margin-right:15px;">●</div>
+<div class="_mobile" style="position:absolute;right:10px;bottom:10px;z-index:100;">
+    <div class="jpad" id="harddown">
+        <i class="fa fa-angle-double-down"></i>
+    </div>
 </div>
-        
-<div id="_dimmed_section"></div>
-        
+
 <div class="container" style="position:relative;height:100%;box-sizing:border-box;padding-bottom:20px;">
 
-    <div style="height:100px;position:absolute;width:100%;">
-
-        <div style="width:100%;border-top:5px dotted rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.8);"></div>
-        
-        <div style="position:absolute;left:50%;border-left:1px solid #FFF;margin-top:2px;">
-            <div style="width: 0;margin-left:-6px;margin-top:-1px;height: 0;border-left: 5px solid transparent;border-right: 5px solid transparent;border-bottom: 5px solid #FFF;"></div>
-            <div style="padding:1px 3px;border-radius:0 5px 0 0;text-align:left;margin-top:8px;border-bottom:1px solid #FFF;font-size:11px;background-color:rgba(255,255,255,.3)">
+    <div class="_score_board _multi" style="display:none;height:100px;position:absolute;width:100%;">
+        <div style="position:absolute;left:10%;border-left:1px solid #FFF;margin-top:15px;">
+            <div style="padding:1px 3px;border-radius:0 5px 0 0;text-align:left;margin-bottom:8px;border-bottom:1px solid #FFF;font-size:11px;background-color:rgba(255,255,255,.3)">
                 You are <b>50st</b>
             </div>
+            <div style="width: 0;margin-left:-6px;margin-bottom:-1px;height: 0;border-left: 5px solid transparent;border-right: 5px solid transparent;border-top: 5px solid #FFF;"></div>
         </div>
-            
+
+
+        <div style="width:100%;margin-top:49px;box-shadow:0 1px 2px rgba(0,0,0,1);border-top:5px dotted rgba(255,255,255,.5);border-bottom:1px solid rgba(255,255,255,.8);"></div>
         <div style="opacity:.5;">
             <div style="float:left;margin:5px 0 0 0;-webkit-transform:rotate(90deg);">1st</div>
             <div style="float:right;margin:5px 0 0 0;-webkit-transform:rotate(90deg);">last</div>
         </div>
+
     </div>
 
     <style>
@@ -68,18 +75,18 @@
         <div class="field" style="box-sizing:border-box;">
             <div id="debug_area" class="debug_area"> </div>
 
-            <div class="animated" style="width:22.5%;padding:0 10px;left:0;top:50%;margin-top:-75px;bottom:0;position:absolute;height:120px;">
+            <div class="_multi animated" style="width:22.5%;padding:0 10px;left:0;top:50%;margin-top:-100px;bottom:0;position:absolute;height:120px;">
                 <div>45st</div>
-                <div id="other_1_game_area" class="other_stage"></div>
+                <div id="other_1_game_area" style="height:120px;" class="other_stage"></div>
                 <div>Diablo. 200</div>
             </div>
 
 
-            <div id="single_game_area" style="width:55%;position:absolute;left:22.5%;margin-top:-200px;top:50%;height:400px;border-radius:5px;background-color:rgba(50,50,50,.2);box-shadow:inset 0 0 5px #222;border:1px solid #FFF;"> </div>
+            <div id="single_game_area" style="overflow:hidden;width:55%;position:absolute;left:22.5%;margin-top:-200px;top:50%;height:400px;background-color:rgba(50,50,50,.2);box-shadow:inset 0 0 5px #222;border:1px solid rgba(255,255,255,.7);"> </div>
 
-            <div class="animated" style="width:22.5%;padding:0 10px;right:0;top:50%;margin-top:-75px;bottom:0;position:absolute;height:120px;">
+            <div class="_multi animated" style="width:22.5%;padding:0 10px;right:0;top:50%;margin-top:-100px;bottom:0;position:absolute;height:120px;">
                 <div>52st</div>
-                <div id="other_2_game_area" class="other_stage" ></div>
+                <div id="other_2_game_area" style="height:120px;" class="other_stage" ></div>
                 <div>Wow. 200</div>
             </div>
 
@@ -87,27 +94,31 @@
     </div>
 
 
-    
-    <div class="col3" style="display:none;">
-        <div class="next_block">
-            <div class="next_block_container"> </div>
+    <div class="play_time" style="position:absolute;">
+        <ul class="time_hour" style="margin-right:0;">
+            <li>&nbsp;</li>
+            <li>&nbsp;</li>
+        </ul>
+        <ul style="float:left;margin:5px;margin-top:10px;">
+            <li>:</li>
+        </ul>
+        <ul class="time_min">
+            <li>&nbsp;</li>
+            <li>&nbsp;</li>
+        </ul>
+    </div>
+
+    <div class="col3 _next_block" style="overflow:hidden;display:block;position:absolute;margin:auto;bottom:65px;right:5px;width:60px;height:60px;">
+
+        <div style="position:absolute;margin:auto;text-align:center;line-height:1;left:10px;top:3px;color:rgba(255,255,255,1);width:45px;padding-bottom:3px;z-index:1;border-bottom:1px solid #FFF;">
+            <span style="font-size:15px;">Next</span>
+
+        </div>
+        <div class="next_block" style="position:relative;margin-left:8px;margin-top:2px;-webkit-transform:scale(0.7);">
+            <div class="next_block_container" style="width:67px;height:67px;position:relative;"> </div>
         </div>
         <div class="next_block_group">
             <div class="next_group_block_container"> </div>
-        </div>
-
-        <div class="play_time">
-            <ul class="time_hour" style="margin-right:0;">
-                <li>&nbsp;</li>
-                <li>&nbsp;</li>
-            </ul>
-            <ul style="float:left;margin:5px;margin-top:10px;">
-                <li>:</li>
-            </ul>
-            <ul class="time_min">
-                <li>&nbsp;</li>
-                <li>&nbsp;</li>
-            </ul>
         </div>
 
     </div>
