@@ -48,8 +48,6 @@ createNewLeague = function(oGameIo){
             if(!err){
                 console.log(('Successfully Added : League '+nLeagueSeq).green);
             }
-//            oGameIo.join(doc._id);
-
         };
 
         new League(htObj).save(_onSave);
@@ -85,7 +83,7 @@ function joinLeague(id, cb){
 function outLeague(id){
 
     getLastLeague(function(doc){
-        doc.users = _.reject(doc.users, function(userid){ return id === userid});
+        doc.users = _.reject(doc.users || [], function(userid){ return id === userid});
 
         doc.save(function(err, doc){
             console.log('outLeague');
@@ -97,34 +95,33 @@ function outLeague(id){
 module.exports = {
     init : function(oSocketIo, oMonitorIo){
 
-        var oGameIo = oSocketIo.of('/game').on('connection', function(oGame){
-            console.log(('connected : ' + oGame.id).magenta);
-
-            oGame
-                .on('reqJoinLeague', function(){
-                    joinLeague(oGame.id, function(roomId){
-
-
-                        oGame.join(roomId);
-
-                        console.log(oGameIo.manager.rooms);
-
-                        oGame.emit('resJoinLeague');
+        var oGameIo = oSocketIo.of('/game')
+            .on('connection', function(oGame){
+                console.log(('connected : ' + oGame.id).magenta);
+                oGame
+                    .on('reqJoinLeague', function(){
+                        joinLeague(oGame.id, function(roomId){
+    
+    
+                            oGame.join(roomId);
+    
+                            console.log(oGameIo.manager.rooms);
+    
+                            oGame.emit('resJoinLeague');
+                        });
+    
+                    })
+                    .on('reqOutLeague', function(){
+                        oGame.emit('resOutLeague');
+                    })
+                    .on('disconnect', function(){
+                        console.log(('disconnected : ' + oGame.id).yellow);
+                        outLeague(oGame.id);
+    
+    //                    if(oGame.id){
+    //                        disconnect(oGame.id, oMonitorIo);
+    //                    }
                     });
-
-
-                })
-                .on('reqOutLeague', function(){
-                    oGame.emit('resOutLeague');
-                })
-                .on('disconnect', function(){
-                    console.log(('disconnected : ' + oGame.id).yellow);
-                    outLeague(oGame.id);
-
-//                    if(oGame.id){
-//                        disconnect(oGame.id, oMonitorIo);
-//                    }
-                });
 
 
         });
@@ -212,41 +209,6 @@ module.exports = {
             }
             (fCb = fCb || function () {})();
         };
-
-
-
-        function clone(obj) {
-            if (typeof obj !== 'object' || obj == null) {
-                return obj;
-            }
-
-            var c = obj instanceof Array ? [] : {};
-
-            for (var i in obj) {
-                var prop = obj[i];
-
-                if (typeof prop == 'object') {
-                    if (prop instanceof Array) {
-                        c[i] = [];
-
-                        for (var j = 0; j < prop.length; j++) {
-                            if (typeof prop[j] != 'object') {
-                                c[i].push(prop[j]);
-                            } else {
-                                c[i].push(clone_obj(prop[j]));
-                            }
-                        }
-                    } else {
-                        c[i] = clone(prop);
-                    }
-                } else {
-                    c[i] = prop;
-                }
-            }
-
-            return c;
-        }
-
 
         var getUserIndexFromArrayByGameId = function(aArray, sGameId){
             for(var i=0, nCount=aArray.length; i<nCount; i++){

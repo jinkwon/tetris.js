@@ -22,13 +22,14 @@ app.tetris.ui.Option.View = Backbone.View.extend({
         this.unbind();
 
         var nIdx = $(we.currentTarget).attr('data-idx');
-        var bClose = true;
 
+        var bClose;
+        
         if (this.aOptionList[nIdx].fn) {
             bClose = this.aOptionList[nIdx].fn();
         }
 
-        if(bClose){
+        if(bClose !== false){
             this.hide();
         }
 
@@ -54,7 +55,14 @@ app.tetris.ui.Option.View = Backbone.View.extend({
     },
 
     hide : function(){
-        this.$el.hide();
+
+        var self = this;
+        this.$el.find('.option_container').removeClass('animated05 fadeOutDown').addClass('animated05 fadeOutDown').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+            $(this).removeClass('animated05 fadeOutDown');
+
+            self.$el.hide();
+        });
+        
         this.hideDimmed();
     },
 

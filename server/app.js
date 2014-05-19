@@ -1,3 +1,5 @@
+// SOCKET.IO ====================================================================================================
+
 require('./src/db.js');
 
 var console = require('clog'),
@@ -41,6 +43,39 @@ var oMonitorIo = monitor.init(oSocketIo);
 
 
 
+// EXPRESS ====================================================================================================
+
+var getRoomInfoWithUserId = function(cb){
+    var finalResult = {};
+    var rooms = oSocketIo.sockets.manager.rooms;
+    var aFunc = [];
+    var sRoomName;
+
+    for(sRoomName in rooms){
+
+        finalResult[sRoomName] = _.clone(rooms[sRoomName]);
+        var aRoomMembers = finalResult[sRoomName];
+
+        for(var i = 0, nLen = aRoomMembers.length; i < nLen; i++){
+
+            aFunc.push(function (idx, sRoomName, callback) {
+
+                User.findOne({sessionId: finalResult[sRoomName][idx]}, function (err, doc) {
+                    if (doc !== null) {
+                        finalResult[sRoomName][idx] = doc.userId;
+                    }
+                    callback();
+                });
+
+            }.bind(this, i, sRoomName));
+        }
+    }
+
+    async.waterfall(aFunc, function(err, result){
+        cb(finalResult);
+    });
+};
+
 
 
 var express = require('express');
@@ -51,9 +86,7 @@ var ejs = require('ejs');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser');
-
 var routes = require('./routes/index');
-var users = require('./routes/users');
 
 var app = express();
 
@@ -63,7 +96,6 @@ app.set('view engine', 'ejs');
 
 require('./src/oauth')(app);
 
-app.use(favicon());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
@@ -76,47 +108,7 @@ app.use(session({
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', function(req, res){
-    //
-    // 세션정보를 확인한다.
-    //
-    console.log(req.session);
     
-    //
-    // req.user 는 아래에서 설명한다.
-    // 처음에 undefined 이나, 로그인 성공하면, profile 정보가 저장된다.
-    //
-//    console.log(req.user);
-
-    var getRoomInfoWithUserId = function(cb){
-        var finalResult = {};
-        var rooms = oSocketIo.sockets.manager.rooms;
-        var aFunc = [];
-
-        for(var roomName in rooms){
-            finalResult[roomName] = _.clone(rooms[roomName]);
-
-            var aRoomMembers = finalResult[roomName];
-
-            for(var i = 0; i < aRoomMembers.length; i++){
-
-                (function(idx, sRoomName) {
-                    aFunc.push(function (callback) {
-                        User.findOne({sessionId: aRoomMembers[idx]}, function (err, doc) {
-                            if (doc !== null) {
-                                finalResult[sRoomName][idx] = doc.userId;
-                            }
-                            callback();
-                        });
-                    }.bind(this));
-                })(i, roomName);
-            }
-        }
-
-        async.series(aFunc, function(err, result){
-            cb(finalResult);
-        });
-    };
-
     getRoomInfoWithUserId(function(info){
         res.render('index', { roomInfo : info });
     });

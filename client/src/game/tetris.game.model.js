@@ -47,6 +47,8 @@ app.tetris.Game.Model = Backbone.Model.extend({
 	
 	plusScore : function(nScorePlus){
 		var nScore = this.get('nScore');
+        
+        debugger;
 		this.set('nScore', nScore + (nScorePlus * 100));
 	},
 

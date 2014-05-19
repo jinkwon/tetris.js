@@ -59,22 +59,43 @@
             this.navigate('login', {trigger : true});
         },
 
+        moveToSingleGame : function(){
+            this._hideAllScreens();
+            t.ui.BackButton.show();
+            
+            t.Game.StageView.show();
+
+//            // Game Init
+//            var oTetris = t.Game.init({
+//                sTargetId  : 'game_area',
+//                bUseWebGL : true,
+//                sType : 'single'
+//            });
+//            
+            
+        },
 
         moveToMultiGame : function(){
             this._hideAllScreens();
-            t.Menu.View.show();
+            t.ui.BackButton.show();
+            t.Game.StageView.show();
+
+//            // Game Init
+//            var oTetris = t.Game.init({
+//                sTargetId  : 'game_area',
+//                bUseWebGL : true,
+//                sType : 'multi'
+//            });
+//            
         },
         
         moveToGameBoard : function(){
             this._hideAllScreens();
             
-            
             t.Board.init();
             t.Board.View.show();
-
             t.ui.Header.View.changeTitle('GameBoard').show();
             t.ui.Footer.View.show();
-
             t.ui.BackButton.show();
         },
 
@@ -88,25 +109,6 @@
 
         moveBack : function(){
             window.history.back();
-        },
-
-        moveToSingleGame : function(){
-            this._hideAllScreens();
-
-            t.ui.BackButton.show();
-            t.Game.StageView.show();
-            
-            // Game Init
-            var oTetris = t.Game.init({
-                sTargetId  : 'game_area',
-                bUseWebGL : true
-            });
-
-            return;
-            oTetris.on('ready', function(context){
-                context.oGameView.show();
-            });
-            
         },
 
         moveToMenu : function(){

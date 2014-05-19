@@ -73,7 +73,6 @@
             }
 
             app.tetris.Account.Network.connect($.proxy(function(){
-
                 this._updateAccount();
                 this._setAccountEvents();
                 app.tetris.Account.Network.io.emit('reqJoin', app.tetris.Account.Info.getAccount());

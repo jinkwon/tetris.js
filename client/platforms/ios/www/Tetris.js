@@ -1538,7 +1538,7 @@ app.tetris.Game.Model = Backbone.Model.extend({
 
             $('.next_block_container').empty().append(sBlock);
 
-            if(this.drawNextGroupBlock){
+            if(this._isDrawNextGroupBlock){
                 $('.next_group_block_container').empty();
 
                 for(var i = 0; i < 3; i++){
@@ -1849,7 +1849,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.bFullScreen = false;
 		
 		if(this.bEventBind){
-			this.setTouchEvents();
+			this.setGameEvents();
 		}
 	},
 
@@ -2305,7 +2305,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			.bind('keydown keyup', this._fnKeyEvent);
 	},
 	
-	setTouchEvents : function(){
+	setGameEvents : function(){
 		
 		$('.jpad').on('touchstart mousedown', $.proxy(function(e){
 	        e.stopPropagation();

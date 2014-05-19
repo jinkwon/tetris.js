@@ -22,7 +22,9 @@
     "passport": "^0.2.0",
     "passport-facebook": "^1.0.3",
     "cron": "^1.0.4",
-    "time": "^0.10.0"
+    "time": "^0.10.0",
+    "clog": "~0.1.6",
+    "socket.io": "~0.9.16"
   },
   "oauth": {
     "facebook": {

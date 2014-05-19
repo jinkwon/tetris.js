@@ -6,9 +6,9 @@ app.tetris.init = function(sMode){
 
 
     // initialize Singleton
-    app.tetris.Game.StageView = app.tetris.Game.StageView.getInstance();
     app.tetris.Router = app.tetris.Router.getInstance();
-
+    app.tetris.Game.StageView = app.tetris.Game.StageView.getInstance();
+    
     app.tetris.Network.startSession();
 
     app.tetris.ui.BackButton.setEvents();

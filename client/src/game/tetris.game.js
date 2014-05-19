@@ -23,8 +23,6 @@ app.tetris.Game.init = (function(htOptions){
       , welAbout = $('#about');
       
 	
-    
-    
 	var replaceElement = function(){
 		$('#welcome_str').html('환영합니다');
 	};

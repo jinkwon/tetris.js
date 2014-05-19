@@ -12,12 +12,12 @@ app.tetris.Game.Network.init = function(){
             console.log(arguments);
 
     });
-            oGameIo
+    
+    
+    oGameIo
         .on('connect', function(){
             console.log(arguments);
-
             oGameIo.emit('reqJoinLeague', {
-
 
             });
         })

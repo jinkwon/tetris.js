@@ -12,7 +12,6 @@ app.tetris.Game.View = Backbone.View.extend({
 	initialize : function(options){
         this.render();
 
-
 		this.oUIView = options.oUIView;
 		this.oGameIo = options.oGameIo || {};
 		
@@ -32,7 +31,6 @@ app.tetris.Game.View = Backbone.View.extend({
         }
 
         this.drawMyStage();
-        this.start();
 
 		this.bWebGLOn = options.bUseWebGL ? options.bUseWebGL : false;
 
@@ -45,10 +43,6 @@ app.tetris.Game.View = Backbone.View.extend({
         this.nMargin = options.nMargin || 0;
 
 		this.bFullScreen = false;
-		
-		if(this.bEventBind){
-			this.setTouchEvents();
-		}
 	},
 
     render : function(){
@@ -149,85 +143,89 @@ app.tetris.Game.View = Backbone.View.extend({
 	 * Game 이벤트 바인딩 
 	 */
 	bindEvents : function(){
-		var wel = $(this.el);
-		
-		this.X = 0;
-		var that = this;
-		this.forward = false;
-		
-		this.startX = 0;
-		var _onMouseMove = function(e){
-			if(that.mouseDownFlag){
+        var self = this;
+        $(window).on('resize', function(){
+            self.initCanvas();
+        });
+
+        if(!this.bWebGLOn){
+            return;
+        }
+
+        var wel = $(this.el);
+
+        this.X = 0;
+        var that = this;
+        this.forward = false;
+
+        this.startX = 0;
+        var _onMouseMove = function(e){
+            if(that.mouseDownFlag){
 
 
                 var e = e.originalEvent.touches[0] || e.originalEvent;
 
                 var x = e.clientX - $(this).offset().left;
 
-				var w = $(this).width();
-				var deg = (x / w) * 180;
-				that.oWebGLView.fAngleXZ = deg * Math.PI/180;
-				
-				var y = e.clientY - $(this).offset().top;
-				var h = $(this).height();
-				var deg = (y / h) * 90;
-				that.oWebGLView.fAngleYZ = deg * Math.PI/180;
-			}
-		};
-		
-		this.flag = 0;
-		this.startX = 350;
+                var w = $(this).width();
+                var deg = (x / w) * 180;
+                that.oWebGLView.fAngleXZ = deg * Math.PI/180;
+
+                var y = e.clientY - $(this).offset().top;
+                var h = $(this).height();
+                var deg = (y / h) * 90;
+                that.oWebGLView.fAngleYZ = deg * Math.PI/180;
+            }
+        };
+
+        this.flag = 0;
+        this.startX = 350;
         var welGlStage = this.$el.find('._tetris_webgl_canvas');
 
-		var animatorFunc = function(){
-			
-			if(that.flag == 0){
-				that.startX--;	
-			} else {
-				that.startX++;
-			}
-				
-			
-			if(that.startX > 350){
-				that.flag = 0;
-			}
-			
-			if(that.startX <= 330){
-				that.flag = 1;
-			}
-			
-			var x = that.startX - welGlStage.offset().left;
-				var w = welGlStage.width();
-				var deg = (x / w) * 180;
-				that.oWebGLView.fAngleXZ = deg * Math.PI/180;
-				
-				
-		};
-		
-		//this.animation = setInterval(animatorFunc, 100);
+        var animatorFunc = function(){
+
+            if(that.flag == 0){
+                that.startX--;
+            } else {
+                that.startX++;
+            }
+
+
+            if(that.startX > 350){
+                that.flag = 0;
+            }
+
+            if(that.startX <= 330){
+                that.flag = 1;
+            }
+
+            var x = that.startX - welGlStage.offset().left;
+            var w = welGlStage.width();
+            var deg = (x / w) * 180;
+            that.oWebGLView.fAngleXZ = deg * Math.PI/180;
+
+
+        };
+
+        //this.animation = setInterval(animatorFunc, 100);
 
         welGlStage.mousewheel(function(event, delta, deltaX, deltaY) {
-		    
-			that.oWebGLView.fCameraDistance += (delta * 10);
-		    
-		    return false;
-		});
+
+            that.oWebGLView.fCameraDistance += (delta * 10);
+
+            return false;
+        });
 
 //        $('body').on('touchmove', _onMouseMove);
 
         welGlStage.on('mousedown touchstart', function(e){
-			that.mouseDownFlag = true;
-			
-		});
-		
-		$(document).on('touchcancel touchend', function(e){
+            that.mouseDownFlag = true;
+
+        });
+
+        $(document).on('touchcancel touchend', function(e){
 //			that.mouseDownFlag = false;
 //            welGlStage.off('mousemove touchmove', _onMouseMove);
-		});
-
-        var self = this;
-        $(window).on('resize', function(){
-            self.initCanvas();
         });
 	},
 
@@ -512,7 +510,6 @@ app.tetris.Game.View = Backbone.View.extend({
 	},
 	
 	bindKeyEvents : function(){
-		
 		this.htKeyState = {};
 
 		$(document)
@@ -520,63 +517,6 @@ app.tetris.Game.View = Backbone.View.extend({
 			.bind('keydown keyup', this._fnKeyEvent);
 	},
 	
-	setTouchEvents : function(){
-
-		$('.jpad').on('touchstart mousedown', $.proxy(function(e){
-	        e.stopPropagation();
-    		e.preventDefault();
-    		
-    		
-    		if(this.getGameStatus() !== 'play'){
-            	return false;
-            }
-            
-	        if(e.handled !== true) {
-		        var id = $(e.currentTarget).attr('id');    
-	
-				if(id === 'down'){
-					this.moveDown(true);
-				} else if(id === 'right'){
-					this.moveBlock('right');
-				} else if(id === 'left'){
-					this.moveBlock('left');
-				} else if(id === 'up'){
-					this.rotateBlock('right');
-				} else if(id === 'harddown'){
-					this.moveHardDown();
-				}
-	
-	            e.handled = true;
-	        }
-	        
-	        return false;
-		}, this));
-		
-	 	$('#game_area').on('hold tap swipe', $.proxy(function (event) {
-			event.stopPropagation();
-    		event.preventDefault();
-    		
-            if(this.getGameStatus() !== 'play'){
-            	return false;
-            }
-            
-            if(event.direction === 'right' && event.type =='swipe'){
-            	this.moveBlock('right');
-            } else if(event.direction ==='left' && event.type =='swipe'){
-            	this.moveBlock('left');
-            } else if(event.direction ==='down' && event.type =='swipe'){
-            	this.moveHardDown();
-            } else if(event.direction ==='up' && event.type =='swipe'){
-            	this.rotateBlock('left');
-            	
-            	
-            } else if(event.type === 'hold'){
-            	this.start();
-            }
-            
-            
-        }, this));
-	},
 	
 	getGameStatus : function(){
 		return this.model.get('sGameStatus');	
@@ -658,14 +598,14 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		this.makeNewBlock();
 
-        if(this.bEventBind){
-            this.bindKeyEvents();
-        }
-
         this.stopAnimationLoop();
         this.startAnimationLoop();
         
 		this.tick();
+
+        if(this.bEventBind){
+            this.bindKeyEvents();
+        }
 	},
 	
     stopAnimationLoop : function(){
@@ -920,8 +860,15 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 		
 		this.setMatrix(matrix);
+        
 		if(lineCount > 0){
-			this.model.plusScore(lineCount * 2);
+
+            var nBonus = 0;
+            if(this._nHardBlockPosY <= 2){
+                nBonus = (this._nHardBlockPosY + 1) * 50;
+            }
+             
+			this.model.plusScore(lineCount * 2 + nBonus);
 		}
 	},
 	
@@ -1106,17 +1053,24 @@ app.tetris.Game.View = Backbone.View.extend({
 
 		this.controlSound('harddrop', 'play');
 
-		var rst = false;
+		var bIsCollision = false;
+        var htBlockPos;
+        
+        this._nHardBlockPosY = this.model.get('htBlockPos').nY;
+        
 		for(var i = 0, nRows = this.model.get('nRows'); i < nRows; i++){
-			if(rst == true){
-				this.model.get('htBlockPos').nY = -1;
+			if(bIsCollision === true){
+				htBlockPos = this.model.get('htBlockPos');
+                htBlockPos.nY = -1;
+                this.model.set('htBLockPos', htBlockPos);
 				break;
 			}else{
                 var bPlaySound = false;
-				rst = this.moveDown(bPlaySound);
+				bIsCollision = this.moveDown(bPlaySound);
 			}
 		}
 
+        
 	},
 	
 	/**
@@ -1157,9 +1111,6 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 
 		switch(nKeyCode){
-			case 16 :
-			this.pause();
-			break;
 			
 			case 32 :
 			this.moveHardDown();

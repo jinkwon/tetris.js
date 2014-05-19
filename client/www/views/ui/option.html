@@ -3,6 +3,7 @@
     <style>
         .option_layer{
 
+            text-shadow:0 0 3px rgba(0,0,0, .5);
         }
 
         .option_layer li{
@@ -29,15 +30,15 @@
     </style>
     <div class="option_container">
 
-    <div style="font-size:25px;padding-bottom:10px;border-bottom:1px solid #FFF;">
-        <%= sTitle %>
-    </div>
+        <div style="font-size:25px;padding-bottom:10px;border-bottom:1px solid #FFF;">
+            <%= sTitle %>
+        </div>
 
-    <ul class="option_layer">
-        <% _.each(aList, function(item) { %>
-            <li class="_menu_item" data-idx="<%=item.id %>"><%=item.sLabel %></li>
-        <% }); %>
-    </ul>
+        <ul class="option_layer">
+            <% _.each(aList, function(item) { %>
+                <li class="_menu_item" data-idx="<%=item.id %>"><%=item.sLabel %></li>
+            <% }); %>
+        </ul>
     </div>
 
 </div>

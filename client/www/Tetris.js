@@ -1,4 +1,4 @@
-/*! Tetris - v0.1.0 - 2014-05-18
+/*! Tetris - v0.1.0 - 2014-05-19
 * https://github.com/Jinkwon/tetris.js
 * Copyright (c) 2014 LeeJinKwon; Licensed MIT */
 var app = app ? app : {};
@@ -177,7 +177,7 @@ app.tetris.Network.init = (function(htOptions){
 			window.location.href = 'login.html';
 		}
 	};
-	
+
     
 	var initialize = function(){
 		initGameIo();
@@ -186,7 +186,6 @@ app.tetris.Network.init = (function(htOptions){
 	
 	var initGameIo = function(){
 		oGameIo = io.connect(app.tetris.config.sGameUrl);
-		
 		
 		oGameIo.on('connect', function(){
 			
@@ -197,6 +196,7 @@ app.tetris.Network.init = (function(htOptions){
 			};
 	
 			oGameIo.emit('reqJoin', htReq);
+
 		}).on('disconnect', function(){
 			//alert('서버와의 접속이 끊어졌습니다.');
 			//moveToLogin();
@@ -570,10 +570,8 @@ app.tetris.ui.Option.View = Backbone.View.extend({
         "click ._menu_item" : "onClickMenu"
     },
 
-    initialize : function(options){
-        this._setOptionListIdx(options.aList || []);
+    initialize : function(){
 
-        this.sTitle = options.sTitle || 'Options';
     },
 
     _setOptionListIdx : function(aList){
@@ -585,21 +583,26 @@ app.tetris.ui.Option.View = Backbone.View.extend({
     },
 
     onClickMenu : function(we){
+        this.unbind();
+
         var nIdx = $(we.currentTarget).attr('data-idx');
         var bClose = true;
 
-        if(this.aOptionList[nIdx].fn){
-            bClose = this.aOptionList[nIdx].fn() || bClose;
+        if (this.aOptionList[nIdx].fn) {
+            bClose = this.aOptionList[nIdx].fn();
         }
 
         if(bClose){
             this.hide();
         }
 
+
         return false;
     },
 
-    show : function(){
+    show : function(options){
+        this._setOptionListIdx(options.aList || []);
+        this.sTitle = options.sTitle || 'Options';
 
         this.showDimmedLayer();
 
@@ -607,6 +610,10 @@ app.tetris.ui.Option.View = Backbone.View.extend({
 
         this.render();
         this.$el.show();
+
+        this.$el.find('.option_container').removeClass('animated flipInY').addClass('animated flipInY').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+            $(this).removeClass('animated flipInY');
+        });
 
     },
 
@@ -629,7 +636,7 @@ app.tetris.ui.Option.View = Backbone.View.extend({
         string = string || '';
 
         $('.field .pause').remove();
-        $('#_dimmed_section').prepend(
+        $('#_dimmed_section').html(
                 '<div class="pause" style="z-index:50;width:100%;height:100%;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
                 '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>').show();
 
@@ -649,6 +656,8 @@ app.tetris.ui.Option.View = Backbone.View.extend({
         return this;
     }
 });
+
+app.tetris.ui.Option.View = new app.tetris.ui.Option.View();
 (function(){
     var AccountInfo = function(){
         this.userId ='';
@@ -754,7 +763,8 @@ app.tetris.Account.Network.connect = function(cb){
                 alert('Connect failed');
             })
             .on('resLogin', function(htData){
-                
+
+                console.log(htData.bAvail);
                 app.tetris.Account.Info.bAvail = htData.bAvail;
                 if(app.tetris.Account.Info.bAvail){
                     app.tetris.Account.Info.broadcast('onSuccessLogin');
@@ -1562,6 +1572,34 @@ app.tetris.Game.Model = Backbone.Model.extend({
 	}
 });
 
+
+app.tetris.Game.Network = {};
+
+app.tetris.Game.Network.init = function(){
+
+    var oSessionIo = io.connect(app.tetris.config.sSessionUrl);
+    var oGameIo = io.connect(app.tetris.config.sGameUrl);
+
+    oSessionIo
+        .on('connect', function() {
+
+            console.log(arguments);
+
+    });
+            oGameIo
+        .on('connect', function(){
+            console.log(arguments);
+
+            oGameIo.emit('reqJoinLeague', {
+
+
+            });
+        })
+        .on('brLeagueClosed', function(){
+            console.log(arguments);
+        });
+
+};
 (function(){
 
     var StageView = Backbone.View.extend({
@@ -1640,7 +1678,7 @@ app.tetris.Game.Model = Backbone.Model.extend({
 
             $('.next_block_container').empty().append(sBlock);
 
-            if(this.drawNextGroupBlock){
+            if(this._isDrawNextGroupBlock){
                 $('.next_group_block_container').empty();
 
                 for(var i = 0; i < 3; i++){
@@ -1651,8 +1689,8 @@ app.tetris.Game.Model = Backbone.Model.extend({
             }
 
             $('._next_block')
-                .removeClass('animated fadeInRight').addClass('animated fadeInRight').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-                    $(this).removeClass('animated fadeInRight');
+                .removeClass('animated fadeInDown').addClass('animated fadeInDown').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+                    $(this).removeClass('animated fadeInDown');
                 });
 
         },
@@ -1809,21 +1847,22 @@ app.tetris.Game.Model = Backbone.Model.extend({
                 this.startTimer();
             } else if(sGameStatus === 'pause'){
                 this.stopTimer();
-                this.createDimmedLayer('Pause');
+
+                this.openDimmedLayer('Pause');
                 
             } else if(sGameStatus === 'stop'){
                 this._initTimer();
-                this.createDimmedLayer('Hello TETRIS');
+                this.openDimmedLayer('Hello TETRIS');
                 
             } else if(sGameStatus === 'ready'){
-                this.createDimmedLayer('Ready');
+                this.openDimmedLayer('Ready');
                 
             } else if(sGameStatus === 'game'){
-                this.createDimmedLayer('Already Started');
+                this.openDimmedLayer('Already Started');
                 
             } else if(sGameStatus === 'end'){
                 this.stopTimer();
-                this.createDimmedLayer('Game Over');
+                this.openDimmedLayer('Game Over');
                 
             }else {
                 this.stopTimer();
@@ -1898,37 +1937,38 @@ app.tetris.Game.Model = Backbone.Model.extend({
             wel.find('#fullscreen_btn').bind('click', $.proxy(this._onClickFullScreen, this));
 
 
-
-            var aOptionList = [
-                { sLabel : 'Continue' },
-
-                { sLabel : 'Pause', fn : function(){
-                    }
-                },
-
-                { sLabel : 'Setting', fn : function(){
-
-                    }
-                },
-
-                { sLabel : 'Exit', fn : function(){
-                    app.tetris.Router.navigate('menu', {trigger : true});
-
-                    }
-                }
-             ];
-
-            this.oOptionView = new app.tetris.ui.Option.View({
-                aList : aOptionList
-            });
-
             this.$el.on('click', '._option', $.proxy(function(){
-                this._showOption();
+                this.openOptionMenu();
+
             }, this));
         },
 
-        _showOption : function(){
-            this.oOptionView.show();
+        openOptionMenu : function(){
+
+            var _onClickSetting = function(){
+                app.tetris.ui.Option.View.show({
+                    aList : [{sLabel : 'test'}, {sLabel : 'test2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}]
+                });
+            };
+
+            var _onClickMenu = function(){
+                app.tetris.Router.navigate('menu', {trigger : true});
+            };
+
+            var _onClickPause = function(){
+                this.oGameView.pause();
+            };
+
+            app.tetris.ui.Option.View.show({
+                aList : [
+                    { sLabel : 'Continue' },
+                    { sLabel : 'Pause', fn : $.proxy(_onClickPause, this) },
+                    { sLabel : 'Setting', fn : $.proxy(_onClickSetting, this) },
+                    { sLabel : 'Menu', fn : $.proxy(_onClickMenu, this) }
+                ]
+            });
+
+            return false;
         },
 
         _onClickFullScreen : function(){
@@ -1943,16 +1983,11 @@ app.tetris.Game.Model = Backbone.Model.extend({
 
         },
 
-
-        /**
-         * 딤드 레이어 생성용 메서드
-         * @param {String} string
-         */
-        createDimmedLayer : function(string){
+        openDimmedLayer : function(string){
             $('.field .pause').remove();
-            $('#_dimmed_section').prepend(
+            $('#_dimmed_section').html(
                 '<div class="pause" style="z-index:50;width:100%;height:100%;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
-                    '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>');
+                    '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>').show();
 
             // $('#other_1').parent().find('.pause').remove();
             // $('#other_1').parent().prepend(
@@ -2019,7 +2054,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.bFullScreen = false;
 		
 		if(this.bEventBind){
-			this.setTouchEvents();
+			this.setGameEvents();
 		}
 	},
 
@@ -2492,7 +2527,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			.bind('keydown keyup', this._fnKeyEvent);
 	},
 	
-	setTouchEvents : function(){
+	setGameEvents : function(){
 
 		$('.jpad').on('touchstart mousedown', $.proxy(function(e){
 	        e.stopPropagation();
@@ -3541,8 +3576,6 @@ app.tetris.Rules.BlockList = {
         initialize : function(){
             this.render();
 
-            this.oBgm = new Howl({urls: ['../res/sound/FF_8_OST.mp3'], volume : 0.1, format : 'mp3'});
-
             app.tetris.Network.Model.on('change:nRegisterUser change:nConnectedUser', $.proxy(function(oModel){
                 this.onChangeCount(oModel);
             }, this));
@@ -3580,16 +3613,11 @@ app.tetris.Rules.BlockList = {
                 }
             }, 200);
 
-//            this.oBgm.stop();
-//            this.oBgm.play();
-            
         },
         
         hide : function(){
 //            this.$el.hide();
             this.$el.addClass('animated').removeClass('fadeInDown').addClass('fadeOutUp');
-
-//            this.oBgm.stop();
         },
         
         render : function(){
@@ -3617,6 +3645,10 @@ app.tetris.Rules.BlockList = {
 })();
 app.tetris.init = function(sMode){
     app.tetris.config.setEnv(sMode || 'development');
+
+    app.tetris.Game.Network.init();
+//    return;
+
 
     // initialize Singleton
     app.tetris.Game.StageView = app.tetris.Game.StageView.getInstance();
@@ -3656,6 +3688,9 @@ app.tetris.init = function(sMode){
             if(!app.tetris.Account.Info.isAuthenticated() && sFrag !== 'login'){
 //                this.navigate('login', {trigger : true});
 //                return;
+                app.tetris.Account.Network.connect(function(){
+                    app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
+                });
             }
             
             if (callback) callback.apply(this, args);

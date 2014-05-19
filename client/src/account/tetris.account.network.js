@@ -8,15 +8,19 @@ app.tetris.Account.Network.connect = function(cb){
             timeout : 5000
         });
 
-
         app.tetris.Account.Network.io
             .on('connection', function(){
                 if(cb){
                     cb();
                 }
+
+                app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
+            })
+            .on('reconnect', function(){
+                
+                app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
             })
             .on('disconnect', function(){
-
                 alert('disconnected');
             })
             .on('error', function(){
@@ -31,7 +35,6 @@ app.tetris.Account.Network.connect = function(cb){
                 alert('Connect failed');
             })
             .on('resLogin', function(htData){
-
                 console.log(htData.bAvail);
                 app.tetris.Account.Info.bAvail = htData.bAvail;
                 if(app.tetris.Account.Info.bAvail){
@@ -55,10 +58,6 @@ app.tetris.Account.Network.connect = function(cb){
 
                 app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
             });
-        
-//setInterval(function(){
-//        app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
-//}, 1000);
     }
     
     if (app.tetris.Account.Network.io.socket.connected === false && app.tetris.Account.Network.io.socket.connecting === false) {

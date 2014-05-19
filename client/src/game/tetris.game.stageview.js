@@ -3,36 +3,71 @@
     var StageView = Backbone.View.extend({
         el : '#_container #_single_view',
         template : 'stage/stage.mobile',
-        
+
+
         initialize : function(){
+            this._setViewProperties();
+            this._initTimer();
+            this.setUIEvents();
+            this.setLogicEvents();
+            this.render();
+        },
+        
+        _setViewProperties: function () {
             this.arColorPos = {
-                'red' : 1,
-                'orange' : 2,
-                'yellow' : 3,
-                'green' : 4,
-                'sky' : 5,
-                'blue' : 6,
-                'purple' : 7,
-                'sand' : 8,
-                'leaf' : 9,
-                'brown' : 10,
-                'leaf2' : 11,
-                'sky2' : 12,
-                'sand2' : 13,
-                'stone' : 14
+                'red': 1,
+                'orange': 2,
+                'yellow': 3,
+                'green': 4,
+                'sky': 5,
+                'blue': 6,
+                'purple': 7,
+                'sand': 8,
+                'leaf': 9,
+                'brown': 10,
+                'leaf2': 11,
+                'sky2': 12,
+                'sand2': 13,
+                'stone': 14
             };
 
-            this.focusMenu('tip');
-            
+            this._onTouchKeyPadWithContext = $.proxy(this._onTouchKeyPad, this);
+            this._isDrawNextGroupBlock = false;
 
-            
-            this._initTimer();
+        },
+        
+        _onTouchKeyPad :function(e){
+            e.stopPropagation();
+            e.preventDefault();
+            var sGameStatus = this.model.get('sGameStatus');
 
+            if(this.model.get('sGameStatus') !== 'play'){
+                return false;
+            }
 
+            if(e.handled !== true) {
+                var id = $(e.currentTarget).attr('id');
 
+                if(id === 'down'){
+                    this.oGameView.moveDown(true);
+                } else if(id === 'right'){
+                    this.oGameView.moveBlock('right');
+                } else if(id === 'left'){
+                    this.oGameView.moveBlock('left');
+                } else if(id === 'up'){
+                    this.oGameView.rotateBlock('right');
+                } else if(id === 'harddown'){
+                    this.oGameView.moveHardDown();
+                }
 
+                e.handled = true;
+            }
 
-//            onChange : function(){
+            return false;
+        },
+        
+        setLogicEvents: function () {
+            //            onChange : function(){
 //            change:nScore
 //            chnage:aMatrix
 //
@@ -44,10 +79,11 @@
 //                this.oGameIo.emit('sendGameInfo', htData);
 //            }
 
-            this.setUIEvents();
-            
-            this.render();
-
+            app.tetris.Router.on('route', $.proxy(function(sRouteName){
+                if(this.oGameView){
+                    this.oGameView.unbind();
+                }
+            }, this));
         },
 
         _renderScore : function(){
@@ -72,16 +108,20 @@
             var aBlocks = this.model.get('oBlockCollection');
             var nBlock = this.model.get('nextBlock')[0];
 
+            if(!aBlocks.at(nBlock)){
+                return;
+            }
+            
             var sBlock = this.getBlockString(aBlocks.at(nBlock).get('aMatrix'), aBlocks.at(nBlock).get('sColor'), 16, 'next');
 
             $('.next_block_container').empty().append(sBlock);
 
-            if(this.drawNextGroupBlock){
+            if(this._isDrawNextGroupBlock){
                 $('.next_group_block_container').empty();
 
                 for(var i = 0; i < 3; i++){
                     nBlock = this.model.get('nextBlock')[i+1];
-                    var sBlock = this.getBlockString(aBlocks.at(nBlock).get('aMatrix'), aBlocks.at(nBlock).get('sColor'), 12, 'next_'+i);
+                    sBlock = this.getBlockString(aBlocks.at(nBlock).get('aMatrix'), aBlocks.at(nBlock).get('sColor'), 12, 'next_'+i);
                     $('.next_group_block_container').append(sBlock + '<div style="clear:both;height:43px;"></div>');
                 }
             }
@@ -139,10 +179,27 @@
                 this.oGameView.unbind();
             }
 
+            if(this.oGameView2){
+                this.oGameView2.unbind();
+            }
+
+            if(this.oGameView3){
+                this.oGameView3.unbind();
+            }
+            
             this.initGame();
             this._renderScore();
         },
 
+
+        setGameEvents : function(){
+            
+            
+            this.$el
+                .off('touchstart mousedown', '.jpad', this._onTouchKeyPadWithContext)
+                .on('touchstart mousedown', '.jpad', this._onTouchKeyPadWithContext);
+        },
+        
         initGame : function(){
             this.model = new app.tetris.Game.Model();
             this.model.bind('change:sGameStatus', this.watchGameStatus, this);
@@ -162,7 +219,7 @@
 
             this.startTimer();
             this.oGameView.start();
-
+            this.setGameEvents();
 
             this.oGameView2 = new app.tetris.Game.View({
                 el : '#other_1_game_area',
@@ -260,7 +317,9 @@
                 
             } else if(sGameStatus === 'end'){
                 this.stopTimer();
-                this.openDimmedLayer('Game Over');
+                this.openDimmedLayer();
+                
+                this.openGameMenu('Game Over');
                 
             }else {
                 this.stopTimer();
@@ -274,20 +333,6 @@
             $('.chat_area').scrollTop($('.chat_area')[0].scrollHeight);
         },
         
-        focusMenu : function(sMenu){
-            $('.tip_btn, .option_btn, .map_btn, .key_btn').css('background-position','');
-            
-            if(sMenu === 'tip'){
-                $('.tip_btn').css('background-position', '-228px 0');
-            }else if(sMenu === 'option'){
-                $('.option_btn').css('background-position', '-224px 0');
-            } else if(sMenu === 'map'){
-                $('.map_btn').css('background-position', '-224px 0');
-            } else {
-                $('.key_btn').css('background-position', '-224px 0');	
-            }
-        },
-
         _setGameEvents: function (wel) {
             wel.find('#start_btn').bind('click', $.proxy(this.oGameView.start, this.oGameView));
             wel.find('#stop_btn').bind('click', $.proxy(this.oGameView.stop, this.oGameView));
@@ -300,19 +345,6 @@
 
         setUIEvents : function(){
             var that = this;
-            
-            $('.chat_input').on('keydown', function(e){
-                if(e.keyCode === 13 && $(this).val() !==''){
-                    that.logChat('me : ' + $(this).val());
-                    $(this).val('');
-                }
-            });
-        
-            $('.pop_btn').on('click', function(){
-                var reg = new RegExp('^(.*)_btn', 'ig');
-                var sId = reg.exec($(this).attr('id'))[1];
-                that.focusMenu(sId);
-            });
             
             var wel = this.$el;
             
@@ -336,17 +368,19 @@
 
 
             this.$el.on('click', '._option', $.proxy(function(){
-                this.openMenu();
+                this.openOptionMenu();
 
             }, this));
         },
 
-        openMenu : function(){
+        openOptionMenu : function(){
 
             var _onClickSetting = function(){
                 app.tetris.ui.Option.View.show({
-                    aList : [{sLabel : 'test'}, {sLabel : 'test2'}, {sLabel : 'Back', fn : $.proxy(this.openMenu, this)}]
+                    aList : [{sLabel : 'test'}, {sLabel : 'test2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}]
                 });
+                
+                return false;
             };
 
             var _onClickMenu = function(){
@@ -369,6 +403,29 @@
             return false;
         },
 
+        openGameMenu : function(sTitle){
+            var _onClickReplay = function(){
+                this.oGameView.start();
+            };
+            
+            var _onClickJoinMultiGame = function(){
+                
+            };
+
+            var _onClickMenu = function(){
+                app.tetris.Router.navigate('menu', {trigger : true});
+            };
+            
+            app.tetris.ui.Option.View.show({
+                sTitle : sTitle || '',
+                aList : [
+                    { sLabel : 'Replay Game', fn : $.proxy(_onClickReplay, this) },
+                    { sLabel : 'Join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
+                    { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
+                ]
+            });
+        },
+        
         _onClickFullScreen : function(){
             if(that.bFullScreen == true){
                 that.bFullScreen = false;
@@ -382,6 +439,7 @@
         },
 
         openDimmedLayer : function(string){
+            string = string || '';
             $('.field .pause').remove();
             $('#_dimmed_section').html(
                 '<div class="pause" style="z-index:50;width:100%;height:100%;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
