@@ -114,6 +114,27 @@ module.exports = {
                     .on('reqOutLeague', function(){
                         oGame.emit('resOutLeague');
                     })
+                    
+                    .on('reqQuickGame', function(){
+                      
+                        // find Opend Game
+                        
+                        // if have
+                        // join to that game
+                        
+                        // if not have
+                        // create new room and make him to owner
+                        
+                        
+                    })
+                    .on('reqStartGame', function(){
+                      
+                        // if he is owner
+                        // start that room game
+                        
+                        // else
+                        // return false 
+                    })
                     .on('disconnect', function(){
                         console.log(('disconnected : ' + oGame.id).yellow);
                         outLeague(oGame.id);

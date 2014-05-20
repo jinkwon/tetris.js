@@ -16,20 +16,32 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		bWebGLAvailable : false
 	},
 
+    initialize : function(){
+        this.vertexShaderText = WebGLUtil.loadShader('res/shader/model.vs');
+        this.fragmentShaderText = WebGLUtil.loadShader('res/shader/model.fs');
+    },
+
 	isAvailWebGL : function(){
 		return !!window.WebGLRenderingContext;
 	},
 
 	initCanvas : function(){
+        
+        
         var elCanvas = this.$el[0];
 
-		this.nWidth = elCanvas.width;
-		this.nHeight = elCanvas.height;
-		this.arCameraEye = [0.0,0.0,0.0];
-		this.arCameraLookAt = [0.0,0.0,0.0];
+        
+		this.nWidth = this.$el.parent().width();
+		this.nHeight = this.$el.parent().height();
+        
+        this.$el.attr('width', this.nWidth);
+        this.$el.attr('height', this.nHeight);
+       
+		this.arCameraEye = [0, 0, 0];
+		this.arCameraLookAt = [0, 0, 0];
 		this.fAngleYZ = 0.0;
 		this.fAngleXZ = Math.PI / 2.0;
-		this.fCameraDistance = 100.0;
+		this.fCameraDistance = 300.0;
 		this.bCameraPerspective = false;
 		this.nFov = 45;
 
@@ -54,7 +66,91 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
         this.initResource();
 		this.initShader();
 		this.clear();
+        
+        this.setEvents();
 	},
+
+    setEvents : function(){
+
+        var that = this;
+        this.forward = false;
+        this.startX = 0;
+
+        this._nMovedViewX = 0;
+        this._nMovedViewY = 0;
+
+        var _onMouseMove = function(e){
+            if(this.mouseDownFlag){
+                var w = welGlStage.width();
+                var left = welGlStage.offset().left;
+                var top = welGlStage.offset().top;
+                var h = welGlStage.height();
+
+                if( e.originalEvent.changedTouches){
+                    e = e.originalEvent.changedTouches[0]
+                } else {
+                    e = e.originalEvent;
+                }
+
+                var x = e.clientX - left - this._nMovedViewX;
+                var y = e.clientY - top - this._nMovedViewY;
+
+                var deg = (x / w) * 180;
+                this.fAngleXZ = deg * Math.PI/180;
+
+                deg = (y / h) * 90;
+                this.fAngleYZ = deg * Math.PI/180;
+
+                this._nViewX = x;
+                this._nViewY = y;
+            }
+        };
+
+        this.flag = 0;
+        this.startX = 350;
+        var welGlStage = this.$el;
+
+        var animatorFunc = function(){
+
+            if(that.flag == 0){
+                that.startX--;
+            } else {
+                that.startX++;
+            }
+
+            if(that.startX > 350){
+                that.flag = 0;
+            }
+
+            if(that.startX <= 330){
+                that.flag = 1;
+            }
+
+            var x = that.startX - welGlStage.offset().left;
+            var w = welGlStage.width();
+            var deg = (x / w) * 180;
+            that.fAngleXZ = deg * Math.PI/180;
+        };
+
+        //this.animation = setInterval(animatorFunc, 100);
+
+        welGlStage.mousewheel(function(event, delta, deltaX, deltaY) {
+            that.fCameraDistance += (delta * 10);
+            return false;
+        });
+
+        var _onMouseMoveWithContext = $.proxy(_onMouseMove, this);
+
+        welGlStage.on('mousedown touchstart', function(e){
+            that.mouseDownFlag = true;
+            $(document).on('touchmove mousemove', _onMouseMoveWithContext);
+        });
+
+        $(document).on('mouseup touchcancel touchend', $.proxy(function(e){
+            this.mouseDownFlag = false;
+            $(document).off('mousemove touchmove', _onMouseMoveWithContext);
+        }, this));
+    },
 
 	initResource : function(){
 		var gl = this.ctx;
@@ -163,12 +259,8 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		gl.useProgram(null);
 	},
 
-	initialize : function(){
-        this.vertexShaderText = WebGLUtil.loadShader('res/shader/model.vs');
-        this.fragmentShaderText = WebGLUtil.loadShader('res/shader/model.fs');
-	},
-
 	drawBlock : function(nPosX, nPosY, nBlockSize, nTexturePos, vColor){
+
 		var gl = this.ctx;
 
 		gl.useProgram(this.gl_Shader_RenderProgram);
@@ -177,10 +269,12 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		gl.enableVertexAttribArray(this.gl_Attribute_VertexCordinate);
 
 
-		var arCameraGap = [0.0,0.0,0.0];
-        arCameraGap[0] = this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.cos(this.fAngleXZ);	//X
-        arCameraGap[1] = this.fCameraDistance * Math.sin(this.fAngleYZ);	//Y
-		arCameraGap[2] = this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.sin(this.fAngleXZ);	//Z
+		var arCameraGap = [
+            this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.cos(this.fAngleXZ),	// X
+            this.fCameraDistance * Math.sin(this.fAngleYZ),                             // Y
+            this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.sin(this.fAngleXZ)    // Z
+        ];
+        
 		this.arCameraEye[0] = this.arCameraLookAt[0] + arCameraGap[0];
 		this.arCameraEye[1] = this.arCameraLookAt[1] + arCameraGap[1];
 		this.arCameraEye[2] = this.arCameraLookAt[2] + arCameraGap[2];
@@ -188,14 +282,21 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		var WorldMatrix = mat4.create();
 		var ViewMatrix = mat4.create();
 		var ProjectionMatrix = mat4.create();
+
+        
 		mat4.identity(WorldMatrix);
 		mat4.scale(WorldMatrix, [nBlockSize,nBlockSize,nBlockSize], WorldMatrix);
 		mat4.translate(WorldMatrix, [nPosX,nPosY,0.0], WorldMatrix);
 		mat4.lookAt(this.arCameraEye, this.arCameraLookAt, [0.0,1.0,0.0], ViewMatrix);
-		if(this.bCameraPerspective == true)		
-			mat4.perspective(this.nFov, this.nWidth/this.nHeight, 0.1, 1000.0, ProjectionMatrix);
-		else if(this.bCameraPerspective == false)
-			mat4.ortho(-this.nWidth/2, this.nWidth/2, -this.nHeight/2, this.nHeight/2, 0.1, 1000.0, ProjectionMatrix);
+        
+        
+		if(this.bCameraPerspective == true){
+            mat4.perspective(this.nFov, this.nWidth/this.nHeight, 0.1, 1000.0, ProjectionMatrix);
+            
+        } else if(this.bCameraPerspective == false){
+            mat4.ortho(-this.nWidth/2 , this.nWidth/2, -this.nHeight/2, this.nHeight/2, 0.1, 1000.0, ProjectionMatrix);
+        }
+        
 		gl.uniformMatrix4fv(this.gl_Uniform_WorldMatrix, false, WorldMatrix);
 		gl.uniformMatrix4fv(this.gl_Uniform_ViewMatrix, false, ViewMatrix);
 		gl.uniformMatrix4fv(this.gl_Uniform_ProjectionMatrix, false, ProjectionMatrix);

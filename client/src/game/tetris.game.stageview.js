@@ -12,6 +12,10 @@
             this.setLogicEvents();
             this.render();
         },
+
+        setType : function(sType){
+            this._sType = sType;
+        },
         
         _setViewProperties: function () {
             this.arColorPos = {
@@ -34,6 +38,7 @@
             this._onTouchKeyPadWithContext = $.proxy(this._onTouchKeyPad, this);
             this._isDrawNextGroupBlock = false;
 
+            
         },
         
         _onTouchKeyPad :function(e){
@@ -67,10 +72,9 @@
         },
         
         setLogicEvents: function () {
-            //            onChange : function(){
+//            onChange : function(){
 //            change:nScore
 //            chnage:aMatrix
-//
 //                var htData = {
 //                    sGuid : this.model.get('sGuid'),
 //                    aMatrix : this.model.get('aMatrix'),
@@ -80,21 +84,34 @@
 //            }
 
             app.tetris.Router.on('route', $.proxy(function(sRouteName){
-                if(this.oGameView){
-                    this.oGameView.unbind();
+                
+                
+                if(this.oGameView && 
+                    sRouteName !== 'moveToSingleGame' &&
+                    sRouteName !== 'moveToMultiGame'
+                ){
+                    this.oGameView.stop().unbind();
                 }
             }, this));
         },
 
         _renderScore : function(){
             var nScore = this.model.get('nScore');
+            var welScore = this.$el.find('.score');
 
-            this.$el.find('.score')
-                .empty()
-                .html(nScore)
-                .parent().removeClass('animated pulse').addClass('animated pulse').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-                    $(this).removeClass('animated pulse');
-                });
+            welScore.empty().html(nScore);
+            this.playUIAnimation(welScore.parent(), 'pulse');
+        },
+        
+        playUIAnimation : function(wel, sType, time){
+            var sAnimationClsss = time === '.5' ? 'animated05' : 'animated';
+            var sEvents = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+                
+            var _onAnimationClose = function(){
+                $(this).removeClass(sAnimationClsss + ' ' + sType);
+            };
+            
+            wel.removeClass(sAnimationClsss + ' ' + sType).addClass(sAnimationClsss + ' ' + sType).one(sEvents, _onAnimationClose);
         },
 
         onBlockChange : function(){
@@ -126,11 +143,7 @@
                 }
             }
 
-            $('._next_block')
-                .removeClass('animated fadeInDown').addClass('animated fadeInDown').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-                    $(this).removeClass('animated fadeInDown');
-                });
-
+            this.playUIAnimation($('._next_block'), 'fadeInDown');
         },
 
         getPosPixelByColor : function(sColor, nSize){
@@ -144,9 +157,7 @@
             for(var i = 0; i < aBlock.length; i++){
                 for(var j = 0; j < aBlock[i].length; j++){
                     if(aBlock[i][j] == 1){
-
                         nPosX = this.getPosPixelByColor(sColor, nSize);
-
                         str.push('<div class="fill_block_'+nSize+'" style="width:'+nSize+'px;height:'+nSize+'px;background-position:-'+nPosX+'px 0;"></div>');
                     }else{
                         str.push('<div class="empty_block" style="width:'+nSize+'px;height:'+nSize+'px;"></div>');
@@ -170,56 +181,86 @@
 
             return this;
         },
-        
-        show : function(){
-        
-            this.$el.show();
 
-            if(this.oGameView){
+        clearOldViewObject: function () {
+            if (this.oGameView) {
                 this.oGameView.unbind();
             }
 
-            if(this.oGameView2){
+            if (this.oGameView2) {
                 this.oGameView2.unbind();
             }
 
-            if(this.oGameView3){
+            if (this.oGameView3) {
                 this.oGameView3.unbind();
             }
+        },
+        
+        show : function(){
+            if(this.oGameView){
+                this.oGameView.stop().unbind();
+            }
+
+            if(this._sType === 'multi'){
+                this.$el.find('._multi').show();
+            } else {
+                this.$el.find('._multi').hide();
+            }
             
+            this.$el.show();
+
+            this.clearOldViewObject();
             this.initGame();
             this._renderScore();
+
+            this.playUIAnimation(this.$el.find('._option'), 'rotateIn');
         },
 
-
         setGameEvents : function(){
-            
-            
             this.$el
                 .off('touchstart mousedown', '.jpad', this._onTouchKeyPadWithContext)
                 .on('touchstart mousedown', '.jpad', this._onTouchKeyPadWithContext);
         },
-        
-        initGame : function(){
-            this.model = new app.tetris.Game.Model();
+
+        bindModelEvents: function () {
             this.model.bind('change:sGameStatus', this.watchGameStatus, this);
             this.model.bind('change:htBlockPos', this.onBlockChange, this);
             this.model.bind('change:nScore', this._renderScore, this);
-            this.model.bind('change:nScore change:htBlockPos', function(){
+            this.model.bind('change:nScore change:htBlockPos', function () {
                 console.log('sendData');
             });
+        },
 
+        getGameType : function(){
+            return this._sType;
+        },
+        
+        isMultiGame : function(){
+            return this.getGameType() === 'multi';
+        },
+        
+        initGame : function(){
+            this.model = new app.tetris.Game.Model();
+            this.bindModelEvents();
+            
             this.oGameView = new app.tetris.Game.View({
                 el : '#single_game_area',
                 model : this.model,
-                bEventBind : true,
-                bUseWebGL : false,
+                bKeyEventBind : true,
                 bUseSound : true
             });
-
-            this.startTimer();
-            this.oGameView.start();
             this.setGameEvents();
+            
+            this.oGameView.useWebGL(true);
+
+            if(this.isMultiGame()){
+                this.openMultiGameMenu('Multi Game');
+                
+            } else {
+                this.startTimer();
+                this.oGameView.start();    
+            }
+            
 
             this.oGameView2 = new app.tetris.Game.View({
                 el : '#other_1_game_area',
@@ -235,20 +276,17 @@
             });
 
 //            setInterval(function(){
-//
 //                $('#other_1_game_area').parent().removeClass('tada').hide().addClass('tada').show();
 //            }, 2000);
-//
 //            setInterval(function(){
 //                $('#other_2_game_area').parent().removeClass('tada').hide().addClass('tada').show();
 //            }, 3000);
-
 
             var wel = $(this.$el);
             this._setGameEvents(wel);
         },
 
-        excuteTick : function(){
+        runTick : function(){
             var nGameStartTime = this.nGameStartTime;
             nGameStartTime += 1000;
             
@@ -264,11 +302,10 @@
         
         
         drawTime : function(sMin, sSec){
-            this.$el.find('._play_time')
-                .html(sMin + ':' + sSec)
-                .removeClass('animated05 rubberBand').addClass('animated05 rubberBand').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-                    $(this).removeClass('animated05 rubberBand');
-                });
+            var welPlayTime = this.$el.find('._play_time')
+
+            welPlayTime.html(sMin + ':' + sSec);
+            this.playUIAnimation(welPlayTime, 'rubberBand', '.5');
         },
         
         _initTimer : function(){
@@ -281,9 +318,9 @@
             
             this.nGameStartTime = this.model.get('nGameStartTime');
             this.stopTimer();
-            this.excuteTick();
+            this.runTick();
             this.timer = setInterval(function(){
-                that.excuteTick();
+                that.runTick();
             },1000);
             
         },
@@ -302,7 +339,6 @@
                 this.startTimer();
             } else if(sGameStatus === 'pause'){
                 this.stopTimer();
-
                 this.openDimmedLayer('Pause');
                 
             } else if(sGameStatus === 'stop'){
@@ -344,16 +380,14 @@
         },
 
         setUIEvents : function(){
-            var that = this;
             
             var wel = this.$el;
             
-            
             wel.find('#ssamdi').on('click', $.proxy(function(){
-                if(this.bWebGLOn === true){
-                    this.bWebGLOn = false;
+                if(this._bWebGLOn === true){
+                    this._bWebGLOn = false;
                 } else {
-                    this.bWebGLOn = true;
+                    this._bWebGLOn = true;
                 }
             },this.oGameView));
             
@@ -369,7 +403,6 @@
 
             this.$el.on('click', '._option', $.proxy(function(){
                 this.openOptionMenu();
-
             }, this));
         },
 
@@ -377,6 +410,7 @@
 
             var _onClickSetting = function(){
                 app.tetris.ui.Option.View.show({
+                    sTitle : 'Setting',
                     aList : [{sLabel : 'test'}, {sLabel : 'test2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}]
                 });
                 
@@ -391,12 +425,17 @@
                 this.oGameView.pause();
             };
 
+            var _onClickRestart = function(){
+                this.oGameView.start();
+            };
+            
             app.tetris.ui.Option.View.show({
                 aList : [
                     { sLabel : 'Continue' },
+                    { sLabel : 'Restart', fn : $.proxy(_onClickRestart, this)},
                     { sLabel : 'Pause', fn : $.proxy(_onClickPause, this) },
                     { sLabel : 'Setting', fn : $.proxy(_onClickSetting, this) },
-                    { sLabel : 'Menu', fn : $.proxy(_onClickMenu, this) }
+                    { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
                 ]
             });
 
@@ -421,6 +460,25 @@
                 aList : [
                     { sLabel : 'Replay Game', fn : $.proxy(_onClickReplay, this) },
                     { sLabel : 'Join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
+                    { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
+                ]
+            });
+        },
+        
+        openMultiGameMenu : function(sTitle){
+            var _onClickQuickGame = function(){
+
+                app.tetris.Game.Network.oGameIo.emit('reqQuickGame', {});
+            };
+
+            var _onClickMenu = function(){
+                app.tetris.Router.navigate('menu', {trigger : true});
+            };
+
+            app.tetris.ui.Option.View.show({
+                sTitle : sTitle || '',
+                aList : [
+                    { sLabel : 'Quick Game', fn : $.proxy(_onClickQuickGame, this) },
                     { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
                 ]
             });
@@ -451,7 +509,7 @@
             // '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:70px;">'+string+'</div></div>');
         }
     });
-
+    
     // Stage view is Singleton
     app.tetris.Game.StageView = {
         _oInstance : null,
@@ -463,5 +521,4 @@
             return this._oInstance;
         }
     };
-
 })();

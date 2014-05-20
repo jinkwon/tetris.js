@@ -1053,7 +1053,7 @@ app.tetris.Board.init = function(htOptions){
 
         defaults : {
             oWebGLView : {},
-            bWebGLOn : false
+            _bWebGLOn : false
         },
 
         events : {
@@ -1749,10 +1749,10 @@ app.tetris.Game.Model = Backbone.Model.extend({
             
             
             wel.find('#ssamdi').on('click', $.proxy(function(){
-                if(this.bWebGLOn === true){
-                    this.bWebGLOn = false;
+                if(this._bWebGLOn === true){
+                    this._bWebGLOn = false;
                 } else {
-                    this.bWebGLOn = true;
+                    this._bWebGLOn = true;
                 }
             },this.oGameView));
             
@@ -1812,7 +1812,7 @@ app.tetris.Game.View = Backbone.View.extend({
 	
 	defaults : {
 		oWebGLView : {},
-		bWebGLOn : true
+		_bWebGLOn : true
 	},
     
 	initialize : function(options){
@@ -1844,7 +1844,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			this.start();
 		}
 
-		this.bWebGLOn = options.bUseWebGL ? options.bUseWebGL : false;
+		this._bWebGLOn = options.bUseWebGL ? options.bUseWebGL : false;
 		
 		this.bFullScreen = false;
 		
@@ -2169,11 +2169,11 @@ app.tetris.Game.View = Backbone.View.extend({
 			return false;
 		}
 		
-		var bWebGLEnable = this.bWebGLOn;
+		var bWebGLEnable = this._bWebGLOn;
 
 		if(this.ctx){
 			if( (ctx == this.ctx.stage.ctx) && (this.oWebGLView !== undefined) ){
-				if(this.oWebGLView.isAvailWebGL() && this.bWebGLOn === true){
+				if(this.oWebGLView.isAvailWebGL() && this._bWebGLOn === true){
 					bWebGLEnable = true;
 				} else {
 					bWebGLEnable = false;
@@ -2656,7 +2656,7 @@ app.tetris.Game.View = Backbone.View.extend({
 			result = true;
 		}
 		
-		this.checkFullLine();
+		this.clearFullLine();
 		
 		if(this.debugMode){
 			this.drawMyStage();
@@ -2666,7 +2666,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		return result;
 	},
 	
-	checkFullLine : function(){
+	clearFullLine : function(){
 		var matrix = this.model.get('aMatrix')
 			, nCols = this.model.get('nCols')
 			, nRows = this.model.get('nRows')

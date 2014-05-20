@@ -147,6 +147,7 @@ requirejs.config({
                 'backbone',
 
                 'game/tetris.rules',
+                'game/tetris.game.util',
                 'game/tetris.game.model',
                 'game/tetris.game.blockmodel',
                 'game/tetris.game.view',
@@ -162,6 +163,10 @@ requirejs.config({
             deps : ['backbone', 'namespace', 'game/tetris.rules']
         },
 
+        'game/tetris.game.util' : {
+            deps : ['tetris']
+        },
+        
         'game/tetris.game.view' : {
             deps : ['tetris']
         },

@@ -1,36 +1,40 @@
+<style>
+    .option_container{
+        width:150px;margin:auto;
+        position: absolute;
+        top:0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+    }
+
+    .option_container .option_title{
+        font-size:25px;padding-bottom:10px;border-bottom:1px solid #FFF;
+    }
+
+    .option_container .option_layer{
+        text-shadow:0 0 3px rgba(0,0,0, .5);
+    }
+
+    .option_container .option_layer li{
+        border-top:1px solid rgba(255,255,255,.3);
+        font-size:17px;
+        padding:7px 0;
+        cursor:pointer;
+    }
+
+    .option_container .option_layer li:first-child{
+        border-top:0;
+    }
+
+</style>
+        
 <div style="position:absolute;z-index:1000;top:0;left:0;right:0;bottom:0;">
 
-    <style>
-        .option_layer{
-
-            text-shadow:0 0 3px rgba(0,0,0, .5);
-        }
-
-        .option_layer li{
-            border-top:1px solid rgba(255,255,255,.3);
-            font-size:17px;
-            padding:7px 0;
-            cursor:pointer;
-        }
-
-        .option_layer li:first-child{
-            border-top:0;
-        }
-
-        .option_container{
-            width:150px;margin:auto;height:150px;
-            position: absolute;
-            top:0;
-            bottom: 0;
-            left: 0;
-            right: 0;
-
-            margin: auto;
-        }
-    </style>
     <div class="option_container">
 
-        <div style="font-size:25px;padding-bottom:10px;border-bottom:1px solid #FFF;">
+        <div class="option_title">
             <%= sTitle %>
         </div>
 

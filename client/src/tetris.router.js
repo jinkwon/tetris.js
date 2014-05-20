@@ -2,7 +2,6 @@
     var t = app.tetris;
     
     var TetrisRouter = Backbone.Router.extend({
-    
         routes: {
             login : "moveToStart",
             menu : "moveToMenu",
@@ -21,6 +20,7 @@
             var sFrag = Backbone.history.fragment;
             
             if(!app.tetris.Account.Info.isAuthenticated() && sFrag !== 'login'){
+                // TODO CHANGE FOR REAL
 //                this.navigate('login', {trigger : true});
 //                return;
                 app.tetris.Account.Network.connect(function(){
@@ -33,15 +33,12 @@
         
         initialize : function(){
             this._welContainer = $('#_container');
-            
             this._hideAllScreens();
         },
 
         _hideAllScreens : function(){
             this._welContainer.find('#_dimmed_section').hide();
-
             this._welContainer.find('._screen').hide();
-
             this._welContainer.removeClass('animated').removeClass('fadeInDown');
 
             t.ui.Header.View.hide();
@@ -62,31 +59,17 @@
         moveToSingleGame : function(){
             this._hideAllScreens();
             t.ui.BackButton.show();
-            
-            t.Game.StageView.show();
 
-//            // Game Init
-//            var oTetris = t.Game.init({
-//                sTargetId  : 'game_area',
-//                bUseWebGL : true,
-//                sType : 'single'
-//            });
-//            
-            
+            t.Game.StageView.setType('single');
+            t.Game.StageView.show();
         },
 
         moveToMultiGame : function(){
             this._hideAllScreens();
             t.ui.BackButton.show();
-            t.Game.StageView.show();
 
-//            // Game Init
-//            var oTetris = t.Game.init({
-//                sTargetId  : 'game_area',
-//                bUseWebGL : true,
-//                sType : 'multi'
-//            });
-//            
+            t.Game.StageView.setType('multi');
+            t.Game.StageView.show();
         },
         
         moveToGameBoard : function(){
@@ -103,7 +86,6 @@
             this._hideAllScreens();
             t.Credit.View.show();
             t.ui.Header.View.changeTitle('Credit').show();
-            
             t.ui.BackButton.show();
         },
 

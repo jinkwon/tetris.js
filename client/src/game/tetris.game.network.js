@@ -8,11 +8,8 @@ app.tetris.Game.Network.init = function(){
 
     oSessionIo
         .on('connect', function() {
-
             console.log(arguments);
-
     });
-    
     
     oGameIo
         .on('connect', function(){
@@ -25,4 +22,5 @@ app.tetris.Game.Network.init = function(){
             console.log(arguments);
         });
 
+    app.tetris.Game.Network.oGameIo = oGameIo;
 };

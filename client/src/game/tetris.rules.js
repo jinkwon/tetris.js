@@ -1,3 +1,46 @@
+app.tetris.Rules.filterRules = function(nScore, cb){
+
+    var nLevel = 1;
+    
+    // DEFAULT SPEED
+    var nLogicSpeed = 1500;
+    
+    // 50000 : level 6
+    // 20000 : level 5
+    // 10000 : level 4
+    // 5000 : level 3
+    // 1000 : level 2
+    
+    var aLevels = [
+        {nLv : 8, nScore : 10000, nLogicSpeed : 100},
+        {nLv : 7, nScore : 5000, nLogicSpeed : 150},
+        {nLv : 6, nScore : 2500, nLogicSpeed : 200},
+        {nLv : 5, nScore : 2000, nLogicSpeed : 300},
+        {nLv : 4, nScore : 1500, nLogicSpeed : 400},
+        {nLv : 3, nScore : 1000, nLogicSpeed : 600},
+        {nLv : 2, nScore : 500, nLogicSpeed : 1000},
+        {nLv : 1, nScore : 0, nLogicSpeed : 1500}
+    ];
+   
+    var _getLevelBy = function(nScore){
+        var aLevel = _.filter(aLevels, function(oLevel){
+            return (oLevel.nScore <= nScore);
+        });
+        
+        if(aLevel.length > 0){
+            return aLevel[0];    
+        }
+    };
+
+//    _getLevelBy(1000);
+//    _getLevelBy(1500);
+//    _getLevelBy(5000);
+//    _getLevelBy(5500);
+//    _getLevelBy(15500);
+  
+    cb(_getLevelBy(nScore));
+};
+
 /**
  * app.arBlockList
  */
