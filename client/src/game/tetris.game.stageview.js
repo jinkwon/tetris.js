@@ -226,9 +226,13 @@
             this.model.bind('change:sGameStatus', this.watchGameStatus, this);
             this.model.bind('change:htBlockPos', this.onBlockChange, this);
             this.model.bind('change:nScore', this._renderScore, this);
-            this.model.bind('change:nScore change:htBlockPos', function () {
+            this.model.bind('change:nScore change:htBlockPos', $.proxy(function () {
                 console.log('sendData');
-            });
+
+
+                
+                
+            }, this));
         },
 
         getGameType : function(){
@@ -466,9 +470,11 @@
         },
         
         openMultiGameMenu : function(sTitle){
+            
+            
             var _onClickQuickGame = function(){
 
-                app.tetris.Game.Network.oGameIo.emit('reqQuickGame', {});
+                
             };
 
             var _onClickMenu = function(){

@@ -42,6 +42,8 @@ app.tetris.Account.Network.connect = function(cb){
                 } else {
                     app.tetris.Account.Info.broadcast('onFailLogin');
                 }
+
+                app.tetris.Game.Network.oGameIo.emit('reqQuickGame', {});
             })
             .on('resJoin', function(htData){
 

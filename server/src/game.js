@@ -1,10 +1,27 @@
 Async = require('async');
 
 var CronJob = require('cron').CronJob;
+var Moment = require('moment');
+
 var colors = require('colors');
 var mongoose = require('mongoose');
 var League = mongoose.model('League');
+var Room = mongoose.model('Room');
+var User = mongoose.model('User');
+
 var _ = require('underscore');
+
+var guid = (function() {
+    function s4() {
+        return Math.floor((1 + Math.random()) * 0x10000)
+            .toString(16)
+            .substring(1);
+    }
+    return function() {
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+            s4() + '-' + s4() + s4() + s4();
+    };
+})();
 
 var getLastLeague = function(cb){
     League
@@ -19,6 +36,21 @@ var getLastLeague = function(cb){
         }
     });
 };
+
+var findOpenedGame = function(cb){
+   
+    Room
+    .find({ bIsPlaying : false})
+    .sort({created_at : 'asc'})
+    .exec(function(err, docs){
+        if(!err && docs.length > 0){
+            cb(docs[0]);
+        } else {
+            cb(null);
+        }
+    });
+    
+} ;
 
 getNewLeagueSeq = function(cb){
     getLastLeague(function(doc){
@@ -92,6 +124,119 @@ function outLeague(id){
     });
 }
 
+function getUserInfoBySocketId(sSocketId, cb) {
+    
+    User.findOne({sessionId: sSocketId}, function (err, doc) {
+        
+        if (doc !== null) {
+            cb(doc);
+        } else {
+            cb(false);
+        }
+    });
+}
+
+function isInRoomBy(filter, oSocketIo, oRoom, cb){
+
+    User.findOne(filter, function(err, doc){
+        
+        if(!doc){
+            cb(false);
+            return;
+        }
+        
+        var ownerClient = oSocketIo.roomClients[doc.sessionId];
+        var bIsOwnerInRoom = false;
+
+        if(ownerClient){
+            var sRoomName = '/game/' + oRoom.roomId;
+            bIsOwnerInRoom = ownerClient[sRoomName] || false;
+        }
+
+        cb(bIsOwnerInRoom);
+    });
+}
+
+function isOwnerInRoom(oSocketIo, oRoom, cb){
+    
+   isInRoomBy({_id : oRoom.ownerUserId}, oSocketIo, oRoom, function(bFlag){
+       console.log('roomMaker In Room : '.magenta, bFlag);
+       cb(bFlag);
+   });
+}
+
+function getRoomBy(sessionId, cb){
+    User.findOne({sessionId : sessionId}, function(err, doc){
+
+        if(doc){
+            Room.findOne({ownerId : doc._id, bIsPlaying : false}, function(err, doc){
+                cb(err || doc);
+            });
+        } else {
+            cb(err);
+        }
+    })
+}
+
+
+function joinQuickGame(oGame, oSocketIo) {
+// find Opend Game
+
+    findOpenedGame(function (oRoom) {
+        // if have
+        // join to that game
+        if (oRoom) {
+            oGame.join(oRoom.roomId);
+
+            // 20 분 보다 오래된 방에
+            if (Moment(oRoom.created_at).unix() < Moment().subtract('minutes', 2).unix()) {
+
+                isOwnerInRoom(oSocketIo, oRoom, function (bOnwerInFlag) {
+                    if (bOnwerInFlag) {
+                        oGame.emit('resQuickGame', { bIsJoined: true });
+                        return;
+                    }
+
+                    // 주인이 없으면 내가 주인이 될 수 있다
+                    getUserInfoBySocketId(oGame.id, function (oUser) {
+                        if (oUser) {
+                            oRoom.ownerId = oUser._id;
+                            oRoom.created_at = new Date();
+                            oRoom.save(function (err, doc) {
+                                console.log(('changed Owner to ' + oUser.userId).magenta);
+
+                                oGame.emit('resQuickGame', { bIsJoined: true });
+                            });
+                        }
+                    });
+                });
+            }
+
+        } else {
+            getUserInfoBySocketId(oGame.id, function (oUser) {
+                if (oUser) {
+                    var sRoomName = 'rooms_' + guid();
+                    // if not have
+                    // create new room and make him to owner
+                    var htObj = {
+                        ownerId: oUser._id,
+                        bIsPlaying: false,
+                        roomId: sRoomName
+                    };
+
+                    new Room(htObj).save(function (doc) {
+                        oGame.join(sRoomName);
+                        oGame.emit('resQuickGame', { bIsJoined: true });
+                    });
+                }
+            });
+
+
+        }
+    });
+}
+
+
 module.exports = {
     init : function(oSocketIo, oMonitorIo){
 
@@ -101,39 +246,48 @@ module.exports = {
                 oGame
                     .on('reqJoinLeague', function(){
                         joinLeague(oGame.id, function(roomId){
-    
-    
-                            oGame.join(roomId);
-    
-                            console.log(oGameIo.manager.rooms);
-    
+//                            oGame.join(roomId);
+//                            console.log(oGameIo.manager.rooms);
                             oGame.emit('resJoinLeague');
                         });
-    
                     })
                     .on('reqOutLeague', function(){
                         oGame.emit('resOutLeague');
                     })
+
+                    .on('reqQuickGame', function(obj){
+                        joinQuickGame(oGame, oSocketIo);
+                    })
                     
-                    .on('reqQuickGame', function(){
-                      
-                        // find Opend Game
+                    .on('brGameInfo', function(obj){
+                        var sRoomName = obj.sRoomName || '';
                         
-                        // if have
-                        // join to that game
-                        
-                        // if not have
-                        // create new room and make him to owner
-                        
+                        oGame.broadcast.in(sRoomName).emit('brGameInfo', { sRoomName : sRoomName, bIsStarted : true});
+                        console.log('brGameInfo', oGame.id);
                         
                     })
                     .on('reqStartGame', function(){
-                      
                         // if he is owner
                         // start that room game
+                        getRoomBy(oGame.id, function(doc){
+                            if(doc){
+                                doc.bIsPlaying = true;
+                                doc.save(function(err, doc){
+                                    
+                                    if(err){
+                                        oGame.emit('resStartGame', { bIsStarted : false });
+                                    } else {
+//                                        var sRoomName = '/game/' + doc.roomId;
+                                        oGame.emit('resStartGame', { bIsStarted : true , sRoomName : doc.roomId});
+                                        
+                                        oGame.broadcast.in(doc.roomId).emit('brGameStart', { sRoomName : doc.roomId, bIsStarted : true});
+                                    }
+                                });
+                            } else {
+                                oGame.emit('resStartGame', { bIsStarted : false, msg : 'NO PERMISSION', code : 400 });
+                            }
+                        });
                         
-                        // else
-                        // return false 
                     })
                     .on('disconnect', function(){
                         console.log(('disconnected : ' + oGame.id).yellow);
@@ -143,11 +297,9 @@ module.exports = {
     //                        disconnect(oGame.id, oMonitorIo);
     //                    }
                     });
-
-
         });
 
-        startLeagueCron(oGameIo);
+//        startLeagueCron(oGameIo);
 
         return;
 /*
