@@ -3,6 +3,7 @@ var User = mongoose.model('User');
 var _ = require('underscore');
 var oAccountIo;
 var oSess;
+var Room = mongoose.model('Room');
 
 var error = function(sMessage, nCode){
     return {bAvail : false, sMessage : sMessage, code : nCode};
@@ -49,8 +50,8 @@ var isExistId = function(sId, cb){
 };
 
 var isAvailLoginId = function(sId, sPw, cb){
-    User.find({userId : sId, passwd : sPw}, function(err, doc){
-        cb(doc.length > 0, doc);
+    User.findOne({userId : sId, passwd : sPw}, function(err, doc){
+        cb(doc);
     });
 };
 
@@ -58,19 +59,26 @@ var onReqLogin = function(htData, oAccount){
     htData = _.extend({userId : null, passwd : null}, htData);
     console.log('onReqLogin'.green);
 
-    isAvailLoginId(htData.userId, htData.passwd, function(bResult, doc){
-        
-        if(bResult){
-            User.findOne({'userId' : htData.userId}, function(err, doc){
-                if(!err){
-                    doc.login_at = new Date();
-                    doc.sessionId = oAccount.id;
-                    doc.save();
-                }
+    isAvailLoginId(htData.userId, htData.passwd, function(user){
+
+        if(user){
+            user.login_at = new Date();
+            user.sessionId = oAccount.id;
+            user.save();
+            
+            
+            Room.find({ ownerId : user._id }, function(err, docs){
+                
+                _.each(docs, function(doc){
+                    doc.ownerSessionId = user.sessionId;
+                    
+                    doc.save(function(err, doc){
+                    });
+                });
             });
         }
-        
-        oAccount.emit('resLogin', {id : htData.userId, bAvail : bResult});
+
+        oAccount.emit('resLogin', {id : htData.userId, bAvail : !!user});
     });
 };
 

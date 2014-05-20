@@ -39,49 +39,89 @@
             this._isDrawNextGroupBlock = false;
 
 
-            var _onChangeRoomData = function(htData){
-
-                if(!this.setReady || htData.sRoomId === 'menu'){
-                    return;
-                }
-
-                console.log('cc', htData);
-
-                var aMenuList = [
-                    { sLabel : 'Go to Menu', fn : $.proxy(function(){
-                        this.setReady = false;
-                        app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId : htData.sRoomId});
-                        this.openMultiGameMenu('Multi Game');
-                        return false;
-                    }, this)}
-                ];
-
-                if(htData.bIsOwner){
-                    aMenuList.unshift({
-                        sLabel : 'Start Game',
-                        fn :$.proxy(function(){
-                            app.tetris.Game.Network.io.emit('reqStartGame', {});
-
-                            return false;
-
-                        }, this)
-                    });
-                }
-                app.tetris.ui.Option.View.show({
-                    sTitle : 'Multi Game : ' + htData.nMemberCount,
-                    aList : aMenuList
-                });
-
-            };
-
-            this._onBrRoomInfo = $.proxy(_onChangeRoomData, this);
+            this._onBrRoomInfo = $.proxy(this._onChangeRoomData, this);
             this._onresQuickGame = $.proxy(function(htData){
                 this.setReady = true;
-                _onChangeRoomData.apply(this, [htData]);
-
+                this._onChangeRoomData.apply(this, [htData]);
             }, this);
         },
-        
+
+        _createMenuObject : function(sLabel, fn){
+            return {
+                sLabel : sLabel,
+                fn : fn
+            };
+        },
+        _onChangeRoomData : function(htData){
+            if(!this.setReady || htData.sRoomId === 'menu'){
+                return;
+            }
+            console.log('_onChangeRoomData', htData);
+            var aMenuList = [
+                this._createMenuObject('Quit Room', $.proxy(function(){
+                    this.setReady = false;
+                    app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId : htData.sRoomId});
+                    this.openMultiGameMenu();
+                    return false;
+                    
+                }, this)),
+                this._createMenuObject('Go to Menu', $.proxy(function(){
+                    this.setReady = false;
+                    app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId : htData.sRoomId});
+                    app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId :'menu'});
+                    app.tetris.Router.navigate('menu', {trigger : true});
+                }, this))
+            ];
+
+            if(app.tetris.io.socket.sessionid === htData.sOwnerId){
+                aMenuList.unshift(
+                    this._createMenuObject('Start Game', $.proxy(function(){
+                        app.tetris.Game.Network.io.emit('reqStartGame', {});
+                        return false;   
+                    }, this))
+                );
+            }
+            
+            app.tetris.ui.Option.View.show({
+                sTitle : 'Multi Game<br> User : ' + htData.nMemberCount,
+                aList : aMenuList
+            });
+        },
+
+        initNetworks: function () {
+            app.tetris.Game.Network.io.emit("subscribe", { sRoomId : 'menu' });
+            app.tetris.Game.Network.io.removeListener('resQuickGame', this._onresQuickGame);
+            app.tetris.Game.Network.io.removeListener('brRoomInfo', this._onBrRoomInfo);
+
+            app.tetris.Game.Network.io.addListener('resQuickGame', this._onresQuickGame);
+            app.tetris.Game.Network.io.addListener('brRoomInfo', this._onBrRoomInfo);
+        },
+
+        openMultiGameMenu : function(sTitle){
+            this.initNetworks();
+
+            var _onClickQuickGame = function(){
+                app.tetris.Game.Network.io.emit('reqQuickGame', {});
+                app.tetris.ui.Option.View.show(htMultiGameOption);
+                return false;
+            };
+
+            var _onClickMenu = function(){
+                app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId :'menu'});
+                app.tetris.Router.navigate('menu', {trigger : true});
+            };
+            
+            var htMultiGameOption = {
+                sTitle : sTitle || 'Multi Game',
+                aList : [
+                    this._createMenuObject('Quick Game', $.proxy(_onClickQuickGame, this)),
+                    this._createMenuObject('Go to Menu', $.proxy(_onClickMenu, this))
+                ]
+            };
+            
+            app.tetris.ui.Option.View.show(htMultiGameOption);
+        },
+
         _onTouchKeyPad :function(e){
             e.stopPropagation();
             e.preventDefault();
@@ -296,10 +336,10 @@
             });
             this.setGameEvents();
             
-            this.oGameView.useWebGL(true);
+//            this.oGameView.useWebGL(true);
 
             if(this.isMultiGame()){
-                this.openMultiGameMenu('Multi Game');
+                this.openMultiGameMenu();
                 
             } else {
                 this.startTimer();
@@ -509,43 +549,7 @@
                 ]
             });
         },
-        
-        openMultiGameMenu : function(sTitle){
-            app.tetris.Game.Network.io.emit("subscribe", { sRoomId : 'menu' });
-            app.tetris.Game.Network.io.removeListener('resQuickGame', this._onresQuickGame);
-            app.tetris.Game.Network.io.addListener('resQuickGame', this._onresQuickGame);
-            app.tetris.Game.Network.io.removeListener('brRoomInfo', this._onBrRoomInfo);
-            app.tetris.Game.Network.io.addListener('brRoomInfo', this._onBrRoomInfo);
 
-            var _onClickQuickGame = function(){
-                app.tetris.Game.Network.io.emit('reqQuickGame', {});
-
-                app.tetris.ui.Option.View.show({
-                    sTitle : sTitle || '',
-                    aList : [
-                        { sLabel : 'Quick Game', fn : $.proxy(_onClickQuickGame, this) },
-                        { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
-                    ]
-                });
-
-                return false;
-            };
-
-            var _onClickMenu = function(){
-
-                app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId :'menu'});
-                app.tetris.Router.navigate('menu', {trigger : true});
-            };
-
-            app.tetris.ui.Option.View.show({
-                sTitle : sTitle || '',
-                aList : [
-                    { sLabel : 'Quick Game', fn : $.proxy(_onClickQuickGame, this) },
-                    { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
-                ]
-            });
-        },
-        
         _onClickFullScreen : function(){
             if(that.bFullScreen == true){
                 that.bFullScreen = false;
