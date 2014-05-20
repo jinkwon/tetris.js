@@ -1,9 +1,8 @@
 app.tetris.init = function(sMode){
     app.tetris.config.setEnv(sMode || 'development');
-
-    app.tetris.Game.Network.init();
 //    return;
 
+    app.tetris.Network.init();
 
     // initialize Singleton
     app.tetris.Router = app.tetris.Router.getInstance();

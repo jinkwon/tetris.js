@@ -149,8 +149,8 @@ function isInRoomBy(filter, oSocketIo, oRoom, cb){
         var bIsOwnerInRoom = false;
 
         if(ownerClient){
-            var sRoomName = '/game/' + oRoom.roomId;
-            bIsOwnerInRoom = ownerClient[sRoomName] || false;
+            var sRoomChannel = '/game/' + oRoom.roomId;
+            bIsOwnerInRoom = ownerClient[sRoomChannel] || false;
         }
 
         cb(bIsOwnerInRoom);
@@ -165,8 +165,8 @@ function isOwnerInRoom(oSocketIo, oRoom, cb){
    });
 }
 
-function getRoomBy(sessionId, cb){
-    User.findOne({sessionId : sessionId}, function(err, doc){
+function getRoomBy(obj, cb){
+    User.findOne(obj, function(err, doc){
 
         if(doc){
             Room.findOne({ownerId : doc._id, bIsPlaying : false}, function(err, doc){
@@ -179,6 +179,7 @@ function getRoomBy(sessionId, cb){
 }
 
 
+
 function joinQuickGame(oGame, oSocketIo) {
 // find Opend Game
 
@@ -188,45 +189,73 @@ function joinQuickGame(oGame, oSocketIo) {
         if (oRoom) {
             oGame.join(oRoom.roomId);
 
-            // 20 분 보다 오래된 방에
-            if (Moment(oRoom.created_at).unix() < Moment().subtract('minutes', 2).unix()) {
+            var nMemberCount = getMemberCountByRoomId(oRoom.roomId, oGame);
+            var htRoomInfo = {sRoomId : oRoom.roomId, bIsJoined : true , nMemberCount : nMemberCount, bIsOwner : oRoom.ownerSessionId === oGame.id};
 
-                isOwnerInRoom(oSocketIo, oRoom, function (bOnwerInFlag) {
-                    if (bOnwerInFlag) {
-                        oGame.emit('resQuickGame', { bIsJoined: true });
-                        return;
-                    }
+            oGame.emit('resQuickGame', htRoomInfo);
 
-                    // 주인이 없으면 내가 주인이 될 수 있다
-                    getUserInfoBySocketId(oGame.id, function (oUser) {
-                        if (oUser) {
+            if(htRoomInfo.bIsOwner){
+                oGame.emit('brRoomInfo', htRoomInfo);
+
+                htRoomInfo.bIsOwner = false;
+                oGame.broadcast.in(oRoom.roomId).emit('brRoomInfo', htRoomInfo);
+            }
+
+            isOwnerInRoom(oSocketIo, oRoom, function (bOwnerInFlag) {
+                getUserInfoBySocketId(oGame.id, function (oUser) {
+
+                    // 20 분 보다 오래된 방에
+                    if (Moment(oRoom.created_at).unix() < Moment().subtract('minutes', 2).unix()) {
+
+                        // 주인이 없으면 내가 주인이 될 수 있다
+                        if (oUser && bOwnerInFlag === false) {
                             oRoom.ownerId = oUser._id;
                             oRoom.created_at = new Date();
                             oRoom.save(function (err, doc) {
                                 console.log(('changed Owner to ' + oUser.userId).magenta);
 
-                                oGame.emit('resQuickGame', { bIsJoined: true });
+                                htRoomInfo.bIsOwner = true;
+
+                                if(htRoomInfo.bIsOwner){
+                                    oGame.emit('brRoomInfo', htRoomInfo);
+
+                                    htRoomInfo.bIsOwner = false;
+                                    oGame.broadcast.in(oRoom.roomId).emit('brRoomInfo', htRoomInfo);
+                                }
+
                             });
+
+                            return;
                         }
-                    });
+                    }
+
+                    if(htRoomInfo.bIsOwner){
+                        oGame.emit('brRoomInfo', htRoomInfo);
+
+                        htRoomInfo.bIsOwner = false;
+                        oGame.broadcast.in(oRoom.roomId).emit('brRoomInfo', htRoomInfo);
+                    }
+
                 });
-            }
+            });
 
         } else {
             getUserInfoBySocketId(oGame.id, function (oUser) {
                 if (oUser) {
-                    var sRoomName = 'rooms_' + guid();
+
+                    var sRoomId = 'rooms_' + guid();
                     // if not have
                     // create new room and make him to owner
                     var htObj = {
                         ownerId: oUser._id,
                         bIsPlaying: false,
-                        roomId: sRoomName
+                        ownerSessionId : oGame.id,
+                        roomId: sRoomId
                     };
 
                     new Room(htObj).save(function (doc) {
-                        oGame.join(sRoomName);
-                        oGame.emit('resQuickGame', { bIsJoined: true });
+                        oGame.join(sRoomId);
+                        oGame.emit('resQuickGame', { bIsJoined: true, sRoomId : sRoomId, nMemberCount : 1, bIsOwner : true});
                     });
                 }
             });
@@ -237,11 +266,46 @@ function joinQuickGame(oGame, oSocketIo) {
 }
 
 
+getMemberCountByRoomId = function(roomId, oGame, bFilter){
+    var users = oGame.manager.rooms['/game/' + roomId];
+    var nLen = 0;
+
+    if(users){
+        nLen = users.length;
+    }
+
+    return nLen;
+};
+
 module.exports = {
     init : function(oSocketIo, oMonitorIo){
 
         var oGameIo = oSocketIo.of('/game')
             .on('connection', function(oGame){
+
+                oGame.on('subscribe', function(data) { oGame.join(data.sRoomId); });
+                oGame.on('unsubscribe', function(data) {
+                    oGame.leave(data.sRoomId);
+
+                    Room.findOne({roomId : data.sRoomId}, function(err, oRoom){
+                        if(oRoom){
+                            var nMemberCount = getMemberCountByRoomId(oRoom.roomId, oGame);
+
+                            var htRoomInfo = { sRoomId : oRoom.roomId, nMemberCount : nMemberCount, bIsOwner : oRoom.ownerSessionId === oGame.id};
+
+                            if(htRoomInfo.bIsOwner){
+                                oGame.emit('brRoomInfo', htRoomInfo);
+
+                                htRoomInfo.bIsOwner = false;
+                                oGame.broadcast.in(oRoom.roomId).emit('brRoomInfo', htRoomInfo);
+                            }
+
+                        }
+                    })
+
+                });
+
+
                 console.log(('connected : ' + oGame.id).magenta);
                 oGame
                     .on('reqJoinLeague', function(){
@@ -260,16 +324,16 @@ module.exports = {
                     })
                     
                     .on('brGameInfo', function(obj){
-                        var sRoomName = obj.sRoomName || '';
+                        var sRoomId = obj.sRoomId || '';
                         
-                        oGame.broadcast.in(sRoomName).emit('brGameInfo', { sRoomName : sRoomName, bIsStarted : true});
+                        oGame.broadcast.in(sRoomId).emit('brGameInfo', { sRoomId : sRoomId, bIsStarted : true});
                         console.log('brGameInfo', oGame.id);
                         
                     })
                     .on('reqStartGame', function(){
                         // if he is owner
                         // start that room game
-                        getRoomBy(oGame.id, function(doc){
+                        getRoomBy({ sessionId : oGame.id}, function(doc){
                             if(doc){
                                 doc.bIsPlaying = true;
                                 doc.save(function(err, doc){
@@ -277,10 +341,9 @@ module.exports = {
                                     if(err){
                                         oGame.emit('resStartGame', { bIsStarted : false });
                                     } else {
-//                                        var sRoomName = '/game/' + doc.roomId;
-                                        oGame.emit('resStartGame', { bIsStarted : true , sRoomName : doc.roomId});
+                                        oGame.emit('resStartGame', { bIsStarted : true , sRoomId : doc.roomId});
                                         
-                                        oGame.broadcast.in(doc.roomId).emit('brGameStart', { sRoomName : doc.roomId, bIsStarted : true});
+                                        oGame.broadcast.in(doc.roomId).emit('brGameStart', { sRoomId : doc.roomId, bIsStarted : true});
                                     }
                                 });
                             } else {
@@ -292,10 +355,23 @@ module.exports = {
                     .on('disconnect', function(){
                         console.log(('disconnected : ' + oGame.id).yellow);
                         outLeague(oGame.id);
-    
-    //                    if(oGame.id){
-    //                        disconnect(oGame.id, oMonitorIo);
-    //                    }
+
+                        var client = oGame.manager.roomClients[oGame.id];
+
+                        if(client){
+                            for(var sRoomChannel in client){
+                                oGame.leave(sRoomChannel);
+                                oGame.manager.rooms[sRoomChannel] = _.without(oGame.manager.rooms[sRoomChannel], oGame.id);
+
+                                var aNameSpliter = sRoomChannel.split('/');
+
+                                if(aNameSpliter[2]){
+                                    var nMemberCount = getMemberCountByRoomId(aNameSpliter[2], oGame);
+                                    oGame.broadcast.in(aNameSpliter[2]).emit('brRoomInfo', { sRoomId : aNameSpliter[2], nMemberCount : nMemberCount});
+                                }
+
+                            }
+                        }
                     });
         });
 

@@ -1,35 +1,38 @@
 
 app.tetris.Game.Network = {};
 
+app.tetris.Game.Network.close = function(){
+    if(app.tetris.Game.Network.io){
+        app.tetris.Game.Network.io.disconnect();
+    }
+};
+app.tetris.Game.Network.open = function(){
+    if(app.tetris.Game.Network.io){
+        app.tetris.Game.Network.io.reconnect();
+    }
+};
+
 app.tetris.Game.Network.init = function(){
+    app.tetris.Game.Network.io = app.tetris.io.of('/game');
 
-    var oSessionIo = io.connect(app.tetris.config.sSessionUrl);
-    var oGameIo = io.connect(app.tetris.config.sGameUrl);
-
-    oSessionIo
-        .on('connect', function() {
-            console.log(arguments);
-    });
-    
-    
-    oGameIo
-        .on('connect', function(socket){
+    app.tetris.Game.Network.io
+        .on("reconnect", function(){
             console.log('connect', arguments);
 //            oGameIo.emit('reqJoinLeague', {
 //            });
-            
-            
-            
         })
-        .on('resQuickGame', function(){
-            console.log('resQuickGame', arguments);
+
+        .on('disconnected', function(){
+
+            console.log('game disconnected')
+        })
+//        .on('resQuickGame', function(){
+//            console.log('resQuickGame', arguments);
         
-            setTimeout(function(){
-                
-            
-            oGameIo.emit('reqStartGame', {});
-            }, 5000);
-        })
+//            setTimeout(function(){
+//                oGameIo.emit('reqStartGame', {});
+//            }, 5000);
+//        })
         .on('brGameStart', function(htObj){
           
             console.log('brGameStart');
@@ -43,7 +46,6 @@ app.tetris.Game.Network.init = function(){
         })
         .on('brGameInfo', function(htObj){
             console.log('brGameInfo');
-            
         })
         .on('resStartGame', function(htObj){
             console.log('resStartGame', arguments);
@@ -58,6 +60,4 @@ app.tetris.Game.Network.init = function(){
         .on('brLeagueClosed', function(){
             console.log(arguments);
         });
-
-    app.tetris.Game.Network.oGameIo = oGameIo;
 };

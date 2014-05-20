@@ -24,7 +24,8 @@
     "cron": "^1.0.4",
     "time": "^0.10.0",
     "clog": "~0.1.6",
-    "socket.io": "~0.9.16"
+    "socket.io": "~0.9.16",
+    "moment": "^2.6.0"
   },
   "oauth": {
     "facebook": {

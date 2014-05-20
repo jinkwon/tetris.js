@@ -64,6 +64,8 @@ var getRoomInfoWithUserId = function(cb){
                     if (doc !== null) {
                         finalResult[sRoomName][idx] = doc.userId;
                     }
+
+
                     callback();
                 });
 

@@ -2,6 +2,18 @@
  * NetworkModule
  */
 app.tetris.Network.init = (function(htOptions){
+
+    if(!app.tetris.io){
+        app.tetris.io = io.connect(app.tetris.config.sHost, {
+            timeout : 10000
+        });
+
+        app.tetris.Game.Network.init();
+        app.tetris.Account.Network.init();
+    }
+
+    return;
+
 	//if($.cookie('SMSESSION')
 	var htOptions = htOptions ? htOptions : {}
 	  , oView
@@ -33,6 +45,7 @@ app.tetris.Network.init = (function(htOptions){
 	var initGameIo = function(){
 		oGameIo = io.connect(app.tetris.config.sGameUrl);
 		
+
 		oGameIo.on('connect', function(){
 			
 			var htReq = {

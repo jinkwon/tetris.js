@@ -1,31 +1,30 @@
 app.tetris.Account.Network = {};
 
 
+app.tetris.Account.Network.init = function(cb){
 
-app.tetris.Account.Network.connect = function(cb){
+
     if(!app.tetris.Account.Network.io){
-        app.tetris.Account.Network.io = io.connect(app.tetris.config.sAccountUrl, {
-            timeout : 5000
-        });
+        app.tetris.Account.Network.io = app.tetris.io.of('/account');
 
         app.tetris.Account.Network.io
-            .on('connection', function(){
+            .on('connect', function(){
+                console.log('connect account', arguments);
+
                 if(cb){
                     cb();
                 }
 
-                app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
             })
             .on('reconnect', function(){
-                
-                app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
+
             })
             .on('disconnect', function(){
                 alert('disconnected');
             })
             .on('error', function(){
                 alert('Cannot connect to Server');
-                app.tetris.Account.Network.io = null;
+
             })
             .on('reconnect_failed', function(){
                 console.log('reconnect_failed');
@@ -43,7 +42,6 @@ app.tetris.Account.Network.connect = function(cb){
                     app.tetris.Account.Info.broadcast('onFailLogin');
                 }
 
-                app.tetris.Game.Network.oGameIo.emit('reqQuickGame', {});
             })
             .on('resJoin', function(htData){
 
@@ -61,16 +59,15 @@ app.tetris.Account.Network.connect = function(cb){
                 app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
             });
     }
-    
+
     if (app.tetris.Account.Network.io.socket.connected === false && app.tetris.Account.Network.io.socket.connecting === false) {
         app.tetris.Account.Network.io.socket.connect();
     } else {
-        
-        
+
         if(cb){
             cb();
         }
     }
-    
-    
+
+
 };

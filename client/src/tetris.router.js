@@ -18,14 +18,14 @@
         execute: function(callback, args) {
             app.tetris.Account.Info.load();
             var sFrag = Backbone.history.fragment;
-            
+
+
             if(!app.tetris.Account.Info.isAuthenticated() && sFrag !== 'login'){
                 // TODO CHANGE FOR REAL
 //                this.navigate('login', {trigger : true});
 //                return;
-                app.tetris.Account.Network.connect(function(){
-                    app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
-                });
+
+                app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
             }
             
             if (callback) callback.apply(this, args);

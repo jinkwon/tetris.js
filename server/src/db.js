@@ -21,6 +21,7 @@ var League = new Schema({
 var Room = new Schema({
     'seq' : Number,
     'ownerId' : Schema.ObjectId,
+    'ownerSessionId' : String,
     'roomId': String,
     'created_at' : { type: Date, default: Date.now },
     'bIsPlaying' : Boolean
