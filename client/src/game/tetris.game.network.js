@@ -34,18 +34,14 @@ app.tetris.Game.Network.init = function(){
 //            }, 5000);
 //        })
         .on('brGameStart', function(htObj){
-          
             console.log('brGameStart');
-
             if(htObj.bIsStarted){
                 // play Game
-                console.log('GAME BEGIN');
-
                 app.tetris.Game.Network.sRoomName = htObj.sRoomName;
             }
         })
         .on('brGameInfo', function(htObj){
-            console.log('brGameInfo');
+            console.log('brGameInfo', arguments);
         })
         .on('resStartGame', function(htObj){
             console.log('resStartGame', arguments);

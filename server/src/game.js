@@ -74,10 +74,10 @@ function isOwnerInRoom(oSocketIo, oRoom, cb){
 }
 
 function getRoomBy(obj, cb){
-    User.findOne(obj, function(err, doc){
+    User.findOne({sessionId : obj.sessionId}, function(err, doc){
 
         if(doc){
-            Room.findOne({ownerId : doc._id, bIsPlaying : false}, function(err, doc){
+            Room.findOne({ownerSessionId : doc.sessionId, roomId : obj.roomId}, function(err, doc){
                 cb(err || doc);
             });
         } else {
@@ -196,7 +196,7 @@ module.exports = {
         
         
         oGameIo.on('connection', function(oGame){
-            console.log(('connected : ' + oGame.id).magenta);
+            console.log(('CONNECTED : ' + oGame.id).magenta);
             
             oGame
                 .on('subscribe', function(data) { 
@@ -221,26 +221,182 @@ module.exports = {
                 .on('brGameInfo', function(obj){
                     var sRoomId = obj.sRoomId || '';
                     
-                    oGame.broadcast.in(sRoomId).emit('brGameInfo', { sRoomId : sRoomId, bIsStarted : true});
-                    console.log('brGameInfo', oGame.id);
+                    console.log('brGameInfo', sRoomId, oGame.id);
+
+                    var sendNeighbor = function(oGame, oRoom, oUser) {
+                        var idx = null;
+                        for (var i = 0; i < oRoom.users.length; i++) {
+                            if (oRoom.users[i].sessionId === oGame.id) {
+                                idx = i;
+                                break;
+                            }
+                        }
+
+                        var front = null;
+                        var back = null;
+                        var msg = {
+                            ze: {
+                                sessionId: oGame.id,
+                                userId: oUser.userId,
+                                aMatrix: obj.aMatrix,
+                                nScore: obj.nScore
+                            }
+                        };
+
+                        if (idx - 1 >= 0) {
+                            // yes front
+                            front = oRoom.users[idx - 1];
+                            
+                            msg.front = {
+                                sessionId : front.sessionId,
+                                userId : front.userId,
+                                aMatrix : front.aMatrix,
+                                nScore : front.nScore
+                            };
+                        }
+
+                        if (idx + 1 < oRoom.users.length) {
+                            
+                            // yes back
+                            back = oRoom.users[idx + 1];
+                            msg.back = {
+                                sessionId : back.sessionId,
+                                userId : back.userId,
+                                aMatrix : back.aMatrix,
+                                nScore : back.nScore
+                            };
+                        }
+
+                        var socket;
+                        
+                        if (front) {
+                            socket = oGame.manager.sockets.sockets[front.sessionId];
+                            socket.emit('brGameInfo', {
+                                msg: msg
+                            });
+                            
+                            oGame.emit('brGameInfo', {
+                                msg : msg
+                            });
+                            console.log(front.sessionId, JSON.stringify(msg.front));
+                        }
+
+                        if (back) {
+                            socket = oGame.manager.sockets.sockets[back.sessionId];
+                            
+                            socket.emit('brGameInfo', {
+                                msg: msg
+                            });
+
+                            oGame.emit('brGameInfo', {
+                                msg : msg
+                            });
+                            console.log(back.sessionId, JSON.stringify(msg.back));
+                        }
+                    };
+
+                    User.findOne({sessionId : oGame.id}, function(err, oUser){
+                        Room.findOne({roomId : sRoomId}, function(err, oRoom){
+
+                            var bExist = _.find(oRoom.users, function(user){
+                                return (user.sessionId === oGame.id);
+                            });
+
+                            if(!bExist){
+                                oRoom.users.push({
+                                    sessionId : oGame.id,
+                                    userId : oUser.userId,
+                                    aMatrix : obj.aMatrix,
+                                    nScore : obj.nScore
+                                });
+                                
+                                oRoom.save(function(){
+                                    console.log('User Added');
+
+                                    sendNeighbor(oGame, oRoom, oUser);
+                                });
+                                
+                            } else {
+                                var idx = null;
+                                for(var i = 0; i < oRoom.users.length; i++){
+                                    if(oRoom.users[i].sessionId === oGame.id){
+                                        idx = i;
+                                        break;
+                                    }
+                                }
+                                
+                                if(idx !== null){
+                                    oRoom.users[idx].sessionId = oGame.id;
+                                    oRoom.users[idx].userId = oUser.userId;
+                                    oRoom.users[idx].aMatrix = obj.aMatrix;
+                                    oRoom.users[idx].nScore = obj.nScore;
+
+                                    oRoom.users.sort(function(a, b){
+                                        return a.nScore < b.nScore;
+                                    });
+                                    
+                                    oRoom.save(function(err){
+                                        if(!err){
+                                            console.log('exist User Saved');
+                                        }
+
+                                        sendNeighbor(oGame, oRoom, oUser);
+                                    });
+                                }
+                            }
+
+
+                            
+                        });
+
+                        oGame.broadcast.in(sRoomId).emit('brGameInfo', {
+                            sRoomId : sRoomId
+                        });
+
+                        oGame.emit('brGameInfo', {
+
+                        });
+
+                        console.log('brGameInfo', oGame.id);
+                        
+                        
+                    });
                 })
                 
-                .on('reqStartGame', function(){
+                .on('reqStartGame', function(obj){
                     // if he is owner
                     // start that room game
-                    getRoomBy({ sessionId : oGame.id}, function(doc){
-                        if(doc){
-                            doc.bIsPlaying = true;
-                            doc.save(function(err, doc){
+
+                    console.log(obj);
+                    var sRoomId = obj.sRoomId;
+                    getRoomBy({ sessionId : oGame.id, roomId : sRoomId}, function(doc){
+                        
+                        // Owner
+                        function isOwner(oGame, doc) {
+                            return doc && oGame.id === doc.ownerSessionId;
+                        }
+
+                        if(isOwner(oGame, doc)){
+                            
+                            if(doc.bIsPlaying === false){
+                                doc.bIsPlaying = true;
+                                doc.save(function(err, doc){
+                                    if(err){
+                                        oGame.emit('resStartGame', { bIsStarted : false });
+                                    } else {
+                                        oGame.emit('resStartGame', { bIsStarted : true , sRoomId : doc.roomId});
+                                        oGame.emit('brGameStart', { sRoomId : doc.roomId, bIsStarted : true});
+                                        oGame.broadcast.in(doc.roomId).emit('brGameStart', { sRoomId : doc.roomId, bIsStarted : true});
+                                    }
+                                });
                                 
-                                if(err){
-                                    oGame.emit('resStartGame', { bIsStarted : false });
-                                } else {
-                                    oGame.emit('resStartGame', { bIsStarted : true , sRoomId : doc.roomId});
-                                    
-                                    oGame.broadcast.in(doc.roomId).emit('brGameStart', { sRoomId : doc.roomId, bIsStarted : true});
-                                }
-                            });
+                            } else {
+                                oGame.emit('brGameStart', { sRoomId : doc.roomId, bIsStarted : true, bAlreadyStarted : true});
+                                oGame.broadcast.in(doc.roomId).emit('brGameStart', { sRoomId : doc.roomId, bIsStarted : true, bAlreadyStarted : true});
+                            }
+                            
+                            
+                        // Not Owner
                         } else {
                             oGame.emit('resStartGame', { bIsStarted : false, msg : 'NO PERMISSION', code : 400 });
                         }

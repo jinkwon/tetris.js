@@ -6,11 +6,12 @@
 
 
         initialize : function(){
+            this.render();
             this._setViewProperties();
             this._initTimer();
             this.setUIEvents();
             this.setLogicEvents();
-            this.render();
+            
         },
 
         setType : function(sType){
@@ -44,19 +45,62 @@
                 this.setReady = true;
                 this._onChangeRoomData.apply(this, [htData]);
             }, this);
+
+            this._onChangeModel = $.proxy(function(){
+                app.tetris.Game.Network.io.emit('brGameInfo', {
+                    sRoomId : this._sRoomId,
+                    aMatrix : this.model.get('aMatrix'),
+                    nScore : this.model.get('nScore')
+                });
+            }, this);
+            
+            this._onGameStart = $.proxy(function(htData){
+                console.log(arguments);
+                app.tetris.ui.Option.View.hide();
+                this._startNetworkGame(htData);
+            }, this);
         },
 
+        _startNetworkGame : function(htData){
+            this._sRoomId = htData.sRoomId;
+            
+            this.model
+                .unbind('change:nScore change:aMatrix', this._onChangeModel)
+                .bind('change:nScore change:aMatrix', this._onChangeModel);
+
+            this.startTimer();
+            
+            this.oGameView.start();
+
+            app.tetris.Game.Network.io.emit('brGameInfo', {
+                sRoomId : this._sRoomId,
+                aMatrix : this.model.get('aMatrix'),
+                nScore : this.model.get('nScore')
+            });
+        },
+        
         _createMenuObject : function(sLabel, fn){
             return {
                 sLabel : sLabel,
                 fn : fn
             };
         },
+        
         _onChangeRoomData : function(htData){
             if(!this.setReady || htData.sRoomId === 'menu'){
                 return;
             }
-            console.log('_onChangeRoomData', htData);
+
+            app.tetris.Game.Network.io.removeListener('brGameStart', this._onGameStart);
+            app.tetris.Game.Network.io.addListener('brGameStart', this._onGameStart);
+
+//            setInterval(function(){
+//                $('#other_1_game_area').parent().removeClass('tada').hide().addClass('tada').show();
+//            }, 2000);
+//            setInterval(function(){
+//                $('#other_2_game_area').parent().removeClass('tada').hide().addClass('tada').show();
+//            }, 3000);
+            
             var aMenuList = [
                 this._createMenuObject('Quit Room', $.proxy(function(){
                     this.setReady = false;
@@ -76,7 +120,10 @@
             if(app.tetris.io.socket.sessionid === htData.sOwnerId){
                 aMenuList.unshift(
                     this._createMenuObject('Start Game', $.proxy(function(){
-                        app.tetris.Game.Network.io.emit('reqStartGame', {});
+                        app.tetris.Game.Network.io.emit('reqStartGame', {
+                            sRoomId : htData.sRoomId
+                        });
+                        
                         return false;   
                     }, this))
                 );
@@ -99,7 +146,7 @@
 
         openMultiGameMenu : function(sTitle){
             this.initNetworks();
-
+            
             var _onClickQuickGame = function(){
                 app.tetris.Game.Network.io.emit('reqQuickGame', {});
                 app.tetris.ui.Option.View.show(htMultiGameOption);
@@ -153,20 +200,8 @@
         },
         
         setLogicEvents: function () {
-//            onChange : function(){
-//            change:nScore
-//            chnage:aMatrix
-//                var htData = {
-//                    sGuid : this.model.get('sGuid'),
-//                    aMatrix : this.model.get('aMatrix'),
-//                    nScore : this.model.get('nScore')
-//                };
-//                this.oGameIo.emit('sendGameInfo', htData);
-//            }
 
             app.tetris.Router.on('route', $.proxy(function(sRouteName){
-
-
                 if(this.oGameView && 
                     sRouteName !== 'moveToSingleGame' &&
                     sRouteName !== 'moveToMultiGame'
@@ -251,30 +286,26 @@
             return str.join('');
         },
 
+        resetUI: function () {
+            if(this._sType === 'multi'){
+                this.$el.find('._multi').show();
+            } else {
+                this.$el.find('._multi').hide();
+            }
+        },
+        
         render : function(){
             var template = app.tetris.TemplateManager.get(this.template, {});
             this.$el.html(template);
-            if(app.tetris.Util.isMobile()){
-                $('._mobile').show();
-            } else {
-                $('._mobile').hide();
-            }
 
+            this.resetUI();
             return this;
         },
 
         clearOldViewObject: function () {
-            if (this.oGameView) {
-                this.oGameView.unbind();
-            }
-
-            if (this.oGameView2) {
-                this.oGameView2.unbind();
-            }
-
-            if (this.oGameView3) {
-                this.oGameView3.unbind();
-            }
+            if (this.oGameView) this.oGameView.unbind();
+            if (this.oGameView2) this.oGameView2.unbind();
+            if (this.oGameView3) this.oGameView3.unbind();
         },
         
         show : function(){
@@ -282,12 +313,7 @@
                 this.oGameView.stop().unbind();
             }
 
-            if(this._sType === 'multi'){
-                this.$el.find('._multi').show();
-            } else {
-                this.$el.find('._multi').hide();
-            }
-            
+            this.resetUI();
             this.$el.show();
 
             this.clearOldViewObject();
@@ -307,13 +333,6 @@
             this.model.bind('change:sGameStatus', this.watchGameStatus, this);
             this.model.bind('change:htBlockPos', this.onBlockChange, this);
             this.model.bind('change:nScore', this._renderScore, this);
-            this.model.bind('change:nScore change:htBlockPos', $.proxy(function () {
-                console.log('sendData');
-
-
-                
-                
-            }, this));
         },
 
         getGameType : function(){
@@ -359,13 +378,6 @@
                 model : new app.tetris.Game.Model(),
                 bUseWebGL : false
             });
-
-//            setInterval(function(){
-//                $('#other_1_game_area').parent().removeClass('tada').hide().addClass('tada').show();
-//            }, 2000);
-//            setInterval(function(){
-//                $('#other_2_game_area').parent().removeClass('tada').hide().addClass('tada').show();
-//            }, 3000);
 
             var wel = $(this.$el);
             this._setGameEvents(wel);
@@ -492,11 +504,10 @@
         },
 
         openOptionMenu : function(){
-
             var _onClickSetting = function(){
                 app.tetris.ui.Option.View.show({
                     sTitle : 'Setting',
-                    aList : [{sLabel : 'test'}, {sLabel : 'test2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}]
+                    aList : [{sLabel : 'Setting1'}, {sLabel : 'Setting2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}]
                 });
                 
                 return false;
@@ -510,18 +521,39 @@
                 this.oGameView.pause();
             };
 
+            var _onClickJoinMultiGame = function(){
+                app.tetris.Router.navigate('menu', {trigger : true});
+                app.tetris.Router.navigate('multi', {trigger : true});
+                return false;
+            };
+            
             var _onClickRestart = function(){
                 this.oGameView.start();
             };
-            
-            app.tetris.ui.Option.View.show({
-                aList : [
+
+            var aMenuList = [];
+            if(this.isMultiGame()){
+                aMenuList = [
                     { sLabel : 'Continue' },
                     { sLabel : 'Restart', fn : $.proxy(_onClickRestart, this)},
                     { sLabel : 'Pause', fn : $.proxy(_onClickPause, this) },
+                    { sLabel : 'Re-join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
+                    { sLabel : 'Setting', fn : $.proxy(_onClickSetting, this) },
+                    { sLabel : 'Exit Multi Game', fn : $.proxy(_onClickMenu, this) }
+                ];
+            } else {
+                aMenuList = [
+                    { sLabel : 'Continue' },
+                    { sLabel : 'Restart', fn : $.proxy(_onClickRestart, this)},
+                    { sLabel : 'Pause', fn : $.proxy(_onClickPause, this) },
+                    { sLabel : 'Join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
                     { sLabel : 'Setting', fn : $.proxy(_onClickSetting, this) },
                     { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
-                ]
+                ];
+            }
+            
+            app.tetris.ui.Option.View.show({
+                aList : aMenuList
             });
 
             return false;
@@ -533,20 +565,32 @@
             };
             
             var _onClickJoinMultiGame = function(){
-                
+                app.tetris.Router.navigate('menu', {trigger : true});
+                app.tetris.Router.navigate('multi', {trigger : true});
+                return false;
             };
 
             var _onClickMenu = function(){
                 app.tetris.Router.navigate('menu', {trigger : true});
             };
-            
-            app.tetris.ui.Option.View.show({
-                sTitle : sTitle || '',
-                aList : [
+
+            var aMenuList = [];
+            if(this.isMultiGame()){
+                aMenuList = [
+                    { sLabel : 'Re-Join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
+                    { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
+                ];
+            } else {
+                aMenuList = [
                     { sLabel : 'Replay Game', fn : $.proxy(_onClickReplay, this) },
                     { sLabel : 'Join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
                     { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
-                ]
+                ];
+            }
+            
+            app.tetris.ui.Option.View.show({
+                sTitle : sTitle || '',
+                aList : aMenuList
             });
         },
 
@@ -568,11 +612,6 @@
             $('#_dimmed_section').html(
                 '<div class="pause" style="z-index:50;width:100%;height:100%;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
                     '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>').show();
-
-            // $('#other_1').parent().find('.pause').remove();
-            // $('#other_1').parent().prepend(
-            // '<div class="pause" style="z-index:500;width:100px;height:200px;margin:13px;margin-top:15px;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
-            // '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:70px;">'+string+'</div></div>');
         }
     });
     

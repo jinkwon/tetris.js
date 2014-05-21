@@ -18,11 +18,21 @@ var League = new Schema({
     'created_at' : Date
 });
 
+
+var roomUser = new Schema({ 
+    _id : Schema.ObjectId,
+    sessionId : String,
+    userId : String,
+    aMatrix : Array,
+    nScore : Number
+});
+
 var Room = new Schema({
     'seq' : Number,
     'ownerId' : Schema.ObjectId,
     'ownerSessionId' : String,
     'roomId': String,
+    'users' : [roomUser],
     'created_at' : { type: Date, default: Date.now },
     'bIsPlaying' : Boolean
 });

@@ -20,7 +20,7 @@ app.tetris.Account.Network.init = function(cb){
 
             })
             .on('disconnect', function(){
-                alert('disconnected');
+                console.log('disconnected');
             })
             .on('error', function(){
                 alert('Cannot connect to Server');
