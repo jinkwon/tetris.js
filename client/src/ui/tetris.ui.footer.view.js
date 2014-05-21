@@ -17,11 +17,14 @@
     
             return false;
         },
-    
+
         show : function(){
-            this.$el.show();
+            this.render();
+            this.$el.addClass('animated').addClass('fadeInDown').show();
+
+            return this;
         },
-        
+
         hide : function(){
             this.$el.hide();
         },

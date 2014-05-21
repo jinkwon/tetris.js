@@ -1,7 +1,17 @@
+// SOCKET.IO ====================================================================================================
+
 require('./src/db.js');
 
 var console = require('clog'),
+    cron = require('cron'),
     SocketIo = require('socket.io');
+
+var async = require('async');
+
+var colors = require('colors');
+var _ = require('underscore');
+var mongoose = require('mongoose');
+var User = mongoose.model('User');
 
 var oSocketIo = SocketIo.listen(process.env.port || 8888);
 
@@ -16,23 +26,57 @@ oSocketIo.configure(function(){
     //oSocketIo.set('transports', htSocketConfig.aTransports);
 });
 
-var sess = require('./src/session');
-var game = require('./src/game');
+var oSessionIo = require('./src/session');
+var oGameIo = require('./src/game');
 var monitor = require('./src/monitor');
-var account = require('./src/account');
+var oAccountIo = require('./src/account');
 
-sess.init(oSocketIo);
-account.init(oSocketIo, sess);
-
+oSessionIo.init(oSocketIo);
+oAccountIo.init(oSocketIo, oSessionIo);
+oGameIo.init(oSocketIo, oAccountIo);
 
 var oMonitorIo = monitor.init(oSocketIo);
-game.init(oSocketIo, oMonitorIo);
 
 
 
 
 
 
+
+// EXPRESS ====================================================================================================
+
+var getRoomInfoWithUserId = function(cb){
+    var finalResult = {};
+    var rooms = oSocketIo.sockets.manager.rooms;
+    var aFunc = [];
+    var sRoomName;
+
+    for(sRoomName in rooms){
+
+        finalResult[sRoomName] = _.clone(rooms[sRoomName]);
+        var aRoomMembers = finalResult[sRoomName];
+
+        for(var i = 0, nLen = aRoomMembers.length; i < nLen; i++){
+
+            aFunc.push(function (idx, sRoomName, callback) {
+
+                User.findOne({sessionId: finalResult[sRoomName][idx]}, function (err, doc) {
+                    if (doc !== null) {
+                        finalResult[sRoomName][idx] = doc.userId;
+                    }
+
+
+                    callback();
+                });
+
+            }.bind(this, i, sRoomName));
+        }
+    }
+
+    async.waterfall(aFunc, function(err, result){
+        cb(finalResult);
+    });
+};
 
 
 
@@ -44,9 +88,7 @@ var ejs = require('ejs');
 var cookieParser = require('cookie-parser');
 var session = require('express-session');
 var bodyParser = require('body-parser');
-
 var routes = require('./routes/index');
-var users = require('./routes/users');
 
 var app = express();
 
@@ -56,7 +98,6 @@ app.set('view engine', 'ejs');
 
 require('./src/oauth')(app);
 
-app.use(favicon());
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded());
@@ -69,18 +110,11 @@ app.use(session({
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', function(req, res){
-    //
-    // 세션정보를 확인한다.
-    //
-    console.log(req.session);
     
-    //
-    // req.user 는 아래에서 설명한다.
-    // 처음에 undefined 이나, 로그인 성공하면, profile 정보가 저장된다.
-    //
-//    console.log(req.user);
-   
-    res.render('index', { });
+    getRoomInfoWithUserId(function(info){
+        res.render('index', { roomInfo : info });
+    });
+
 });
 
 /// catch 404 and forward to error handler

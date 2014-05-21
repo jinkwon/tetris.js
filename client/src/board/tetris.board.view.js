@@ -11,7 +11,7 @@
 
         defaults : {
             oWebGLView : {},
-            bWebGLOn : false
+            _bWebGLOn : false
         },
 
         events : {

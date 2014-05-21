@@ -13,8 +13,6 @@
         initialize : function(){
             this.render();
 
-            this.oBgm = new Howl({urls: ['../res/sound/FF_8_OST.mp3'], volume : 0.1, format : 'mp3'});
-
             app.tetris.Network.Model.on('change:nRegisterUser change:nConnectedUser', $.proxy(function(oModel){
                 this.onChangeCount(oModel);
             }, this));
@@ -37,7 +35,7 @@
         
         show : function(){
             this.render();
-            
+
             this.$el.show();
             this.$el.find('._welcome').addClass('animated').addClass('pulse');
             this.$el.addClass('animated').removeClass('fadeOutUp').addClass('fadeInDown');
@@ -52,16 +50,11 @@
                 }
             }, 200);
 
-//            this.oBgm.stop();
-//            this.oBgm.play();
-            
         },
         
         hide : function(){
 //            this.$el.hide();
             this.$el.addClass('animated').removeClass('fadeInDown').addClass('fadeOutUp');
-
-//            this.oBgm.stop();
         },
         
         render : function(){
@@ -80,7 +73,6 @@
                 momentum: true,
                 click: true
             });
-
 
             return this;
         }

@@ -6,53 +6,39 @@ app.tetris.Game.View = Backbone.View.extend({
 	
 	defaults : {
 		oWebGLView : {},
-		bWebGLOn : true
+		_bWebGLOn : false
+	},
+
+    initialize : function(options){
+        this.assignProperties(options);
+        this.render();
+		this.initResources();
+        this.resetData();
+        this.useWebGL(this._bWebGLOn);
+        this.initCanvas();
+
+        if(this._bKeyEventBind){
+            this.bindEvents();
+        }
+        
+        this.drawMyStage();
 	},
     
-	initialize : function(options){
-        this.render();
+    assignProperties: function (options) {
+        this.Util = app.tetris.Game.Util;
 
-		this.oWebGLView = new app.tetris.Game.WebGLView({
-            el : this.$el.find('._tetris_webgl_canvas')
-        });
-		this.oUIView = options.oUIView;
-		this.oGameIo = options.oGameIo || {};
-		
-		this.bEventBind = options.bEventBind;
-
+        this.oUIView = options.oUIView;
+        this._bKeyEventBind = options.bKeyEventBind || false;
+        this._bUseSound = options.bUseSound || false;
+        this._bWebGLOn = options.bUseWebGL || false;
         this._fnKeyEvent = $.proxy(this._onKeyAction, this);
-        
-		this.initResources();
-		
-		if(this.model !== undefined){
-			this.resetData();
-			this.initCanvas();
-			
-			if(this.bEventBind){
-				this.bindModelEvents();
-				this.bindEvents();	
-			}
-			
-			this.drawMyStage();
-			this.renderDOM();
-			this.start();
-		}
-
-		this.bWebGLOn = options.bUseWebGL ? options.bUseWebGL : false;
-		
-		this.bFullScreen = false;
-		
-		if(this.bEventBind){
-			this.setTouchEvents();
-		}
-	},
+    },
 
     render : function(){
-        this.$el.html(
-            '<canvas class="_tetris_webgl_canvas" width="220" height="448" style="width:100%;height:100%;position:absolute;z-index:10;left:0px;display:block;"></canvas>' +
-            '<canvas class="_tetris_origin_canvas" width="220" height="448" style="width:100%;height:100%;"> </canvas>'
-
-        );
+        var aCanvasStr = ['<canvas class="_tetris_webgl_canvas web_gl_cvs" style="width:100%;height:100%;"></canvas>',
+            '<canvas class="_tetris_origin_canvas org_cvs" style="width:100%;height:100%;"> </canvas>'];
+        
+        this.$el.html(aCanvasStr.join(''));
     },
 
 	/**
@@ -62,7 +48,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.nTickCnt = 0;
 		this.tickTime = 35;
 		this.nLogicTickCnt = 0;
-		this.nLogicSpeed = 1500;
+		
 		this.nLongPressCnt = 0;
 		this.level = 1;
 		this.model.set('nGameStartTime', 0);
@@ -110,18 +96,73 @@ app.tetris.Game.View = Backbone.View.extend({
 	 * 오디오 초기화 
 	 */
 	initAudio : function(){
+        this.htSound = {};
+
+        if(!this._bUseSound){
+            return;
+        }
+
 		this.htSound = {
             harddrop : new Howl({urls: ['../res/sound/TE_SE_harddrop.mp3'], volume: 0.3}),
             softdrop : new Howl({urls: ['../res/sound/TE_SE_softdrop.mp3'], volume: 0.3}),
             lockdown : new Howl({urls: ['../res/sound/TE_SE_lockdown.mp3'], volume: 0.3})
         };
 	},
-	
-	/** 
+
+
+    disableSmoothing: function () {
+        this.stage.ctx.imageSmoothingEnabled = false;
+        this.stage.ctx.webkitImageSmoothingEnabled = false;
+        this.stage.ctx.mozImageSmoothingEnabled = false;
+    },
+    
+    assignCanvasSize: function () {
+        this.nWidth = $(this.stage.elCanvas).width();
+        this.nHeight = $(this.stage.elCanvas).height();
+
+        this.stage.nWidth = this.nWidth;
+        this.stage.nHeight = this.nHeight;
+
+        $(this.stage.elCanvas)
+            .attr('width', this.nWidth)
+            .attr('height', this.nHeight);
+    },
+    
+    /**
+     * 전체 캔버스 이니셜라이저
+     */
+    initCanvas : function(){
+        
+        this.stage = this.getOriginCanvasObject();
+
+        this.assignCanvasSize();
+
+        if(this._bWebGLOn){
+            $(this.stage.elCanvas).hide();
+            this.$el.find('._tetris_webgl_canvas').show();
+
+            this._bWebGLOn = this.oWebGLView.isAvailWebGL();
+            
+            if(this._bWebGLOn){
+                
+                console.log('1');
+                this.oWebGLView.initCanvas();    
+            }
+            
+        } else {
+            this.$el.find('._tetris_webgl_canvas').hide();
+            $(this.stage.elCanvas).show();
+        }
+
+        this.disableSmoothing();
+    },
+
+    /** 
 	 * 사운드 제어 
 	 */
 	controlSound : function(sSoundType, sExcutor){
-		if(!this.htSound[sSoundType]){
+
+		if(!this.htSound[sSoundType] || !this._bUseSound){
 			return false;
 		}
 		
@@ -133,127 +174,38 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 		
 	},
-	
-	/** 
-	 * 모델 이벤트 바인딩 
-	 */
-	bindModelEvents : function(){
-		this.model.bind('change:nScore', this.renderDOM, this);
-	},
-	
-	/**
-	 * Game 이벤트 바인딩 
-	 */
+
 	bindEvents : function(){
-		var wel = $(this.el);
-		
-		this.X = 0;
-		var that = this;
-		this.forward = false;
-		
-		this.startX = 0;
-		var _onMouseMove = function(e){
-			if(that.mouseDownFlag){
-				
-				var x = e.clientX - $(this).offset().left;
-				var w = $(this).width();
-				var deg = (x / w) * 180;
-				that.oWebGLView.fAngleXZ = deg * Math.PI/180;
-				
-				var y = e.clientY - $(this).offset().top;
-				var h = $(this).height();
-				var deg = (y / h) * 90;
-				that.oWebGLView.fAngleYZ = deg * Math.PI/180;
-			}
-		};
-		
-		this.flag = 0;
-		this.startX = 350;
-        var welGlStage = this.$el.find('._tetris_webgl_canvas');
-
-		var animatorFunc = function(){
-			
-			if(that.flag == 0){
-				that.startX--;	
-			} else {
-				that.startX++;
-			}
-				
-			
-			if(that.startX > 350){
-				that.flag = 0;
-			}
-			
-			if(that.startX <= 330){
-				that.flag = 1;
-			}
-			
-			var x = that.startX - welGlStage.offset().left;
-				var w = welGlStage.width();
-				var deg = (x / w) * 180;
-				that.oWebGLView.fAngleXZ = deg * Math.PI/180;
-				
-				
-		};
-		
-		//this.animation = setInterval(animatorFunc, 100);
-
-        welGlStage.mousewheel(function(event, delta, deltaX, deltaY) {
-		    
-			that.oWebGLView.fCameraDistance += (delta * 10);
-		    
-		    return false;
-		});
-
-        welGlStage.on('mousedown', function(e){
-			that.mouseDownFlag = true;
-			
-			$(this).off('mousemove', _onMouseMove);
-			$(this).on('mousemove', _onMouseMove);
-			
-		});
-		
-		$(document).on('mouseup', function(e){
-			that.mouseDownFlag = false;
-            welGlStage.off('mousemove', _onMouseMove);
-		});
-		
+        var self = this;
+        $(window).on('resize', function(){
+            self.initCanvas();
+        });
 	},
-	
-	/**
-	 * DOM 렌더링 
-	 */
-	renderDOM : function(){
-		var nScore = this.model.get('nScore');
-		$('.score').empty().html(nScore);
-	},
-	
-	/**
-	 * Ghost Block 그리기 메서드 
-	 */
+
 	drawGhostBlock : function(){
 		var htBlock = this.model.get('htBlockPos');
 		var nY = 0;
 		
 		for(var i = 0; i < 35; i++){
 			nY = htBlock.nY + i;
-			if(this.checkCollision({nX : htBlock.nX, nY : htBlock.nY + i}, this.aBlock, 'bottom')){
-				this.drawMovingBlock(this.aBlock, {nX : htBlock.nX, nY : nY}, true);
+			if(this.Util.isCollision(
+                {nX : htBlock.nX, nY : htBlock.nY + i}, 
+                this.model.get('currentBlock'), 
+                this.model.get('aMatrix'), 
+                'bottom'
+            )){
+				this.drawMovingBlock(this.model.get('currentBlock'), {nX : htBlock.nX, nY : nY}, true);
 				break;
 			}
 		}
 	},
 	
-	/**
-	 * 움직이는 블럭을 그린다
-	 * @param {Object} aBlock
-	 * @param {Object} htBlockPos
-	 * @param {Object} bIsGhost
-	 */
-	drawMovingBlock : function(aBlock, htBlockPos, bIsGhost){
-		var htBlockPos = htBlockPos || this.model.get('htBlockPos') 
-		, aBlock = aBlock || this.aBlock
-		, stage = this.ctx.stage
+	drawMovingBlock : function(oBlockModel, htBlockPos, bIsGhost){
+		htBlockPos = htBlockPos || this.model.get('htBlockPos');
+        
+		var aBlock = oBlockModel ? oBlockModel.get('aMatrix') : this.model.get('currentBlock').get('aMatrix')
+        , sBlockColor = oBlockModel ? oBlockModel.get('sColor') : this.model.get('currentBlock').get('sColor')
+		, stage = this.stage
 		, nX, nY, bDraw;
 
 		if(aBlock === undefined){
@@ -265,7 +217,6 @@ app.tetris.Game.View = Backbone.View.extend({
 				bDraw = false;
 					
 				if(aBlock[i][j] === 1){
-					sBlockColor = this.sBlockColor;
 					bDraw = true;	
 				}
 				
@@ -275,12 +226,6 @@ app.tetris.Game.View = Backbone.View.extend({
 				}
 				
 				if(bDraw){
-
-					if(this.oWebGLView.isAvailWebGL()){
-
-
-					}
-	
 					nX = j + htBlockPos.nX - 1;
 					nY = i + htBlockPos.nY;
 					this.drawBlock(stage.ctx, sBlockColor, stage.nBlockSize, nX, nY, bIsGhost ? 0.2 : 1);	
@@ -293,28 +238,10 @@ app.tetris.Game.View = Backbone.View.extend({
 	 * 내 스테이지 그리기 
 	 */	
 	drawMyStage : function(){
-		var arMatrix = this.getMatrix()
-		, htStage = this.ctx.stage;
-		
-		this.drawStage(htStage, arMatrix);
+		this.drawStage(this.stage, this.getMatrix());
 		
 		if(this.debugMode){
 			this.drawDebugStage();
-		}
-	},
-	
-	/**
-	 * 다른 사람의 스테이지 영역 그리기
-	 * @param {Object} nSeq
-	 * @param {Object} arMatrix
-	 */
-	drawOtherStage : function(nSeq, arMatrix){
-		var htOtherStage = this.ctx.others[nSeq];
-		try{
-			if(arMatrix.length>0)
-				this.drawStage(htOtherStage, arMatrix, 10);	
-		}catch(e){
-			
 		}
 	},
 	
@@ -338,8 +265,6 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		for(var i = 0; i < nRows; i++){
 			for(var j = 0; j < nCols; j++){
-				
-				
 				if(matrix[i][j].nFlag === 1){
 					var sColor = matrix[i][j].sColor;
 					this.drawBlock(ctx, sColor, nBlockSize, j - 1, i, 1, nTopMargin);
@@ -348,26 +273,43 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 
 	},
-	
-	drawBoardStage : function(sId, arMatrix){
-		var htOtherStage = this.getOriginCanvasObject();
-		this.drawStage(htOtherStage, arMatrix, 0);	
-	},
-	
-	drawBlock : function(ctx, sColor, nBlockSize, nX, nY, nOpacity, nTopMargin){
-		if(sColor === undefined){
+
+    drawToWebGL: function (nBlockSize, nX, nY, sColor, nOpacity) {
+        var matrix = this.getMatrix(), nRows = matrix.length, nCols = matrix[0].length;
+        var MoveX = ( (nCols - 1) * nBlockSize) / 2 - 10;
+        var MoveY = ( (nRows + 1) / 2) * nBlockSize;
+        var MoveZ = -50.0;
+        this.oWebGLView.bCameraPerspective = true;
+        this.oWebGLView.arCameraLookAt = [MoveX, MoveY, MoveZ];
+        this.oWebGLView.drawBlock(nX, nRows - nY, nBlockSize, this.arColorPos[sColor], [1.0, 1.0, 1.0, nOpacity]);
+    },
+
+    drawToCanvas: function (nBlockSize, nX, nY, sColor, nOpacity, nTopMargin) {
+        
+        var ctx = this.stage.ctx;
+        if (nTopMargin === undefined) {
+            nTopMargin = this.stage.nHeight / 20;
+        }
+
+        var nBlockPosX = this.getPosPixelByColor(sColor, nBlockSize);
+        ctx.globalAlpha = nOpacity;
+        var RESIZE_W = this.stage.nWidth / 10;
+        var RESIZE_H = this.stage.nHeight / 20;
+
+        ctx.drawImage(this.blockImg[nBlockSize], nBlockPosX, 0, nBlockSize, nBlockSize, nX * RESIZE_W, nY * RESIZE_H - nTopMargin, RESIZE_W, RESIZE_H);
+        ctx.globalAlpha = 1;
+    },
+    
+    drawBlock : function(ctx, sColor, nBlockSize, nX, nY, nOpacity, nTopMargin){
+		if(sColor === undefined || ctx === undefined){
 			return false;
 		}
 		
-		if(ctx === undefined){
-			return false;
-		}
-		
-		var bWebGLEnable = this.bWebGLOn;
+		var bWebGLEnable = this._bWebGLOn;
 
 		if(this.ctx){
-			if( (ctx == this.ctx.stage.ctx) && (this.oWebGLView !== undefined) ){
-				if(this.oWebGLView.isAvailWebGL() && this.bWebGLOn === true){
+			if( (ctx == this.stage.ctx) && (this.oWebGLView !== undefined) ){
+				if(this._bWebGLOn === true){
 					bWebGLEnable = true;
 				} else {
 					bWebGLEnable = false;
@@ -376,33 +318,10 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 
 		if(bWebGLEnable) {
-			var matrix = this.getMatrix(), nRows = matrix.length, nCols = matrix[0].length;
-			var MoveX = ((nCols-1)*nBlockSize)/2 -22;
-			var MoveY = ((nRows+1)/2)*nBlockSize +5;
-			var MoveZ = 0.0;
-			//this.bCameraPerspective = false;
-			//this.oWebGLView.fAngleYZ = 0.0;
-			//this.oWebGLView.fAngleXZ = Math.PI/2.0;
-			//this.oWebGLView.fCameraDistance = 900.0;
-			this.oWebGLView.bCameraPerspective = true;
-			
-			
-			this.oWebGLView.arCameraLookAt = [MoveX,MoveY,MoveZ];
-			
-			this.oWebGLView.drawBlock(nX, nRows-nY, nBlockSize, this.arColorPos[sColor], [1.0,1.0,1.0,nOpacity]);
-			//console.log(nX,nY);
-		} else {
-			if(nTopMargin === undefined){
-				nTopMargin = 14;
-			}
-
-			var nBlockPosX = this.getPosPixelByColor(sColor, nBlockSize);
-		
-			ctx.globalAlpha = nOpacity;
-			ctx.drawImage(this.blockImg[nBlockSize], nBlockPosX, 0, nBlockSize, nBlockSize, nX * nBlockSize, nY * nBlockSize - nTopMargin, nBlockSize, nBlockSize);
-			ctx.globalAlpha = 1;
-		}
-
+            this.drawToWebGL(nBlockSize, nX, nY, sColor, nOpacity);
+        } else {
+            this.drawToCanvas(nBlockSize, nX, nY, sColor, nOpacity, nTopMargin);
+        }
 	},
 	
 	/**
@@ -410,13 +329,14 @@ app.tetris.Game.View = Backbone.View.extend({
  	* @param {Object} stage
 	 */
 	clearScreen : function(stage){
+
 		stage.ctx.clearRect(0, 0, stage.nWidth, stage.nHeight);
 		
 		if(this.ctx === undefined)
 		return null;
 		
-		if( (stage.ctx == this.ctx.stage.ctx) && (this.oWebGLView !== undefined) ){
-			if(this.oWebGLView.isAvailWebGL()){
+		if( (stage.ctx == this.stage.ctx) && (this.oWebGLView !== undefined) ){
+			if(this._bWebGLOn){
 				this.oWebGLView.clear();
 			}	
 		}
@@ -454,32 +374,6 @@ app.tetris.Game.View = Backbone.View.extend({
         }
     },
 
-	/** 
-	 * 전체 캔버스 이니셜라이저
-	 */
-	initCanvas : function(){
-		this.ctx = {
-			stage : this.getOriginCanvasObject(),
-			others : [
-//				this.getCanvasObject('other_1'),
-//				this.getCanvasObject('other_2')
-			]
-		};
-		
-		this.nWidth = this.ctx.stage.width;
-		this.nHeight = this.ctx.stage.height;
-		
-		if(this.oWebGLView.isAvailWebGL()){
-			this.oWebGLView.initCanvas();
-			
-			this.oWebGLView.fAngleYZ = Math.PI/180 * 0;
-			this.oWebGLView.fAngleXZ = Math.PI/180 * 90;
-			
-			this.oWebGLView.fCameraDistance = 300.0;
-			
-		}
-	},
-	
 	setGameStatus : function(sStatus){
 		this.model.set('sGameStatus', sStatus);
 		
@@ -490,71 +384,12 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 	},
 	
-	setKeyEvents : function(){
-		
+	bindKeyEvents : function(){
 		this.htKeyState = {};
 
 		$(document)
-			.unbind('keydown keyup', this._fnKeyEvent)
-			.bind('keydown keyup', this._fnKeyEvent);
-	},
-	
-	setTouchEvents : function(){
-		
-		$('.jpad').on('touchstart mousedown', $.proxy(function(e){
-	        e.stopPropagation();
-    		e.preventDefault();
-    		
-    		
-    		if(this.getGameStatus() !== 'play'){
-            	return false;
-            }
-            
-	        if(e.handled !== true) {
-		        var id = $(e.currentTarget).attr('id');    
-	
-				if(id === 'down'){
-					this.moveDown(true);
-				} else if(id === 'right'){
-					this.moveBlock('right');
-				} else if(id === 'left'){
-					this.moveBlock('left');
-				} else if(id === 'up'){
-					this.rotateBlock('right');
-				} else if(id === 'harddown'){
-					this.moveHardDown();
-				}
-	
-	            e.handled = true;
-	        }
-	        
-	        return false;
-		}, this));
-		
-	 	$('#game_area').on('hold tap swipe', $.proxy(function (event) {
-			event.stopPropagation();
-    		event.preventDefault();
-    		
-            if(this.getGameStatus() !== 'play'){
-            	return false;
-            }
-            
-            if(event.direction === 'right' && event.type =='swipe'){
-            	this.moveBlock('right');
-            } else if(event.direction ==='left' && event.type =='swipe'){
-            	this.moveBlock('left');
-            } else if(event.direction ==='down' && event.type =='swipe'){
-            	this.moveHardDown();
-            } else if(event.direction ==='up' && event.type =='swipe'){
-            	this.rotateBlock('left');
-            	
-            	
-            } else if(event.type === 'hold'){
-            	this.start();
-            }
-            
-            
-        }, this));
+			.off('keydown keyup', this._fnKeyEvent)
+			.on('keydown keyup', this._fnKeyEvent);
 	},
 	
 	getGameStatus : function(){
@@ -565,19 +400,29 @@ app.tetris.Game.View = Backbone.View.extend({
      * @todo 로직 개선 & 리펙토링
      */
 	checkLevelUp : function(){
-		
-		if(this.model.get('nScore') >= 100 && this.level < 2){
-			this.level = 2;
-			this.nLogicSpeed = 250;
-		} else if(this.model.get('nScore') >= 1000 && this.level < 3){
-			this.level = 3;
-			this.nLogicSpeed = 200;
-		} else if(this.model.get('nScore') >= 2000 && this.level < 4){
-			this.level = 3;
-			this.nLogicSpeed = 100;
-		}
+        
+        app.tetris.Rules.filterRules(this.model.get('nScore'), $.proxy(function(oLevel){
+            this.model.set('nLogicSpeed', oLevel.nLogicSpeed);
+            this.model.set("nLevel", oLevel.nLevel);
+            
+        }, this));
 	},
-	
+
+    useWebGL : function(bFlag){
+        
+        this._bWebGLOn = bFlag;
+        
+        if(!this.oWebGLView){
+            this.oWebGLView = new app.tetris.Game.WebGLView({
+                el : this.$el.find('._tetris_webgl_canvas')
+            });    
+        }
+        
+        
+        
+        this.initCanvas();
+    },
+    
 	renderCanvas : function(){
 		this.drawMyStage();
 		this.drawMovingBlock();
@@ -585,18 +430,21 @@ app.tetris.Game.View = Backbone.View.extend({
 	},
 	
 	tick : function(){
+        this.checkLevelUp();
 		this.renderCanvas();
 		
 		this.nTickCnt += this.tickTime;
 		this.nLogicTickCnt += this.tickTime;
-		
-		if(this.nLogicTickCnt > this.nLogicSpeed){
+        var nLogicSpeed = this.model.get('nLogicSpeed');
+        
+		if(this.nLogicTickCnt > nLogicSpeed){
 			this.setGameStatus('play');
 			this.moveDown(true);
-			this.nLogicTickCnt -= this.nLogicSpeed;
+			this.nLogicTickCnt -= nLogicSpeed;
 		}
 		
 		if(this.keyPressFlag == true){
+
 			if (this.htKeyState[37]){
 				this.moveBlock('left');
 			} else if(this.htKeyState[39]){
@@ -634,12 +482,16 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 		
 		this.makeNewBlock();
-		this.setKeyEvents();
 
         this.stopAnimationLoop();
         this.startAnimationLoop();
         
 		this.tick();
+
+        if(this._bKeyEventBind){
+            clearTimeout(this.keyLongPressChecker);
+            this.bindKeyEvents();
+        }
 	},
 	
     stopAnimationLoop : function(){
@@ -669,17 +521,21 @@ app.tetris.Game.View = Backbone.View.extend({
         }
 		
 		this.makeNewBlock();
-		this.setKeyEvents();
+		this.bindKeyEvents();
 		this.drawMyStage();
 	},
 	
 	pause : function(){
-		if(this.model.get('sGameStatus') == 'pause'){
+		if(this.model.get('sGameStatus') === 'pause'){
+            $(document).off('keydown', this._fnKeyEvent);
 			this.setGameStatus('play');
-			this.timer = setInterval($.proxy(this.tick, this), this.tickTime);
+			this.startAnimationLoop();
 		}else{
-			clearTimeout(this.timer);
+            this.stopAnimationLoop();
 			this.setGameStatus('pause');
+            if(this._bKeyEventBind){
+                this.bindKeyEvents();    
+            }
 		}
 	},
 	
@@ -687,11 +543,10 @@ app.tetris.Game.View = Backbone.View.extend({
 	 * Game 정지시킨다 
 	 */
 	stop : function(){
-		$(document).unbind('keydown', $.proxy(this._onKeyAction, this));
-
 		this.setGameStatus('stop');
 		$('.pause').remove();
 
+        clearTimeout(this.keyLongPressChecker);
         cancelAnimationFrame(this.ticker);
 		
 		$(this.el).find('#active').remove();
@@ -700,83 +555,17 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.resetData();
 		
 		$('#debug_area').empty().hide();
-	},
 
-    /**
-     * ready 신호 전송
-     */
-	reqReady : function(){
-		this.stop();
-		
-		var wel = $(this.el);
-		wel.find('#start_btn').hide();
-		wel.find('#ready_btn').hide();
-		wel.find('#cancel_btn').show();
-		wel.find('#stop_btn').hide();
-				
-		this.oGameIo.emit('reqReady');
-
-        this.setGameStatus('ready');
-	},
-	
-	resReady : function(htData){
-		if(htData.sStatus === 'ok'){
-
-		}else if(htData.sStatus === 'game'){
-			var wel = $(this.el);
-			wel.find('#start_btn').show();
-			wel.find('#ready_btn').show();
-			wel.find('#cancel_btn').hide();
-			wel.find('#stop_btn').show();
-			
-		}else{
-			var wel = $(this.el);
-			wel.find('#start_btn').show();
-			wel.find('#ready_btn').show();
-			wel.find('#cancel_btn').hide();
-			wel.find('#stop_btn').show();
-			
-			alert('resReady에서 오류가 났습니다.');
-		}
-	},
-	
-	reqCancel : function(){
-		var wel = $(this.el);
-		wel.find('#start_btn').show();
-		wel.find('#ready_btn').show();
-		wel.find('#cancel_btn').hide();
-		wel.find('#stop_btn').hide();
-				
-		this.oGameIo.emit('reqCancel');
-	},
-	
-	resCancel : function(htData){
-		if(htData.sStatus === 'ok'){
-
-		}else if(htData.sStatus === 'game'){
-			var wel = $(this.el);
-			wel.find('#start_btn').hide();
-			wel.find('#ready_btn').hide();
-			wel.find('#cancel_btn').show();
-			wel.find('#stop_btn').hide();
-			
-			alert('이미 게임이 시작되었습니다.');
-		}else{
-			var wel = $(this.el);
-			wel.find('#start_btn').hide();
-			wel.find('#ready_btn').hide();
-			wel.find('#cancel_btn').show();
-			wel.find('#stop_btn').hide();
-			
-			alert('resCancel에서 오류가 났습니다.');
-		}
+        $(document).off('keydown', this._fnKeyEvent);
+        
+        return this;
 	},
 	
 	makeNewBlock : function(){
 		var aBlocks = this.model.get('oBlockCollection');
 		var nNumber = this.model.get('nextBlock').shift();
 	
-		if(this.checkGameOver()){
+		if(this.isGameOver()){
 			return false;
 		}
 
@@ -784,47 +573,8 @@ app.tetris.Game.View = Backbone.View.extend({
         var nextBlock = this.model.get('nextBlock');
         nextBlock.push(this.model.getRandomRange());
 
-		this.aBlock = aBlocks.at(nNumber).get('aMatrix');
-		this.sBlockCode = aBlocks.at(nNumber).get('sCode');
-		this.sBlockColor = aBlocks.at(nNumber).get('sColor');
-		this.nBlockAngle = aBlocks.at(nNumber).get('nAngle');
-		
+        this.model.set('currentBlock', aBlocks.at(nNumber).clone());
 		this.model.setBlockPosXY(4,-1);
-        this.checkLevelUp();
-	},
-	
-	checkCollision : function(htBlockPos, aBlock, forward){
-		var matrix = this.model.get('aMatrix')
-		 ,  result = false
-		 , nX, nY;
-		 
-		for(var i = 0; i < aBlock.length; i++){
-			for(var j = 0; j < aBlock[i].length; j++){
-				nX = j + htBlockPos.nX;
-				nY = i + htBlockPos.nY;
-				
-				if(forward === 'bottom'){
-					nY = nY + 1;
-				}else if(forward === 'left' || forward === 'right'){
-					nX = (forward === 'left') ? nX - 1 : nX +1;	
-				}
-
-				if(matrix[nY] === undefined){
-					continue;
-				}
-				
-				if(matrix[nY][nX] === undefined){
-					continue;
-				}
-				
-				if(matrix[nY][nX].nFlag === 1 && aBlock[i][j] === 1){
-					result = true;
-					break;
-				}					
-			}
-		}
-
-		return result;
 	},
 	
 	moveDown : function(bPlaySound){
@@ -834,23 +584,23 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		var htBlockPos = this.model.get('htBlockPos')
 		, result = false
-		, bChk = this.checkCollision(htBlockPos, this.aBlock, 'bottom');
+		, bChk = this.Util.isCollision(htBlockPos, this.model.get('currentBlock'), this.model.get('aMatrix'), 'bottom');
 		
 		if(!bChk){
 			htBlockPos.nY++;
-			this.model.set({htBlockPos : htBlockPos});
+			this.model.set('htBlockPos', htBlockPos);
 		}else{
             if(bPlaySound){
-                this.htSound['lockdown'].play();
+                this.controlSound('lockdown','play');
             }
 
-			this.setBlockToMatrix();
-			this.makeNewBlock();
-
+            this.model.trigger('change:aMatrixCustomEvent');
+            this.model.setBlockToMatrix(this.model.get('currentBlock'), this.model.get('htBlockPos'));
+            this.makeNewBlock();
 			result = true;
 		}
 		
-		this.checkFullLine();
+		this.clearFullLine();
 		
 		if(this.debugMode){
 			this.drawMyStage();
@@ -860,57 +610,39 @@ app.tetris.Game.View = Backbone.View.extend({
 		return result;
 	},
 	
-	checkFullLine : function(){
-		var matrix = this.model.get('aMatrix')
-			, nCols = this.model.get('nCols')
-			, nRows = this.model.get('nRows')
-			, lineCount = 0
-			, nFlag
-			, nCnt
-			, aNewLine;
-		
-		for(var i = 0; i < nRows + 2; i++){
-			nCnt = 0;
-			for(var j = 1; j < nCols + 1; j++){
-				if(matrix[i][j].nFlag == 1){
-					nCnt++;
-				}
-			}
-			
-			if(nCnt == nCols && i < nRows + 1){
-				matrix.splice(i, 1);
-				
-				aNewLine = [];
-				for(var k = 0; k <= nCols + 1; k++){
-					nFlag = (k === 0 || k === nCols + 1) ? 1 : 0;
-					aNewLine.push({nFlag : nFlag});
-				}
-				
-				matrix.unshift(aNewLine);
-				lineCount++;
-			}
-		}
-		
-		this.setMatrix(matrix);
-		if(lineCount > 0){
-			this.model.plusScore(lineCount * 2);
-			this.sendData();
-		}
+	clearFullLine : function(){
+		var lineCount = this.model.clearFullLine();
+		this._addScoreBy(lineCount);
 	},
 	
+    _addScoreBy : function(lineCount){
+        if(lineCount > 0){
+            // Fast Drop give Bonus Point
+            var nBonus = 0;
+            if(this._nHardBlockPosY <= 2){
+                nBonus = (this._nHardBlockPosY + 1) * 50;
+            }
+    
+            this.model.plusScore(lineCount * 100 + nBonus);
+        }
+    },
+    
 	moveBlock : function(sDirection){
-
-		if(sDirection === 'left'){
-			if(!this.checkCollision(this.model.get('htBlockPos'), this.aBlock, 'left')){
-				this.model.get('htBlockPos').nX--;	
-			}
-		} else if(sDirection === 'right'){
-			if(!this.checkCollision(this.model.get('htBlockPos'), this.aBlock, 'right')){
-				this.model.get('htBlockPos').nX++;	
-			}
+        var htBlockPos = this.model.get('htBlockPos');
+        
+        var bCollision = this.Util.isCollision(
+            this.model.get('htBlockPos'), 
+            this.model.get('currentBlock'), 
+            this.model.get('aMatrix'), 
+            sDirection);
+        
+		if(sDirection === 'left' && !bCollision){
+            htBlockPos.nX--;
+            this.model.set('htBlockPos', htBlockPos);
+		} else if(sDirection === 'right' && !bCollision){
+            htBlockPos.nX++;
+            this.model.set('htBlockPos', htBlockPos);
 		}
-		
-		
 		
 		if(this.debugMode) {
 			this.drawMyStage();
@@ -918,48 +650,8 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 	},
 	
-	setBlockToMatrix : function(){
-		var matrix = this.getMatrix();
-		var nX, nY;
-		
-		for(var i = 0; i < this.aBlock.length; i++){
-			for(var j = 0; j < this.aBlock[i].length; j++){
-				
-				nX = j + this.model.get('htBlockPos').nX;
-				nY = i + this.model.get('htBlockPos').nY;
-				
-				if(matrix[nY] === undefined){
-					continue;
-				}
-				
-				if(matrix[nY][nX] === undefined){
-					continue;
-				}
-				
-				if(matrix[nY][nX].nFlag !== 1){
-					matrix[nY][nX].nFlag = this.aBlock[i][j];
-					matrix[nY][nX].sColor = this.sBlockColor;
-				}
-			}
-		}
-		
-		this.setMatrix(matrix);
-		this.sendData();
-	},
-	
 	setMatrix : function(matrix){
 		this.model.setMatrix(matrix);
-	},
-	
-	sendData : function(){
-		if(this.bRealGame){
-			var htData = { 
-				sGuid : this.model.get('sGuid'), 
-				aMatrix : this.model.get('aMatrix'),
-				nScore : this.model.get('nScore')
-			};
-			this.oGameIo.emit('sendGameInfo', htData);
-		}
 	},
 	
 	getMatrix : function(){
@@ -975,104 +667,74 @@ app.tetris.Game.View = Backbone.View.extend({
 	},
 	
 	rotateBlock : function(sType){
-		this.aBlock = this.rotateBlockArray(this.aBlock, sType);
-		
+		var oBlockModel = this.Util.rotateBlockArray(
+            sType,
+            this.model.get('currentBlock'), 
+            this.model.get('htBlockPos'), 
+            this.model.get('aMatrix')
+        );
+
+        this.model.set('currentBlock', oBlockModel);
+
 		if(this.debugMode) {
 			this.drawMyStage();
 			this.drawMovingBlock();
 		}
 	},
 	
-	rotateBlockArray : function(aBlock, sType){
-		var aCopy = []
-		, aClone
-		, htBlockPos = this.model.get('htBlockPos')
-		, bRotate = false;
-		
-		if(this.sBlockCode !== 'O'){
-			bRotate = true;
-		} 
-		
-		if(this.sBlockCode === 'S' || this.sBlockCode === 'I' || this.sBlockCode === 'Z') {
-			if(this.nBlockAngle > 0){
-				sType = 'left';
-			}
-		}
-		
-		if(bRotate === true){
-			
-			if(sType === 'right'){
-				this.nBlockAngle = (this.nBlockAngle + 90) % 360;
-			
-				for(var j = aBlock[0].length - 1; j >=0; j--){
-					aClone = [];
-					aClone.push(aBlock[3][j]);
-					for(var i = 0; i < aBlock.length - 1; i++){
-						aClone.push(aBlock[i][j]);
-					}
-					
-					aCopy.push(aClone);
-				}
-			} else {
-				this.nBlockAngle = (this.nBlockAngle - 90) % 360;
-				
-				for(var j = 1; j < aBlock.length; j++){
-					aClone = [];
-					for(var i = aBlock[0].length - 1; i >=0; i--){
-						aClone.push(aBlock[i][j]);
-					}
-					aCopy.push(aClone);
-				}
-				
-				aClone = [];
-				for(var i = aBlock[0].length - 1; i >=0; i--){
-					aClone.push(aBlock[i][0]);
-				}
-				
-				aCopy.push(aClone);
-			}
-			
-		} else {
-			aCopy = aBlock;
-		}
-
-		
-		if(this.checkCollision(htBlockPos, aCopy)){
-			aCopy = aBlock;
-		}
-		
-		return aCopy;
-	},
-	
-	/**
+    isGameOver: function () {
+        var matrix = this.getMatrix();
+        var nCnt = 0;
+        var nLen = this.model.get('nCols') + 1;
+        
+        for (var j = 1; j < nLen; j++) {
+            if (matrix[0][j].nFlag == 1) {
+                nCnt++;
+            }
+        }
+        return nCnt > 0;
+    },
+    
+    /**
 	 * 게임 오버 상태를 체크하는 메서드 
 	 */
 	checkGameOver : function(){
-		var nCnt = 0
-		, matrix = this.getMatrix();
-		
-		for(var j = 1; j < this.model.get('nCols') + 1; j++){
-			if(matrix[0][j].nFlag == 1){
-				nCnt++;
-			}
-		}
-		
-		if(nCnt > 0){
+
+		if(this.isGameOver()){
 			$(this.el).find('#active').remove();
-            cancelAnimationFrame(this.ticker);
-			
+            this.stopAnimationLoop();
 			this.setGameStatus('end');
 			
-			$(document).unbind('keydown', $.proxy(this.keyAction, this));
+			$(document).off('keydown', this._fnKeyEvent);
 			
-			return false;
+			return true;
 		}
+
+        return false;
 	},
 
     clearLongPress: function () {
         clearInterval(this.keyLongPressChecker);
         this.nLongPressCnt = 0;
-    }, 
+    },
+
+    resetBlockPos: function (htBlockPos) {
+        htBlockPos = this.model.get('htBlockPos');
+        htBlockPos.nY = -1;
+        this.model.set('htBlockPos', htBlockPos);
+    },
+    
+    playBoundEffect: function () {
+        if (!this._bWebGLOn) {
+            this.$el
+                .removeClass('bounceDrops animatedDrops')
+                .addClass('bounceDrops animatedDrops')
+                .show()
+                .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () {
+                    $(this).removeClass('bounceDrops animatedDrops');
+                });
+        }
+    },
     
     /**
 	 * SpaceBar로 빠르게 블럭을 내린다 
@@ -1080,21 +742,22 @@ app.tetris.Game.View = Backbone.View.extend({
 	moveHardDown : function(){
         this.clearLongPress();
 
-//        this.$el
-//            .removeClass().addClass('bounceDrops animatedDrops').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-//                $(this).removeClass();
-//            });
-
+        this.playBoundEffect();
+        
 		this.controlSound('harddrop', 'play');
 
-		var rst = false;
+		var bIsCollision = false;
+        
+        this._nHardBlockPosY = this.model.get('htBlockPos').nY;
+        
 		for(var i = 0, nRows = this.model.get('nRows'); i < nRows; i++){
-			if(rst == true){
-				this.model.get('htBlockPos').nY = -1;
-				break;
+			if(bIsCollision === true){
+                this.resetBlockPos();
+                this.model.trigger('change:aMatrixCustomEvent');
+                break;
 			}else{
                 var bPlaySound = false;
-				rst = this.moveDown(bPlaySound);
+				bIsCollision = this.moveDown(bPlaySound);
 			}
 		}
 	},
@@ -1104,7 +767,6 @@ app.tetris.Game.View = Backbone.View.extend({
 	 */
 	_onKeyAction : function(htData){
 		var nKeyCode = htData.keyCode;
-	
 		
 		if(htData.type =='keydown' && this.nLongPressCnt === 0){
 			this.htKeyState[htData.keyCode || htData.which] = true;
@@ -1112,14 +774,12 @@ app.tetris.Game.View = Backbone.View.extend({
 			
 			clearInterval(this.keyLongPressChecker);
 			
-			var that = this;
-
-			this.keyLongPressChecker = setInterval(function(){
-				that.nLongPressCnt++;
-				that.keyPressFlag  = (that.nLongPressCnt > 5) ? true : false;
-			}, 400);
+//			this.keyLongPressChecker = setInterval($.proxy(function(){
+//				this.nLongPressCnt++;
+//                this.keyPressFlag = this.nLongPressCnt > 5;
+//            }, this), 400);
 		}
-		
+
 		if(htData.type =='keyup'){
 			this.htKeyState[htData.keyCode || htData.which] = false;
 			this.nLongPressCnt = 0;
@@ -1135,9 +795,6 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 
 		switch(nKeyCode){
-			case 16 :
-			this.pause();
-			break;
 			
 			case 32 :
 			this.moveHardDown();

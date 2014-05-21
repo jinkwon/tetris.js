@@ -1,0 +1,70 @@
+<div style="width: 240px;
+	height: 300px;
+
+	position: absolute;
+	top:0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	margin: auto;
+">
+
+    <style type="text/css">
+        .login input[type=text], .login input[type=password]{
+            margin:0;
+            border:1px solid #FFF;
+            background-color:rgba(0,0,0,0.1);
+            border-radius:15px;
+            padding:5px 0 5px 15px;
+            margin-bottom:7px;
+            box-shadow:inset 0 0 5px rgba(100,100,100, .2);
+        }
+        
+        .login_form{
+            height:150px;
+            margin-top:-10px;
+        }
+        
+        .login_form .btn_section{
+            margin-top:5px;
+        }
+        
+        .login_form .gr-btn{
+            width:80px;
+            background-color:transparent;
+            border:1px solid #FFF;
+            border-radius:15px;
+            padding:5px;
+            margin-bottom:7px;
+            box-shadow:inset 0 0 5px rgba(100,100,100, .2);
+        }
+    </style>
+
+    <div class="_splash_section" style="margin-top:50px;">
+        <div style="text-align:center;text-shadow:1px 1px 3px rgba(0,0,0,.2);">
+            <h1 class="_title animated" style="font-size:60px;">Tetris<span style="color:rgba(205,205,205,1);font-size:35px;">.js</span></h1>
+        </div>
+    
+        <div class="_start_btn animated" style="display:block;margin-top:5px;font-size:18px;color:rgba(255,255,255,.5);">
+            Touch(Click) To Start
+        </div>
+    </div>
+    
+    <div id="_login_form" class="animated login" style="display:none;height:100px;">
+        <div class="login_form">
+            <ul>
+                <li><input type="text" class="_id" value="id" placeholder="ID"/></li>
+                <li><input type="password" class="_pw" value="pw" placeholder="password"/></li>
+                <li><input type="password" class="_pw_re" value="pw" style="display:none;" placeholder="Re password"/></li>
+            </ul>
+
+            <div class="btn_section">
+                <input type="button" class="gr-btn _login_btn" style="margin-right:5px;background-color:rgba(0,0,0,.2);font-weight:bold;color:#FFF;" value="Sign In"/>
+                <input type="button" class="gr-btn _join_btn" value="Sign Up"/>
+            </div>
+        </div>
+    </div>
+
+
+</div>

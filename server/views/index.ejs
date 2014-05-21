@@ -1,3 +1,75 @@
-<a href="/auth/twitter">twitter login</a>
-<a href="/auth/facebook">facebook login</a>
-  <a href="/logout">logout</a>
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+
+    <script src="vendor/underscore/underscore.js"></script>
+    <script src="vendor/jquery/dist/jquery.min.js"> </script>
+    <script src="vendor/bootstrap/dist/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" href="vendor/bootstrap/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="vendor/bootstrap/dist/css/bootstrap-theme.min.css">
+    <link href="stylesheets/jumbotron-narrow.css" rel="stylesheet">
+
+    <script>
+    </script>
+
+
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <ul class="nav nav-pills pull-right">
+            <li class="active"><a href="#">Home</a></li>
+            <li><a href="http://github.com/Jinkwon/tetris.js">About</a></li>
+            <li><a href="mailto:lee.jinkwon@nhn.com">Contact</a></li>
+        </ul>
+        <h3 class="text-muted">Tetris Room Monitor</h3>
+    </div>
+
+    <!--<div class="jumbotron">-->
+        <!--<h1>Jumbotron heading</h1>-->
+        <!--<p class="lead">Cras justo odio, dapibus ac facilisis in, egestas eget quam. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>-->
+        <!--<p><a class="btn btn-lg btn-success" href="#" role="button">Sign up today</a></p>-->
+    <!--</div>-->
+
+    <div class="row marketing">
+        <div class="col-lg-6">
+
+            <div class="list-group">
+                <% for(var roomName in roomInfo){ %>
+
+                <a href="#" class="list-group-item">
+                    <h4 class="list-group-item-heading"><%=roomName || 'LOBBY' %></h4>
+                    <p class="list-group-item-text">
+
+                        <% for(var i = 0; i < roomInfo[roomName].length; i++){ %>
+                        <span class="label label-info"><%=roomInfo[roomName][i] %></span>
+                        <% } %>
+
+                    </p>
+                </a>
+
+
+                <% } %>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <p>&copy; JK 2014</p>
+    </div>
+
+</div> <!-- /container -->
+
+
+<script>
+
+</script>
+</body>
+</html>

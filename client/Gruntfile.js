@@ -127,6 +127,11 @@ module.exports = function (grunt) {
             loader : {
                 src : ['loader.dist.js'],
                 dest : 'www/loader.js'
+            },
+
+            phonegap : {
+                src : ['platforms/**'],
+                dest : 'public/phonegap/'
             }
 
         },
@@ -180,11 +185,11 @@ module.exports = function (grunt) {
                     alias: 'release',
                     aliasPassword: function(){
                         // Prompt, read an environment variable, or just embed as a string literal
-                        return('');
+                        return('tetris');
                     },
                     storePassword: function(){
                         // Prompt, read an environment variable, or just embed as a string literal
-                        return('');
+                        return('tetris');
                     }
                 },
 
@@ -312,6 +317,6 @@ module.exports = function (grunt) {
 
     // deploy task.
     grunt.registerTask('deploy', ['fly', 'nodewebkit']);
-    grunt.registerTask('pg', ['phonegap:build:ios']);
+    grunt.registerTask('phonegap', ['copy:phonegap', 'phonegap:release:android']);
 
 };

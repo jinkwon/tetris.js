@@ -5,28 +5,36 @@
 app.tetris.Game.Model = Backbone.Model.extend({
 	defaults : function(){
 		return {
-		nScore : 0,
-		sGameStatus : 'stop',
-		nBlockPixel : null,
-		aBlocks : null,
-		nNumber : 2,
-		nCols : 0,
-		nRows : 0,
-		sGuid : '',
-		aMatrix : [],
-		nGameStartTime : 0,
-		oBlockCollection : {},
-		htBlockPos : {
-			nX : 0,
-			nY : 0
-		}
+            nScore : 0,
+            sGameStatus : 'stop',
+            nBlockPixel : null,
+            aBlocks : null,
+            nNumber : 2,
+            nCols : 0,
+            nRows : 0,
+            sUserId : '',
+            sGuid : '',
+            nLogicSpeed : 1500,
+            nLevel : 1,
+            aMatrix : [],
+            nGameStartTime : 0,
+            oBlockCollection : {},
+            htBlockPos : {
+                nX : 0,
+                nY : 0
+            }
 		};
 	},
-	
+    
 	initialize : function(){
 		this.set({
 			nScore : 0,
 			htBlockPos : {nX : 5, nY : 0},
+            nLogicSpeed : 1500,
+            nLevel : 1,
+            aMatrix : [],
+            sUserId : '',
+            nRank : '',
 			nCols :10,
 			nRows: 20,
 			nBlockPixel : 22
@@ -47,11 +55,80 @@ app.tetris.Game.Model = Backbone.Model.extend({
 	
 	plusScore : function(nScorePlus){
 		var nScore = this.get('nScore');
-		this.set('nScore', nScore + (nScorePlus * 100));
+        
+		this.set('nScore', nScore + nScorePlus);
 	},
-	
+
+    clearFullLine : function(){
+        var matrix = this.get('aMatrix')
+            , nCols = this.get('nCols')
+            , nRows = this.get('nRows')
+            , lineCount = 0
+            , nFlag
+            , nCnt
+            , aNewLine;
+
+        for(var i = 0; i < nRows + 2; i++){
+            nCnt = 0;
+            for(var j = 1; j < nCols + 1; j++){
+                if(matrix[i][j].nFlag == 1){
+                    nCnt++;
+                }
+            }
+
+            if(nCnt == nCols && i < nRows + 1){
+                matrix.splice(i, 1);
+
+                aNewLine = [];
+                for(var k = 0; k <= nCols + 1; k++){
+                    nFlag = (k === 0 || k === nCols + 1) ? 1 : 0;
+                    aNewLine.push({nFlag : nFlag});
+                }
+
+                matrix.unshift(aNewLine);
+                lineCount++;
+            }
+        }
+
+        this.setMatrix(matrix);
+        
+        return lineCount;
+    },
+    
+    setBlockToMatrix : function(oBlockModel, htBlockPos){
+
+        var aBlock = oBlockModel.get('aMatrix'), 
+            sBlockColor = oBlockModel.get('sColor');
+        
+        var matrix = this.getMatrix();
+        var nX, nY;
+
+        for(var i = 0; i < aBlock.length; i++){
+            for(var j = 0; j < aBlock[i].length; j++){
+
+                nX = j + htBlockPos.nX;
+                nY = i + htBlockPos.nY;
+
+                if(matrix[nY] === undefined){
+                    continue;
+                }
+
+                if(matrix[nY][nX] === undefined){
+                    continue;
+                }
+
+                if(matrix[nY][nX].nFlag !== 1){
+                    matrix[nY][nX].nFlag = aBlock[i][j];
+                    matrix[nY][nX].sColor = sBlockColor;
+                }
+            }
+        }
+
+        this.setMatrix(matrix);
+    },
+    
 	setBlockPosXY : function(nX, nY){
-		this.set({ htBlockPos : {nX : nX, nY : nY}});
+		this.set('htBlockPos', {nX : nX, nY : nY});
 	},
 	
 	/**
@@ -86,7 +163,11 @@ app.tetris.Game.Model = Backbone.Model.extend({
 		
 		this.setMatrix(matrix);	
 	},
-	
+    
+    initVal : function(){
+        this.initialize();
+    },
+    
 	setMatrix : function(matrix){
 		this.set('aMatrix', matrix);
 	},

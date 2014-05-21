@@ -6,7 +6,8 @@
  */
 app.tetris.Game.init = (function(htOptions){
 	htOptions = htOptions ? htOptions : {};
-	
+	return;
+
 	var oNetwork
 	  , oModel
 	  , oGameView
@@ -22,8 +23,6 @@ app.tetris.Game.init = (function(htOptions){
       , welAbout = $('#about');
       
 	
-    
-    
 	var replaceElement = function(){
 		$('#welcome_str').html('환영합니다');
 	};
@@ -125,11 +124,6 @@ app.tetris.Game.init = (function(htOptions){
 		});
       	
 
-		$('.game_area').on('touchmove', function(e) {
-			return false;
-		}); 
-
-		
 	    $(".header-button.menu").on("mousedown touchstart",st.toggle_nav);
 	    
 	    $('.info').click(function() {

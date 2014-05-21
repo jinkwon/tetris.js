@@ -17,7 +17,7 @@ app.tetris.config._refresh = function(){
             sSrvUrl = 'http://serverurl';
             break;
         case 'staging' :
-            sSrvUrl = 'http://localhost:8888';
+            sSrvUrl = 'http://' + document.location.hostname + ':8888';
             break;
         default :
             sSrvUrl = 'http://' + document.location.hostname + ':8888';

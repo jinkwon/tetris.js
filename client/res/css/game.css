@@ -1,4 +1,40 @@
 
+.web_gl_cvs{
+    width:100%;height:100%;position:absolute;z-index:10;left:0px;display:block;   
+}
+
+.org_cvs{
+    width:100%;height:100%;
+}
+
+.jpad {
+    float: left;
+    font-size: 30px;
+    line-height:1.10;
+    cursor: pointer;
+    width:40px;height:40px;
+    margin:0;
+    color:rgba(255,255,255,1.0);
+    text-align:center;
+
+    box-shadow:0 0 1px #222;
+    background-color:rgba(255,255,255, .2);
+    border:1px solid rgba(255,255,255, .5);
+    border-radius:0px;
+}
+
+._multi{
+    display:none;
+}
+
+.animated05 {
+    -webkit-animation-duration: 0.5s;
+    animation-duration: 0.5s;
+    -webkit-animation-fill-mode: both;
+    animation-fill-mode: both;
+}
+
+
 .single_block {
     position: absolute;
 }
@@ -21,9 +57,27 @@
 .next_block{
     height:80px;
     width:20%;
-    border:1px solid #AAA;
-    border-radius:10px;
-    background-color:rgba(200,200,200, 0.2);
+}
+
+.other_stage{
+    border-top:1px solid #FFF;
+    border-bottom:1px solid #FFF;
+}
+
+.option_btn{
+    cursor:pointer;z-index:1;position:absolute;top:10px;right:50px;font-size:16px;line-height:1.6;width:30px;height:30px;border:2px solid #FFF;border-radius:50%;
+}
+
+.keypad_arrow_btn{
+    position:absolute;margin-left:0px;left:10px;width:300px;bottom:10px;display:block;z-index:1;
+}
+
+.keypad_arrow_btn .up{margin-left:40px;border-bottom:0;}
+
+.keypad_arrow_btn .down{box-shadow:none;border-right:1px solid rgba(255,255,255,0.9);}
+
+.keypad_action_btn{
+    position:absolute;right:10px;bottom:10px;z-index:1;
 }
 
 

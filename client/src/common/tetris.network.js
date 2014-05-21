@@ -2,6 +2,18 @@
  * NetworkModule
  */
 app.tetris.Network.init = (function(htOptions){
+
+    if(!app.tetris.io){
+        app.tetris.io = io.connect(app.tetris.config.sHost, {
+            timeout : 10000
+        });
+
+        app.tetris.Game.Network.init();
+        app.tetris.Account.Network.init();
+    }
+
+    return;
+
 	//if($.cookie('SMSESSION')
 	var htOptions = htOptions ? htOptions : {}
 	  , oView
@@ -23,7 +35,7 @@ app.tetris.Network.init = (function(htOptions){
 			window.location.href = 'login.html';
 		}
 	};
-	
+
     
 	var initialize = function(){
 		initGameIo();
@@ -33,7 +45,7 @@ app.tetris.Network.init = (function(htOptions){
 	var initGameIo = function(){
 		oGameIo = io.connect(app.tetris.config.sGameUrl);
 		
-		
+
 		oGameIo.on('connect', function(){
 			
 			var htReq = {
@@ -43,6 +55,7 @@ app.tetris.Network.init = (function(htOptions){
 			};
 	
 			oGameIo.emit('reqJoin', htReq);
+
 		}).on('disconnect', function(){
 			//alert('서버와의 접속이 끊어졌습니다.');
 			//moveToLogin();

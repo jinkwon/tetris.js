@@ -2,7 +2,6 @@
     var t = app.tetris;
     
     var TetrisRouter = Backbone.Router.extend({
-    
         routes: {
             login : "moveToStart",
             menu : "moveToMenu",
@@ -12,6 +11,7 @@
             board :'moveToGameBoard',
             credit : "moveToCredit",
             logout : "moveToLogout",
+            quick : "moveToQuickJoin",
             
             '':  'moveToStart'
         },
@@ -19,10 +19,11 @@
         execute: function(callback, args) {
             app.tetris.Account.Info.load();
             var sFrag = Backbone.history.fragment;
-            
+
             if(!app.tetris.Account.Info.isAuthenticated() && sFrag !== 'login'){
-//                this.navigate('login', {trigger : true});
-//                return;
+                this.navigate('login', {trigger : true});
+                app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
+                return;
             }
             
             if (callback) callback.apply(this, args);
@@ -30,13 +31,11 @@
         
         initialize : function(){
             this._welContainer = $('#_container');
-            
             this._hideAllScreens();
         },
 
         _hideAllScreens : function(){
-            
-
+            this._welContainer.find('#_dimmed_section').hide();
             this._welContainer.find('._screen').hide();
             this._welContainer.removeClass('animated').removeClass('fadeInDown');
 
@@ -55,22 +54,38 @@
             this.navigate('login', {trigger : true});
         },
 
+        moveToQuickJoin : function(){
+            this._hideAllScreens();
+            t.ui.BackButton.show();
+
+            t.Game.StageView.setType('multi');
+            t.Game.StageView.show();
+            t.Game.StageView.openMultiQuickJoin();
+        },
+        
+        moveToSingleGame : function(){
+            this._hideAllScreens();
+            t.ui.BackButton.show();
+
+            t.Game.StageView.setType('single');
+            t.Game.StageView.show();
+        },
 
         moveToMultiGame : function(){
             this._hideAllScreens();
-            t.Menu.View.show();
+            t.ui.BackButton.show();
+
+            t.Game.StageView.setType('multi');
+            t.Game.StageView.show();
         },
         
         moveToGameBoard : function(){
             this._hideAllScreens();
             
-            
             t.Board.init();
             t.Board.View.show();
-
             t.ui.Header.View.changeTitle('GameBoard').show();
             t.ui.Footer.View.show();
-
             t.ui.BackButton.show();
         },
 
@@ -78,26 +93,11 @@
             this._hideAllScreens();
             t.Credit.View.show();
             t.ui.Header.View.changeTitle('Credit').show();
-            
             t.ui.BackButton.show();
         },
 
-        moveToSingleGame : function(){
-            this._hideAllScreens();
-
-            t.ui.BackButton.show();
-            t.Game.StageView.show();
-            
-            // Game Init
-            var oTetris = t.Game.init({
-                sTargetId  : 'game_area',
-                bUseWebGL : true
-            });
-            
-            oTetris.on('ready', function(context){
-                context.oGameView.show();
-            });
-            
+        moveBack : function(){
+            window.history.back();
         },
 
         moveToMenu : function(){

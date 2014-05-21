@@ -54,11 +54,9 @@
                 return;
             }
             
-            app.tetris.Account.Network.connect($.proxy(function(){
-                this._updateAccount();
-                this._setAccountEvents();
-                app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());    
-            }, this));
+            this._updateAccount();
+            this._setAccountEvents();
+            app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
         },
 
         _onClickJoin : function(){
@@ -72,12 +70,9 @@
                 return;
             }
 
-            app.tetris.Account.Network.connect($.proxy(function(){
-
-                this._updateAccount();
-                this._setAccountEvents();
-                app.tetris.Account.Network.io.emit('reqJoin', app.tetris.Account.Info.getAccount());
-            }, this));
+            this._updateAccount();
+            this._setAccountEvents();
+            app.tetris.Account.Network.io.emit('reqJoin', app.tetris.Account.Info.getAccount());
         },
 
         _updateAccount : function(){
