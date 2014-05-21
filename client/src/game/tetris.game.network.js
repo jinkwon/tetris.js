@@ -23,16 +23,8 @@ app.tetris.Game.Network.init = function(){
         })
 
         .on('disconnected', function(){
-
             console.log('game disconnected')
         })
-//        .on('resQuickGame', function(){
-//            console.log('resQuickGame', arguments);
-        
-//            setTimeout(function(){
-//                oGameIo.emit('reqStartGame', {});
-//            }, 5000);
-//        })
         .on('brGameStart', function(htObj){
             console.log('brGameStart');
             if(htObj.bIsStarted){
@@ -45,11 +37,14 @@ app.tetris.Game.Network.init = function(){
         })
         .on('resStartGame', function(htObj){
             console.log('resStartGame', arguments);
+
+            if(htObj.code === 400){
+                app.tetris.Game.Network.io.emit('reqRoomInfo', { sRoomId : htObj.sRoomId});
+            }
             
             if(htObj.bIsStarted){
                 // play Game
                 console.log('GAME BEGIN');
-
                 app.tetris.Game.Network.sRoomName = htObj.sRoomName;
             }
         })

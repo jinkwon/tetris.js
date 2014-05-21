@@ -5,8 +5,8 @@ var Schema   = mongoose.Schema;
 
 var User = new Schema({
     "id" : Number,
-    "sessionId" : String,
-    "userId" : {type : String, index : true},
+    "sessionId" : {type : String, index : true},
+    "userId" : String,
     "passwd" : String,
     "login_at" :  { type: Date, default: Date.now },
     "created_at" : { type: Date, default: Date.now }
@@ -21,7 +21,7 @@ var League = new Schema({
 
 var roomUser = new Schema({ 
     _id : Schema.ObjectId,
-    sessionId : String,
+    sessionId : {type : String, index:true},
     userId : String,
     aMatrix : Array,
     nScore : Number
@@ -29,8 +29,8 @@ var roomUser = new Schema({
 
 var Room = new Schema({
     'seq' : Number,
-    'ownerId' : Schema.ObjectId,
-    'ownerSessionId' : String,
+    'ownerId' : String,
+    'ownerSessionId' : { type :String, index : true},
     'roomId': String,
     'users' : [roomUser],
     'created_at' : { type: Date, default: Date.now },

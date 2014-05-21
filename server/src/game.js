@@ -37,8 +37,8 @@ var findOpenedGame = function(cb){
 
 };
 
-var getUserInfoBySocketId = function(sSocketId, cb) {
-    User.findOne({sessionId: sSocketId}, function (err, doc) {
+var getUserInfoBySocketId = function(sSessionId, cb) {
+    User.findOne({sessionId: sSessionId}, function (err, doc) {
         if (doc !== null) {
             cb(doc);
         } else {
@@ -47,27 +47,21 @@ var getUserInfoBySocketId = function(sSocketId, cb) {
     });
 }
 
-function isInRoomBy(filter, oSocketIo, oRoom, cb){
-    User.findOne(filter, function(err, doc){
-        if(!doc){
-            cb(false);
-            return;
-        }
-        
-        var ownerClient = oSocketIo.roomClients[doc.sessionId];
-        var bIsOwnerInRoom = false;
+function isRoomMakerInRoom(oSocketIo, oRoom){
+    
+    var ownerClient = oSocketIo.roomClients[oRoom.ownerSessionId];
+    var bIsOwnerInRoom = false;
 
-        if(ownerClient){
-            var sRoomChannel = '/game/' + oRoom.roomId;
-            bIsOwnerInRoom = ownerClient[sRoomChannel] || false;
-        }
+    if(ownerClient){
+        var sRoomChannel = '/game/' + oRoom.roomId;
+        bIsOwnerInRoom = ownerClient[sRoomChannel] || false;
+    }
 
-        cb(bIsOwnerInRoom);
-    });
+    return (bIsOwnerInRoom);
 }
 
 function isOwnerInRoom(oSocketIo, oRoom, cb){
-   isInRoomBy({_id : oRoom.ownerUserId}, oSocketIo, oRoom, function(bFlag){
+   isInRoomBy({ sessionId : oRoom.ownerUserId}, oSocketIo, oRoom, function(bFlag){
        console.log('roomMaker In Room : '.magenta, bFlag);
        cb(bFlag);
    });
@@ -87,29 +81,37 @@ function getRoomBy(obj, cb){
 }
 
 function createRoom(oGame, cb) {
-    getUserInfoBySocketId(oGame.id, function (oUser) {
-        if (oUser) {
+    console.log('createRoom :'.green);
+    
+    var sRoomId = 'rooms_' + guid();
+    // if not have
+    // create new room and make him to owner
+    var htObj = {
+        bIsPlaying: false,
+        ownerSessionId: oGame.id,
+        roomId: sRoomId
+    };
 
-            var sRoomId = 'rooms_' + guid();
-            // if not have
-            // create new room and make him to owner
-            var htObj = {
-                ownerId: oUser._id,
-                bIsPlaying: false,
-                ownerSessionId: oGame.id,
-                roomId: sRoomId
-            };
-
-            new Room(htObj).save(function (doc) {
-                oGame.join(sRoomId);
-                
-                if(cb){
-                    cb({ bIsJoined: true, sRoomId: sRoomId, nMemberCount: 1, sOwnerId: oGame.id});
-                }
-            });
+    User.findOne({sessionId : oGame.id}, function(err, doc){
+        if(doc){
+            htObj.ownerId = doc.userId;
         }
+        
+        new Room(htObj).save(function (err, doc) {
+            
+            if(err){
+                console.log('Room Save Err');
+                return;
+            }
+            oGame.join(sRoomId);
+            
+            if(cb){
+                cb({ bIsJoined: true, sRoomId: sRoomId, nMemberCount: 1, sOwnerId: oGame.id});
+            }
+        });
+
     });
-};
+}
 
 
 function joinExistRoom(oGame, oRoom, oSocketIo) {
@@ -120,29 +122,31 @@ function joinExistRoom(oGame, oRoom, oSocketIo) {
         oGame.emit('resQuickGame', htRoomInfo);
     });
 
-    isOwnerInRoom(oSocketIo, oRoom, function (bOwnerInFlag) {
-        getUserInfoBySocketId(oGame.id, function (oUser) {
+    var bOwnerInFlag = isRoomMakerInRoom(oSocketIo, oRoom); 
+        
+    getUserInfoBySocketId(oGame.id, function (oUser) {
+        // 10 분 보다 오래된 방에
+        
+        console.log(oGame.id, bOwnerInFlag, oUser);
+        console.log(Moment(oRoom.created_at).unix(), Moment().subtract('minutes', 2).unix());
+        if (Moment(oRoom.created_at).unix() < Moment().subtract('minutes', 2).unix()) {
 
-            // 20 분 보다 오래된 방에
-            if (Moment(oRoom.created_at).unix() < Moment().subtract('minutes', 2).unix()) {
-
-                // 주인이 없으면 내가 주인이 될 수 있다
-                if (oUser && bOwnerInFlag === false) {
-                    oRoom.ownerId = oUser._id;
-                    oRoom.sOwnerId = oUser.sessionId;
-                    oRoom.created_at = new Date();
-                    oRoom.save(function (err, doc) {
-                        console.log(('changed Owner to ' + oUser.userId).magenta);
-
-                        var sRoomId = oRoom.roomId;
-                        broadCastRoomInfoBy(sRoomId, oGame, function (result) {
-
-                        });
+            // 주인이 없으면 내가 주인이 될 수 있다
+            if (oUser && bOwnerInFlag === false) {
+                
+                oRoom.ownerId = oUser.userId;
+                oRoom.ownerSessionId = oUser.sessionId;
+                oRoom.created_at = new Date();
+                oRoom.save(function (err, doc) {
+                    console.log(('changed Owner to ' + oUser.userId).magenta);
+                    var sRoomId = oRoom.roomId;
+                    broadCastRoomInfoBy(sRoomId, oGame, function (result) {
 
                     });
-                }
+
+                });
             }
-        });
+        }
     });
 }
 function joinQuickGame(oGame, oSocketIo) {
@@ -218,9 +222,11 @@ module.exports = {
                     joinQuickGame(oGame, oSocketIo);
                 })
                 
+                .on('reqRoomInfo', function(obj){
+                    broadCastRoomInfoBy(obj.sRoomId, oGame);
+                })
                 .on('brGameInfo', function(obj){
                     var sRoomId = obj.sRoomId || '';
-                    
                     console.log('brGameInfo', sRoomId, oGame.id);
 
                     var sendNeighbor = function(oGame, oRoom, oUser) {
@@ -231,50 +237,57 @@ module.exports = {
                                 break;
                             }
                         }
-
-                        var front = null;
-                        var back = null;
+                        
                         var msg = {
                             nRank : idx + 1, 
                             sessionId: oGame.id,
                             sUserId: oUser.userId,
                             aMatrix: obj.aMatrix,
+                            nTotal : oRoom.users.length,
                             nScore: obj.nScore
                         };
 
+                        function broadcastNeighbor(msg, oRoom, sessionId) {
+                            var socket = oGame.manager.sockets.sockets[sessionId];
+                            var idx = null;
+                            
+                            oRoom.users.sort(function(a, b){ return a.nScore < b.nScore; });
+                            
+                            for (var i = 0; i < oRoom.users.length; i++) {
+                                if (oRoom.users[i].sessionId === sessionId) {
+                                    idx = i;
+                                    break;
+                                }
+                            }
+
+                            msg.nMyRank = idx + 1;
+
+                            if (socket) {
+                                socket.emit('brGameInfo', msg);
+                            }
+                        }
+
+                        // To Front
                         if (idx - 1 >= 0) {
-                            // yes front
-                            front = oRoom.users[idx - 1];
-                        }
-
-                        if (idx + 1 < oRoom.users.length) {
-                            // yes back
-                            back = oRoom.users[idx + 1];
-                        }
-
-                        var socket;
-                        
-                        if (front) {
                             msg.sType = 'im_back';
-                            socket = oGame.manager.sockets.sockets[front.sessionId];
-
-                            if(socket){
-                                socket.emit('brGameInfo', msg);
-                            }
+                            broadcastNeighbor(msg, oRoom, oRoom.users[idx - 1].sessionId);
                         }
 
-                        if (back) {
+                        // To Back
+                        if (idx + 1 < oRoom.users.length) {
                             msg.sType = 'im_front';
-                            socket = oGame.manager.sockets.sockets[back.sessionId];
-                            if(socket){
-                                socket.emit('brGameInfo', msg);
-                            }
+                            broadcastNeighbor(msg, oRoom, oRoom.users[idx + 1].sessionId);
                         }
                     };
 
                     User.findOne({sessionId : oGame.id}, function(err, oUser){
                         Room.findOne({roomId : sRoomId}, function(err, oRoom){
-
+                            if(!oUser){
+                                oUser = {
+                                    userId : 'guest_' + guid().substr(0, 5)
+                                }
+                            }
+                            
                             var bExist = _.find(oRoom.users, function(user){
                                 return (user.sessionId === oGame.id);
                             });
@@ -286,14 +299,20 @@ module.exports = {
                                     aMatrix : obj.aMatrix,
                                     nScore : obj.nScore
                                 });
-                                
-                                oRoom.save(function(){
-                                    console.log('User Added');
 
+                                oRoom.users.sort(function(a, b){ return a.nScore < b.nScore; });
+                                
+                                oRoom.save(function(err, doc){
+                                    if(!err){
+                                        console.log('User Added');    
+                                    }
+                                    
                                     sendNeighbor(oGame, oRoom, oUser);
                                 });
                                 
                             } else {
+                                
+                                
                                 var idx = null;
                                 for(var i = 0; i < oRoom.users.length; i++){
                                     if(oRoom.users[i].sessionId === oGame.id){
@@ -308,9 +327,7 @@ module.exports = {
                                     oRoom.users[idx].aMatrix = obj.aMatrix;
                                     oRoom.users[idx].nScore = obj.nScore;
 
-                                    oRoom.users.sort(function(a, b){
-                                        return a.nScore < b.nScore;
-                                    });
+                                    oRoom.users.sort(function(a, b){ return a.nScore < b.nScore; });
                                     
                                     oRoom.save(function(err){
                                         if(!err){
@@ -320,22 +337,30 @@ module.exports = {
                                         sendNeighbor(oGame, oRoom, oUser);
                                     });
                                 }
+
+
+                                var myIdx = null;
+                                for (var i = 0; i < oRoom.users.length; i++) {
+                                    if (oRoom.users[i].sessionId === oGame.id) {
+                                        myIdx = i;
+                                        break;
+                                    }
+                                }
+
+                                var htGameInfo = {
+                                    sRoomId : sRoomId,
+                                    nRank : idx + 1
+                                };
+                                
+                                oGame.broadcast.in(sRoomId).emit('brGameInfo', htGameInfo);
+                                
+                                htGameInfo.nTotal = oRoom.users.length;
+                                htGameInfo.myRank = myIdx ? myIdx + 1 : null;
+                                oGame.emit('brGameInfo', htGameInfo);
+
                             }
-
-
-                            
                         });
 
-                        oGame.broadcast.in(sRoomId).emit('brGameInfo', {
-                            sRoomId : sRoomId
-                        });
-
-                        oGame.emit('brGameInfo', {
-
-                        });
-
-                        console.log('brGameInfo', oGame.id);
-                        
                         
                     });
                 })
@@ -375,7 +400,7 @@ module.exports = {
                             
                         // Not Owner
                         } else {
-                            oGame.emit('resStartGame', { bIsStarted : false, msg : 'NO PERMISSION', code : 400 });
+                            oGame.emit('resStartGame', { sRoomId : sRoomId, bIsStarted : false, msg : 'NO PERMISSION', code : 400 });
                         }
                     });
                     

@@ -11,7 +11,7 @@ app.tetris.Util.leadingSpaces = function(n, digits) {
 	return space + n;
 };
 
-app.tetris.Util.getGetOrdinal = function(n) {
+app.tetris.Util.getOrdinal = function(n) {
     var s=["th","st","nd","rd"],
         v=n%100;
     return n+(s[(v-20)%10]||s[v]||s[0]);

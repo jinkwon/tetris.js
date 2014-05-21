@@ -11,6 +11,7 @@
             board :'moveToGameBoard',
             credit : "moveToCredit",
             logout : "moveToLogout",
+            quick : "moveToQuickJoin",
             
             '':  'moveToStart'
         },
@@ -19,13 +20,10 @@
             app.tetris.Account.Info.load();
             var sFrag = Backbone.history.fragment;
 
-
             if(!app.tetris.Account.Info.isAuthenticated() && sFrag !== 'login'){
-                // TODO CHANGE FOR REAL
-//                this.navigate('login', {trigger : true});
-//                return;
-
+                this.navigate('login', {trigger : true});
                 app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
+                return;
             }
             
             if (callback) callback.apply(this, args);
@@ -56,6 +54,15 @@
             this.navigate('login', {trigger : true});
         },
 
+        moveToQuickJoin : function(){
+            this._hideAllScreens();
+            t.ui.BackButton.show();
+
+            t.Game.StageView.setType('multi');
+            t.Game.StageView.show();
+            t.Game.StageView.openMultiQuickJoin();
+        },
+        
         moveToSingleGame : function(){
             this._hideAllScreens();
             t.ui.BackButton.show();

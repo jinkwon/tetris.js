@@ -65,13 +65,13 @@ var onReqLogin = function(htData, oAccount){
             user.login_at = new Date();
             user.sessionId = oAccount.id;
             user.save();
+
+            console.log(user.userId);
             
+            Room.find({ ownerId : user.userId }, function(err, docs){
             
-            Room.find({ ownerId : user._id }, function(err, docs){
-                
                 _.each(docs, function(doc){
                     doc.ownerSessionId = user.sessionId;
-                    
                     doc.save(function(err, doc){
                     });
                 });
@@ -87,7 +87,6 @@ module.exports = {
         oSess = oSessionIo;
 
         oAccountIo = oSocketIo.of('/account').on('connection', function(oAccount){
-
 
             oAccount
             .on('reqJoin', function(htData){

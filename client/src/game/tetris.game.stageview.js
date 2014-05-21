@@ -62,6 +62,17 @@
             
             this._onWisper = $.proxy( function(htData){
                 console.log('brGameInfo, wisper', arguments);
+
+                var welScoreBoard = this.$el.find('._score_board');
+                
+                if(htData.nMyRank){
+                    welScoreBoard.find('._my_rank').html(app.tetris.Util.getOrdinal(htData.nMyRank)).show();
+                    
+                    if(htData.nTotal){
+                        var nPercent = 100 / (htData.nTotal - 1) * (htData.nMyRank - 1);
+                        welScoreBoard.find('._rank_percent').css('left', nPercent + '%').show();
+                    }
+                }
                 
                 var oModel = null;
                 if(htData.sType === 'im_back'){
@@ -116,7 +127,7 @@
             var sUserId = model.get('sUserId');
             var nScore = model.get('nScore');
             
-            wel.find('._rank').html(nRank > 0 ? app.tetris.Util.getGetOrdinal(nRank) : '');    
+            wel.find('._rank').html(nRank > 0 ? app.tetris.Util.getOrdinal(nRank) : '');    
             wel.find('._text').html(sUserId !== '' ? sUserId + '. ' + nScore : '');    
             
         },
@@ -126,6 +137,9 @@
                 return;
             }
 
+            
+            
+            
             app.tetris.Game.Network.io.removeListener('brGameStart', this._onGameStart);
             app.tetris.Game.Network.io.addListener('brGameStart', this._onGameStart);
 
@@ -133,14 +147,13 @@
             app.tetris.io.addListener('brGameInfo', this._onWisper);
 
             this.backModel.bind('change:nScore change:aMatrix', $.proxy(function(){
+
+                
                 var wel = $('._back_user_info');
 
                 this.oBackGameView.drawMyStage();
                 this.renderOtherStage(wel, this.backModel);
 
-
-                console.log(this.backModel.get('sUserId') , this.frontModel.get('sUserId'));
-                
                 if(this.backModel.get('sUserId') === this.frontModel.get('sUserId')){
                     this.frontModel.initVal();
                 }
@@ -148,6 +161,7 @@
             }, this));
 
             this.frontModel.bind('change:nScore change:aMatrix', $.proxy(function(){
+                
                 var wel = $('._front_user_info');
 
                 this.oFrontGameView.drawMyStage();
@@ -162,7 +176,7 @@
             }, this));
             
             var aMenuList = [
-                this._createMenuObject('Quit Room', $.proxy(function(){
+                this._createMenuObject('Leave Room', $.proxy(function(){
                     this.setReady = false;
                     app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId : htData.sRoomId});
                     this.openMultiGameMenu();
@@ -204,6 +218,36 @@
             app.tetris.Game.Network.io.addListener('brRoomInfo', this._onBrRoomInfo);
         },
 
+        openMultiQuickJoin : function(sTitle){
+            app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId :'menu'});
+            this.initNetworks();
+
+                        
+            var _onClickQuickGame = function(){
+                app.tetris.Game.Network.io.emit('reqQuickGame', {});
+                app.tetris.ui.Option.View.show(htMultiGameOption);
+                return false;
+            };
+
+            var _onClickMenu = function(){
+                app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId :'menu'});
+                app.tetris.Router.navigate('menu', {trigger : true});
+            };
+
+            var htMultiGameOption = {
+                sTitle : sTitle || 'Multi Game',
+                aList : [
+                    this._createMenuObject('Quick Join', $.proxy(_onClickQuickGame, this)),
+                    this._createMenuObject('Go to Menu', $.proxy(_onClickMenu, this))
+                ]
+            };
+
+            app.tetris.ui.Option.View.show(htMultiGameOption);
+
+            app.tetris.Game.Network.io.emit('reqQuickGame', {});
+            app.tetris.ui.Option.View.show(htMultiGameOption);
+        },
+        
         openMultiGameMenu : function(sTitle){
             this.initNetworks();
             
@@ -221,7 +265,7 @@
             var htMultiGameOption = {
                 sTitle : sTitle || 'Multi Game',
                 aList : [
-                    this._createMenuObject('Quick Game', $.proxy(_onClickQuickGame, this)),
+                    this._createMenuObject('Quick Join', $.proxy(_onClickQuickGame, this)),
                     this._createMenuObject('Go to Menu', $.proxy(_onClickMenu, this))
                 ]
             };
@@ -499,7 +543,6 @@
                 this.startTimer();
             } else if(sGameStatus === 'pause'){
                 this.stopTimer();
-                this.openDimmedLayer('Pause');
                 
             } else if(sGameStatus === 'stop'){
                 this._initTimer();
@@ -582,6 +625,17 @@
 
             var _onClickPause = function(){
                 this.oGameView.pause();
+
+                app.tetris.ui.Option.View.show({
+                    sTitle: 'Pause',
+                    aList : [
+                        { sLabel : 'Continue', fn : $.proxy(function(){
+                            this.startTimer();
+                            this.oGameView.pause();
+                        }, this)}
+                    ]
+                });
+                return false;
             };
 
             var _onClickJoinMultiGame = function(){
@@ -598,8 +652,8 @@
             if(this.isMultiGame()){
                 aMenuList = [
                     { sLabel : 'Continue' },
-                    { sLabel : 'Restart', fn : $.proxy(_onClickRestart, this)},
                     { sLabel : 'Pause', fn : $.proxy(_onClickPause, this) },
+                    { sLabel : 'Restart', fn : $.proxy(_onClickRestart, this)},
                     { sLabel : 'Re-join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
                     { sLabel : 'Setting', fn : $.proxy(_onClickSetting, this) },
                     { sLabel : 'Exit Multi Game', fn : $.proxy(_onClickMenu, this) }
