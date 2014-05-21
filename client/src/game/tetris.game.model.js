@@ -12,6 +12,7 @@ app.tetris.Game.Model = Backbone.Model.extend({
             nNumber : 2,
             nCols : 0,
             nRows : 0,
+            sUserId : '',
             sGuid : '',
             nLogicSpeed : 1500,
             nLevel : 1,
@@ -31,6 +32,9 @@ app.tetris.Game.Model = Backbone.Model.extend({
 			htBlockPos : {nX : 5, nY : 0},
             nLogicSpeed : 1500,
             nLevel : 1,
+            aMatrix : [],
+            sUserId : '',
+            nRank : '',
 			nCols :10,
 			nRows: 20,
 			nBlockPixel : 22
@@ -159,7 +163,11 @@ app.tetris.Game.Model = Backbone.Model.extend({
 		
 		this.setMatrix(matrix);	
 	},
-	
+    
+    initVal : function(){
+        this.initialize();
+    },
+    
 	setMatrix : function(matrix){
 		this.set('aMatrix', matrix);
 	},

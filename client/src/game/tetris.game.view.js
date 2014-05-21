@@ -594,8 +594,9 @@ app.tetris.Game.View = Backbone.View.extend({
                 this.controlSound('lockdown','play');
             }
 
+            this.model.trigger('change:aMatrixCustomEvent');
             this.model.setBlockToMatrix(this.model.get('currentBlock'), this.model.get('htBlockPos'));
-			this.makeNewBlock();
+            this.makeNewBlock();
 			result = true;
 		}
 		
@@ -752,6 +753,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		for(var i = 0, nRows = this.model.get('nRows'); i < nRows; i++){
 			if(bIsCollision === true){
                 this.resetBlockPos();
+                this.model.trigger('change:aMatrixCustomEvent');
                 break;
 			}else{
                 var bPlaySound = false;

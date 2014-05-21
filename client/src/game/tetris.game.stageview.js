@@ -59,14 +59,37 @@
                 app.tetris.ui.Option.View.hide();
                 this._startNetworkGame(htData);
             }, this);
+            
+            this._onWisper = $.proxy( function(htData){
+                console.log('brGameInfo, wisper', arguments);
+                
+                var oModel = null;
+                if(htData.sType === 'im_back'){
+                    oModel = this.backModel;
+                } else if(htData.sType === 'im_front'){
+                    oModel = this.frontModel;
+                }
+
+                if(oModel){
+                    oModel.set({
+                        'sUserId' : htData.sUserId,
+                        'nRank' : htData.nRank,
+                        'nScore' : htData.nScore,
+                        'aMatrix' : htData.aMatrix
+                    });    
+                }
+                
+            }, this);
         },
 
         _startNetworkGame : function(htData){
             this._sRoomId = htData.sRoomId;
             
-            this.model
-                .unbind('change:nScore change:aMatrix', this._onChangeModel)
-                .bind('change:nScore change:aMatrix', this._onChangeModel);
+            this.model.unbind('change:nScore', this._onChangeModel);
+            this.model.unbind('change:aMatrixCustomEvent', this._onChangeModel);
+
+            this.model.bind('change:nScore', this._onChangeModel);
+            this.model.bind('change:aMatrixCustomEvent', this._onChangeModel);
 
             this.startTimer();
             
@@ -85,6 +108,18 @@
                 fn : fn
             };
         },
+
+        renderOtherStage: function (wel, model) {
+            wel.removeClass('pulse animated05').hide().addClass('pulse animated05').show();
+            
+            var nRank = model.get('nRank');
+            var sUserId = model.get('sUserId');
+            var nScore = model.get('nScore');
+            
+            wel.find('._rank').html(nRank > 0 ? app.tetris.Util.getGetOrdinal(nRank) : '');    
+            wel.find('._text').html(sUserId !== '' ? sUserId + '. ' + nScore : '');    
+            
+        },
         
         _onChangeRoomData : function(htData){
             if(!this.setReady || htData.sRoomId === 'menu'){
@@ -94,12 +129,37 @@
             app.tetris.Game.Network.io.removeListener('brGameStart', this._onGameStart);
             app.tetris.Game.Network.io.addListener('brGameStart', this._onGameStart);
 
-//            setInterval(function(){
-//                $('#other_1_game_area').parent().removeClass('tada').hide().addClass('tada').show();
-//            }, 2000);
-//            setInterval(function(){
-//                $('#other_2_game_area').parent().removeClass('tada').hide().addClass('tada').show();
-//            }, 3000);
+            app.tetris.io.removeListener('brGameInfo', this._onWisper);
+            app.tetris.io.addListener('brGameInfo', this._onWisper);
+
+            this.backModel.bind('change:nScore change:aMatrix', $.proxy(function(){
+                var wel = $('._back_user_info');
+
+                this.oBackGameView.drawMyStage();
+                this.renderOtherStage(wel, this.backModel);
+
+
+                console.log(this.backModel.get('sUserId') , this.frontModel.get('sUserId'));
+                
+                if(this.backModel.get('sUserId') === this.frontModel.get('sUserId')){
+                    this.frontModel.initVal();
+                }
+                
+            }, this));
+
+            this.frontModel.bind('change:nScore change:aMatrix', $.proxy(function(){
+                var wel = $('._front_user_info');
+
+                this.oFrontGameView.drawMyStage();
+                this.renderOtherStage(wel, this.frontModel);
+                
+                console.log(this.backModel.get('sUserId') , this.frontModel.get('sUserId'));
+                
+                if(this.backModel.get('sUserId') === this.frontModel.get('sUserId')){
+                    this.backModel.initVal();
+                }
+                
+            }, this));
             
             var aMenuList = [
                 this._createMenuObject('Quit Room', $.proxy(function(){
@@ -364,18 +424,21 @@
                 this.startTimer();
                 this.oGameView.start();    
             }
-            
 
-            this.oGameView2 = new app.tetris.Game.View({
+            this.frontModel = new app.tetris.Game.Model();
+            
+            this.oFrontGameView = new app.tetris.Game.View({
                 el : '#other_1_game_area',
-                model : new app.tetris.Game.Model(),
+                model : this.frontModel,
                 bUseWebGL : false,
                 bUseSound : false
             });
 
-            this.oGameView3 = new app.tetris.Game.View({
+            this.backModel = new app.tetris.Game.Model();
+            
+            this.oBackGameView = new app.tetris.Game.View({
                 el : '#other_2_game_area',
-                model : new app.tetris.Game.Model(),
+                model : this.backModel,
                 bUseWebGL : false
             });
 

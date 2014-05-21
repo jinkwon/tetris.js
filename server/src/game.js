@@ -235,63 +235,40 @@ module.exports = {
                         var front = null;
                         var back = null;
                         var msg = {
-                            ze: {
-                                sessionId: oGame.id,
-                                userId: oUser.userId,
-                                aMatrix: obj.aMatrix,
-                                nScore: obj.nScore
-                            }
+                            nRank : idx + 1, 
+                            sessionId: oGame.id,
+                            sUserId: oUser.userId,
+                            aMatrix: obj.aMatrix,
+                            nScore: obj.nScore
                         };
 
                         if (idx - 1 >= 0) {
                             // yes front
                             front = oRoom.users[idx - 1];
-                            
-                            msg.front = {
-                                sessionId : front.sessionId,
-                                userId : front.userId,
-                                aMatrix : front.aMatrix,
-                                nScore : front.nScore
-                            };
                         }
 
                         if (idx + 1 < oRoom.users.length) {
-                            
                             // yes back
                             back = oRoom.users[idx + 1];
-                            msg.back = {
-                                sessionId : back.sessionId,
-                                userId : back.userId,
-                                aMatrix : back.aMatrix,
-                                nScore : back.nScore
-                            };
                         }
 
                         var socket;
                         
                         if (front) {
+                            msg.sType = 'im_back';
                             socket = oGame.manager.sockets.sockets[front.sessionId];
-                            socket.emit('brGameInfo', {
-                                msg: msg
-                            });
-                            
-                            oGame.emit('brGameInfo', {
-                                msg : msg
-                            });
-                            console.log(front.sessionId, JSON.stringify(msg.front));
+
+                            if(socket){
+                                socket.emit('brGameInfo', msg);
+                            }
                         }
 
                         if (back) {
+                            msg.sType = 'im_front';
                             socket = oGame.manager.sockets.sockets[back.sessionId];
-                            
-                            socket.emit('brGameInfo', {
-                                msg: msg
-                            });
-
-                            oGame.emit('brGameInfo', {
-                                msg : msg
-                            });
-                            console.log(back.sessionId, JSON.stringify(msg.back));
+                            if(socket){
+                                socket.emit('brGameInfo', msg);
+                            }
                         }
                     };
 
