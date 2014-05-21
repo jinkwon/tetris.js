@@ -45,7 +45,5 @@ requirejs.config({
 requirejs([
     'tetris'
 ], function(){
-
     app.tetris.init('staging');
-
 });
