@@ -459,8 +459,6 @@
             });
             this.setGameEvents();
             
-//            this.oGameView.useWebGL(true);
-
             if(this.isMultiGame()){
                 this.openMultiGameMenu();
                 
@@ -611,9 +609,23 @@
 
         openOptionMenu : function(){
             var _onClickSetting = function(){
+                
+                var aMenuList = [{sLabel : 'Setting2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}];
+
+                if(app.tetris.Game.Util.isWebGLAvailable()){
+                    aMenuList.push({
+                        sLabel : 'Use WebGL',
+                        fn : $.proxy(function(){
+                            if(this.oGameView){
+                                this.oGameView.useWebGL(true);
+                            }
+                    }, this)}
+                    );
+                }
+                
                 app.tetris.ui.Option.View.show({
                     sTitle : 'Setting',
-                    aList : [{sLabel : 'Setting1'}, {sLabel : 'Setting2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}]
+                    aList : aMenuList
                 });
                 
                 return false;

@@ -1,5 +1,22 @@
 app.tetris.Game.Util = {
 
+    isWebGLAvailable : function(){
+
+        var elCanvas = document.createElement('canvas'); 
+        var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
+        this.ctx = null;
+        for(var index=0; index<names.length; ++index){
+            try{
+                this.ctx = elCanvas.getContext(names[index]);
+            }
+            catch(e){
+                break;
+            }
+            if(this.ctx !== null) break;
+        }
+
+        return this.ctx !== null;
+    },
     isCollision : function(htBlockPos, oBlock, aMatrix, forward){
         var result = false
             , aBlock = oBlock.get('aMatrix')
