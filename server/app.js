@@ -109,8 +109,12 @@ app.use(session({
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.route('/', function(req,res){
 
-app.use('monitor', function(req, res){
+    app.redirect('/www');
+});
+
+app.route('/monitor', function(req, res){
     getRoomInfoWithUserId(function(info){
         res.render('index', { roomInfo : info });
     });
