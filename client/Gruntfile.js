@@ -37,7 +37,10 @@ module.exports = function (grunt) {
         },
         uglify: {
             options: {
-                banner: '<%= banner %>'
+                banner: '<%= banner %>',
+                compress : {
+                    drop_console: true
+                }
             },
             dist: {
                 src: '<%= concat.dist.dest %>',
