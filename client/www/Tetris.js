@@ -1,4 +1,4 @@
-/*! Tetris - v0.1.0 - 2014-05-21
+/*! Tetris - v0.1.0 - 2014-05-22
 * https://github.com/Jinkwon/tetris.js
 * Copyright (c) 2014 LeeJinKwon; Licensed MIT */
 var app = app ? app : {};
@@ -2193,8 +2193,6 @@ app.tetris.Game.Network.init = function(){
             });
             this.setGameEvents();
             
-//            this.oGameView.useWebGL(true);
-
             if(this.isMultiGame()){
                 this.openMultiGameMenu();
                 
@@ -2345,9 +2343,23 @@ app.tetris.Game.Network.init = function(){
 
         openOptionMenu : function(){
             var _onClickSetting = function(){
+                
+                var aMenuList = [{sLabel : 'Setting2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}];
+
+                if(app.tetris.Game.Util.isWebGLAvailable()){
+                    aMenuList.push({
+                        sLabel : 'Use WebGL',
+                        fn : $.proxy(function(){
+                            if(this.oGameView){
+                                this.oGameView.useWebGL(true);
+                            }
+                    }, this)}
+                    );
+                }
+                
                 app.tetris.ui.Option.View.show({
                     sTitle : 'Setting',
-                    aList : [{sLabel : 'Setting1'}, {sLabel : 'Setting2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}]
+                    aList : aMenuList
                 });
                 
                 return false;
@@ -2480,6 +2492,22 @@ app.tetris.Game.Network.init = function(){
 })();
 app.tetris.Game.Util = {
 
+    isWebGLAvailable : function(){
+
+        var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
+        this.ctx = null;
+        for(var index=0; index<names.length; ++index){
+            try{
+                this.ctx = elCanvas.getContext(names[index]);
+            }
+            catch(e){
+                break;
+            }
+            if(this.ctx !== null) break;
+        }
+
+        return this.ctx !== null;
+    },
     isCollision : function(htBlockPos, oBlock, aMatrix, forward){
         var result = false
             , aBlock = oBlock.get('aMatrix')
