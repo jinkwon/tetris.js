@@ -613,7 +613,7 @@
                 var aMenuList = [{sLabel : 'Setting2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}];
 
                 if(app.tetris.Game.Util.isWebGLAvailable()){
-                    aMenuList.push({
+                    aMenuList.shift({
                         sLabel : 'Use WebGL',
                         fn : $.proxy(function(){
                             if(this.oGameView){
