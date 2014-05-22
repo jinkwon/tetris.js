@@ -89,13 +89,13 @@ app.tetris.config._refresh = function(){
 
     switch(app.tetris.config.sMode){
         case 'production' :
-            sSrvUrl = 'http://serverurl';
+            sSrvUrl = 'http://srv.bdyne.net:8080';
             break;
         case 'staging' :
-            sSrvUrl = 'http://' + document.location.hostname + ':8888';
+            sSrvUrl = 'http://' + document.location.hostname + ':8080';
             break;
         default :
-            sSrvUrl = 'http://' + document.location.hostname + ':8888';
+            sSrvUrl = 'http://' + document.location.hostname + ':8080';
             break;
     }
 
@@ -2344,10 +2344,10 @@ app.tetris.Game.Network.init = function(){
         openOptionMenu : function(){
             var _onClickSetting = function(){
                 
-                var aMenuList = [{sLabel : 'Setting2'}, {sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}];
+                var aMenuList = [{sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}];
 
                 if(app.tetris.Game.Util.isWebGLAvailable()){
-                    aMenuList.push({
+                    aMenuList.unshift({
                         sLabel : 'Use WebGL',
                         fn : $.proxy(function(){
                             if(this.oGameView){
@@ -2494,6 +2494,7 @@ app.tetris.Game.Util = {
 
     isWebGLAvailable : function(){
 
+        var elCanvas = document.createElement('canvas'); 
         var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
         this.ctx = null;
         for(var index=0; index<names.length; ++index){

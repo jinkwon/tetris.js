@@ -120,3 +120,15 @@
     animation-name: bounceDrops;
     border:2px solid #FF0000;
 }
+
+.box{position:absolute;top:50%;left:50%;background-color: #123}
+
+@media screen {
+    .box{width:360px;height:760px;margin:-380px 0 0 -180px}
+}
+@media screen and (max-height: 900px){
+    .box{width:270px;height:570px;margin:-285px 0 0 -135px}
+}
+@media screen and (max-height: 700px) {
+    .box{width:180px;height:380px;margin:-190px 0 0 -90px}
+}
