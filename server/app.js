@@ -110,12 +110,16 @@ app.use(session({
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', function(req, res){
-    
-    getRoomInfoWithUserId(function(info){
-        res.render('index', { roomInfo : info });
-    });
-
+    res.redirect('/www');
 });
+
+//app.use('monitor', function(req, res){
+//
+//    getRoomInfoWithUserId(function(info){
+//        res.render('index', { roomInfo : info });
+//    });
+//
+//});
 
 /// catch 404 and forward to error handler
 app.use(function(req, res, next) {

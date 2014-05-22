@@ -132,6 +132,12 @@ module.exports = function (grunt) {
             phonegap : {
                 src : ['platforms/**'],
                 dest : 'public/phonegap/'
+            },
+
+            moveToServer : {
+
+                src : ['www/**'],
+                dest : '../server/public/'
             }
 
         },
@@ -312,7 +318,8 @@ module.exports = function (grunt) {
         'copy:package',
         'concat',
         'uglify',
-        'uglify:loader'
+        'uglify:loader',
+        'copy:moveToServer'
     ]);
 
     // deploy task.
