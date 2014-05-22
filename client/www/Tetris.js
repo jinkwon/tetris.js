@@ -1,4 +1,4 @@
-/*! Tetris - v0.1.0 - 2014-05-22
+/*! Tetris - v0.1.0 - 2014-05-23
 * https://github.com/Jinkwon/tetris.js
 * Copyright (c) 2014 LeeJinKwon; Licensed MIT */
 var app = app ? app : {};
@@ -2712,9 +2712,9 @@ app.tetris.Game.View = Backbone.View.extend({
         }
 
 		this.htSound = {
-            harddrop : new Howl({urls: ['../res/sound/TE_SE_harddrop.mp3'], volume: 0.3}),
-            softdrop : new Howl({urls: ['../res/sound/TE_SE_softdrop.mp3'], volume: 0.3}),
-            lockdown : new Howl({urls: ['../res/sound/TE_SE_lockdown.mp3'], volume: 0.3})
+            harddrop : new Howl({urls: ['./res/sound/TE_SE_harddrop.mp3'], volume: 0.3}),
+            softdrop : new Howl({urls: ['./res/sound/TE_SE_softdrop.mp3'], volume: 0.3}),
+            lockdown : new Howl({urls: ['./res/sound/TE_SE_lockdown.mp3'], volume: 0.3})
         };
 	},
 
