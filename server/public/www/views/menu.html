@@ -1,0 +1,126 @@
+
+<style type="text/css">
+
+
+    ul.screen_menu{
+        margin-top:18px;
+        overflow:hidden;
+    }
+
+    .screen_menu li{
+
+        font-size:15px;padding:7px;
+        border-bottom:1px dashed rgba(255,255,255,.3);
+        cursor:pointer;
+
+        text-shadow:1px 1px 1px rgba(50,50,50, 0.3);
+    }
+
+    .screen_menu li a{
+        color:#FFF;
+    }
+
+    .screen_menu li:first-child{
+        border-top:1px solid transparent;
+    }
+
+    .screen_menu li:last-child{
+        border-bottom:1px solid transparent;
+    }
+
+    .title{
+        font-size:25px;
+    }
+</style>
+
+<div class="_conn_user_cnt" class="animated" style="font-size:11px;border-radius:2px;position:absolute;opacity:.5;right:0;bottom:0;text-align:right;padding:4px 7px;margin-top:-4px;">
+    Registered <span class="_reg_user"><%= nRegisterUser%></span><br>
+    Connected <span class="_con_user"><%=nConnectedUser%></span>
+</div>
+
+        
+<div style="width: 200px;
+	height: 290px;
+
+	position: absolute;
+	top:0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+
+	margin: auto;
+">
+
+    <div class="_welcome" class="animated" style="font-size:100px;text-align:left;line-height:.9;color:rgba(255,255,255,.2);display:inline;position:absolute;z-index:-1;padding:4px 0px;left:-40px;top:-100px;">
+        <font style="font-size:40px;">Welcome!</font><br>
+        <%=sName%>
+    </div>
+
+    <div style="text-align:center;">
+        <h1 class="title">Tetris.js</h1>
+    </div>
+
+
+    <style type="text/css">
+        * {
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            box-sizing: border-box;
+        }
+
+        #wrapper_scroll {
+            margin-top:10px;
+            border-radius:50%;
+            background-color:rgba(255,255,255,.1);
+            border:3px solid rgba(255,255,255,.5);
+            -webkit-mask-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);
+            box-shadow:inset 1px 1px 2px rgba(0,0,0,.3);
+            
+        }
+
+        #wrapper_scroll .scrollers {
+            position: relative;
+            z-index: 1;
+            width:100%;
+            height:197px;
+            -webkit-tap-highlight-color: rgba(0,0,0,0);
+            -webkit-transform: translateZ(0);
+            -moz-transform: translateZ(0);
+            -ms-transform: translateZ(0);
+            -o-transform: translateZ(0);
+            transform: translateZ(0);
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-text-size-adjust: none;
+            -moz-text-size-adjust: none;
+            -ms-text-size-adjust: none;
+            -o-text-size-adjust: none;
+            text-size-adjust: none;
+        }
+        
+    </style>
+
+    <div style="box-shadow:1px 1px 2px rgba(0,0,0,.3);border-radius:50%;">
+    <div id="wrapper_scroll" style="height:200px;">
+        <div class="scrollers">
+        <ul class="screen_menu">
+            <li><a href="#" class="_menu_item" data-navigate="single">Single Game</a></li>
+            <li class="_menu_item" data-navigate="multi"><a>Multi Game</a></li>
+            <li class="_menu_item" data-navigate="board"><a>Live Board</a></li>
+            <li class="_menu_item" data-navigate="credit"><a>Credit</a></li>
+            <li class="_menu_item" data-navigate="logout"><a>Logout</a></li>
+        </ul>
+        </div>
+    </div>
+    </div>
+
+    
+    <div style="font-size:9px;color:#FFF;margin-top:15px;opacity:0.7;">
+        Powered with MEBN Stack<br>
+        by lee.jinkwon<br>
+        <a href="http://github.com" style="color:#FFF;">http://github.com</a>
+    </div>
+</div>
