@@ -19,6 +19,7 @@
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/lib \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/loader.js \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/package.json \
+/Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/phonegap.js \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/plugins \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/Tetris.js \
@@ -40,10 +41,6 @@
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/css/default.css \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/css/game.css \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/css/gameboard.css \
-/Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/css/jquery-ui.css \
-/Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/css/login.css \
-/Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/css/mobile.css \
-/Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/css/sidetap.css \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/css/style.css \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/img/arrow1_1.png \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/img/averagesppedbonus.png \
@@ -846,7 +843,6 @@
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/img/timeservice/title_02.png \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/shader/model.fs \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/shader/model.vs \
-/Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/sound/FF_8_OST.mp3 \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/sound/TE_SE_harddrop.mp3 \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/sound/TE_SE_harddrop.ogg \
 /Users/jinkwonlee/LabSpace/tetris.js/client/platforms/android/assets/www/res/sound/TE_SE_lockdown.mp3 \
