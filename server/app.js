@@ -13,7 +13,7 @@ var _ = require('underscore');
 var mongoose = require('mongoose');
 var User = mongoose.model('User');
 
-var oSocketIo = SocketIo.listen(process.env.port || 8888);
+var oSocketIo = SocketIo.listen(process.env.port || 3000);
 
 oSocketIo.configure(function(){
     oSocketIo.enable('browser client minification');  // send minified client
@@ -152,5 +152,5 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
-app.listen(3030);
+app.listen(8080);
 
