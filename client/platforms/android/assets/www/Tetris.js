@@ -1,4 +1,4 @@
-/*! Tetris - v0.1.0 - 2014-05-18
+/*! Tetris - v0.1.0 - 2014-05-23
 * https://github.com/Jinkwon/tetris.js
 * Copyright (c) 2014 LeeJinKwon; Licensed MIT */
 var app = app ? app : {};
@@ -89,13 +89,13 @@ app.tetris.config._refresh = function(){
 
     switch(app.tetris.config.sMode){
         case 'production' :
-            sSrvUrl = 'http://serverurl';
+            sSrvUrl = 'http://srv.bdyne.net:8080';
             break;
         case 'staging' :
-            sSrvUrl = 'http://192.168.1.10:8888';
+            sSrvUrl = 'http://' + document.location.hostname + ':8080';
             break;
         default :
-            sSrvUrl = 'http://' + document.location.hostname + ':8888';
+            sSrvUrl = 'http://' + document.location.hostname + ':8080';
             break;
     }
 
@@ -156,6 +156,18 @@ app.mobile.metaInit = function(){
 
 };
 app.tetris.Network.init = (function(htOptions){
+
+    if(!app.tetris.io){
+        app.tetris.io = io.connect(app.tetris.config.sHost, {
+            timeout : 10000
+        });
+
+        app.tetris.Game.Network.init();
+        app.tetris.Account.Network.init();
+    }
+
+    return;
+
 	//if($.cookie('SMSESSION')
 	var htOptions = htOptions ? htOptions : {}
 	  , oView
@@ -177,7 +189,7 @@ app.tetris.Network.init = (function(htOptions){
 			window.location.href = 'login.html';
 		}
 	};
-	
+
     
 	var initialize = function(){
 		initGameIo();
@@ -187,7 +199,7 @@ app.tetris.Network.init = (function(htOptions){
 	var initGameIo = function(){
 		oGameIo = io.connect(app.tetris.config.sGameUrl);
 		
-		
+
 		oGameIo.on('connect', function(){
 			
 			var htReq = {
@@ -197,6 +209,7 @@ app.tetris.Network.init = (function(htOptions){
 			};
 	
 			oGameIo.emit('reqJoin', htReq);
+
 		}).on('disconnect', function(){
 			//alert('서버와의 접속이 끊어졌습니다.');
 			//moveToLogin();
@@ -306,6 +319,11 @@ app.tetris.Util.leadingSpaces = function(n, digits) {
 	return space + n;
 };
 
+app.tetris.Util.getOrdinal = function(n) {
+    var s=["th","st","nd","rd"],
+        v=n%100;
+    return n+(s[(v-20)%10]||s[v]||s[0]);
+}
 
 app.tetris.Util.makeGuid = function(){
 	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -414,20 +432,27 @@ WebGLUtil.loadShader = function(url){
 app.tetris.ui.BackButton = {
 
     setEvents : function(){
+        this._hideDomWithContext = $.proxy(this._hideDom, this);
+        this.welClose = $('#_container').find('._close');
+        this._sAniEvents = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+        
         $(document).on('click', '._close', $.proxy(function (we) {
             this._clearAnimationClass($(we.currentTarget));
 
             $(we.currentTarget)
                 .addClass('bounceIn').show();
-
             app.tetris.Router.moveBack();
         }, this));
     },
 
     show : function(){
-        var welClose = $('#_container').find('._close');
-        this._clearAnimationClass(welClose);
-        welClose.show().addClass('rotateIn');
+        this._clearAnimationClass(this.welClose);
+        this.welClose.show().addClass('rotateIn');
+        this.welClose.off(this._sAniEvents);
+    },
+
+    _hideDom : function(){
+        this.welClose.hide();
     },
 
     hide : function(){
@@ -439,9 +464,7 @@ app.tetris.ui.BackButton = {
             welClose
                 .show()
                 .addClass('bounceOut')
-                .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-                    welClose.hide();
-                });
+                .one(this._sAniEvents, this._hideDomWithContext);
 
         } else {
             this._clearAnimationClass(welClose);
@@ -570,10 +593,9 @@ app.tetris.ui.Option.View = Backbone.View.extend({
         "click ._menu_item" : "onClickMenu"
     },
 
-    initialize : function(options){
-        this._setOptionListIdx(options.aList || []);
+    initialize : function(){
 
-        this.sTitle = options.sTitle || 'Options';
+        this.render();
     },
 
     _setOptionListIdx : function(aList){
@@ -585,33 +607,59 @@ app.tetris.ui.Option.View = Backbone.View.extend({
     },
 
     onClickMenu : function(we){
-        var nIdx = $(we.currentTarget).attr('data-idx');
-        var bClose = true;
+        this.unbind();
 
-        if(this.aOptionList[nIdx].fn){
-            bClose = this.aOptionList[nIdx].fn() || bClose;
+        var nIdx = $(we.currentTarget).attr('data-idx');
+
+        var bClose;
+        
+        if (this.aOptionList[nIdx].fn) {
+            bClose = this.aOptionList[nIdx].fn();
         }
 
-        if(bClose){
+        if(bClose !== false){
             this.hide();
         }
+
 
         return false;
     },
 
-    show : function(){
+    show : function(options){
+        this._setOptionListIdx(options.aList || []);
+        this.sTitle = options.sTitle || 'Options';
 
-        this.showDimmedLayer();
-
-        $('#_dimmed_section').show();
-
-        this.render();
         this.$el.show();
+        this.showDimmedLayer();
+        this.render();
 
+        var nHeight = this.$el.find('.option_title').outerHeight() + this.$el.find('.option_layer').height();
+        
+        this.$el.find('.option_container')
+            .show()
+            .removeClass('animated flipInY')
+            .css('height', nHeight + 'px');
+
+
+        this.$el.find('.option_container')
+            .removeClass('animated flipInY')
+            .addClass('animated flipInY')
+            .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+                $(this).removeClass('animated flipInY');
+            });
     },
 
     hide : function(){
-        this.$el.hide();
+
+        var self = this;
+        this.$el.find('.option_container')
+            .removeClass('animated05 fadeOutDown')
+            .addClass('animated05 fadeOutDown')
+            .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
+                $(this).removeClass('animated05 fadeOutDown');
+                self.$el.hide();
+            });
+        
         this.hideDimmed();
     },
 
@@ -620,7 +668,6 @@ app.tetris.ui.Option.View = Backbone.View.extend({
     },
 
     showDimmedLayer : function(string){
-
         if($('#_dimmed_section .pause').length > 0){
             $('#_dimmed_section').show();
             return;
@@ -629,18 +676,12 @@ app.tetris.ui.Option.View = Backbone.View.extend({
         string = string || '';
 
         $('.field .pause').remove();
-        $('#_dimmed_section').prepend(
+        $('#_dimmed_section').html(
                 '<div class="pause" style="z-index:50;width:100%;height:100%;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
                 '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>').show();
-
-        // $('#other_1').parent().find('.pause').remove();
-        // $('#other_1').parent().prepend(
-        // '<div class="pause" style="z-index:500;width:100px;height:200px;margin:13px;margin-top:15px;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
-        // '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:70px;">'+string+'</div></div>');
     },
 
     render : function(){
-
         var template = app.tetris.TemplateManager.get(this.template, {
             aList : this.aOptionList,
             sTitle : this.sTitle
@@ -649,6 +690,8 @@ app.tetris.ui.Option.View = Backbone.View.extend({
         return this;
     }
 });
+
+app.tetris.ui.Option.View = new app.tetris.ui.Option.View();
 (function(){
     var AccountInfo = function(){
         this.userId ='';
@@ -724,27 +767,30 @@ app.tetris.ui.Option.View = Backbone.View.extend({
 app.tetris.Account.Network = {};
 
 
+app.tetris.Account.Network.init = function(cb){
 
-app.tetris.Account.Network.connect = function(cb){
+
     if(!app.tetris.Account.Network.io){
-        app.tetris.Account.Network.io = io.connect(app.tetris.config.sAccountUrl, {
-            timeout : 5000
-        });
-
+        app.tetris.Account.Network.io = app.tetris.io.of('/account');
 
         app.tetris.Account.Network.io
-            .on('connection', function(){
+            .on('connect', function(){
+                console.log('connect account', arguments);
+
                 if(cb){
                     cb();
                 }
+
+            })
+            .on('reconnect', function(){
+
             })
             .on('disconnect', function(){
-
-                alert('disconnected');
+                console.log('disconnected');
             })
             .on('error', function(){
                 alert('Cannot connect to Server');
-                app.tetris.Account.Network.io = null;
+
             })
             .on('reconnect_failed', function(){
                 console.log('reconnect_failed');
@@ -754,13 +800,14 @@ app.tetris.Account.Network.connect = function(cb){
                 alert('Connect failed');
             })
             .on('resLogin', function(htData){
-                
+                console.log(htData.bAvail);
                 app.tetris.Account.Info.bAvail = htData.bAvail;
                 if(app.tetris.Account.Info.bAvail){
                     app.tetris.Account.Info.broadcast('onSuccessLogin');
                 } else {
                     app.tetris.Account.Info.broadcast('onFailLogin');
                 }
+
             })
             .on('resJoin', function(htData){
 
@@ -777,23 +824,18 @@ app.tetris.Account.Network.connect = function(cb){
 
                 app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
             });
-        
-//setInterval(function(){
-//        app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
-//}, 1000);
     }
-    
+
     if (app.tetris.Account.Network.io.socket.connected === false && app.tetris.Account.Network.io.socket.connecting === false) {
         app.tetris.Account.Network.io.socket.connect();
     } else {
-        
-        
+
         if(cb){
             cb();
         }
     }
-    
-    
+
+
 };
 (function(){
 
@@ -851,11 +893,9 @@ app.tetris.Account.Network.connect = function(cb){
                 return;
             }
             
-            app.tetris.Account.Network.connect($.proxy(function(){
-                this._updateAccount();
-                this._setAccountEvents();
-                app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());    
-            }, this));
+            this._updateAccount();
+            this._setAccountEvents();
+            app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
         },
 
         _onClickJoin : function(){
@@ -869,12 +909,9 @@ app.tetris.Account.Network.connect = function(cb){
                 return;
             }
 
-            app.tetris.Account.Network.connect($.proxy(function(){
-
-                this._updateAccount();
-                this._setAccountEvents();
-                app.tetris.Account.Network.io.emit('reqJoin', app.tetris.Account.Info.getAccount());
-            }, this));
+            this._updateAccount();
+            this._setAccountEvents();
+            app.tetris.Account.Network.io.emit('reqJoin', app.tetris.Account.Info.getAccount());
         },
 
         _updateAccount : function(){
@@ -1253,8 +1290,6 @@ app.tetris.Game.init = (function(htOptions){
       , welAbout = $('#about');
       
 	
-    
-    
 	var replaceElement = function(){
 		$('#welcome_str').html('환영합니다');
 	};
@@ -1478,7 +1513,10 @@ app.tetris.Game.Model = Backbone.Model.extend({
             nNumber : 2,
             nCols : 0,
             nRows : 0,
+            sUserId : '',
             sGuid : '',
+            nLogicSpeed : 1500,
+            nLevel : 1,
             aMatrix : [],
             nGameStartTime : 0,
             oBlockCollection : {},
@@ -1488,11 +1526,16 @@ app.tetris.Game.Model = Backbone.Model.extend({
             }
 		};
 	},
-	
+    
 	initialize : function(){
 		this.set({
 			nScore : 0,
 			htBlockPos : {nX : 5, nY : 0},
+            nLogicSpeed : 1500,
+            nLevel : 1,
+            aMatrix : [],
+            sUserId : '',
+            nRank : '',
 			nCols :10,
 			nRows: 20,
 			nBlockPixel : 22
@@ -1513,11 +1556,80 @@ app.tetris.Game.Model = Backbone.Model.extend({
 	
 	plusScore : function(nScorePlus){
 		var nScore = this.get('nScore');
-		this.set('nScore', nScore + (nScorePlus * 100));
+        
+		this.set('nScore', nScore + nScorePlus);
 	},
 
+    clearFullLine : function(){
+        var matrix = this.get('aMatrix')
+            , nCols = this.get('nCols')
+            , nRows = this.get('nRows')
+            , lineCount = 0
+            , nFlag
+            , nCnt
+            , aNewLine;
+
+        for(var i = 0; i < nRows + 2; i++){
+            nCnt = 0;
+            for(var j = 1; j < nCols + 1; j++){
+                if(matrix[i][j].nFlag == 1){
+                    nCnt++;
+                }
+            }
+
+            if(nCnt == nCols && i < nRows + 1){
+                matrix.splice(i, 1);
+
+                aNewLine = [];
+                for(var k = 0; k <= nCols + 1; k++){
+                    nFlag = (k === 0 || k === nCols + 1) ? 1 : 0;
+                    aNewLine.push({nFlag : nFlag});
+                }
+
+                matrix.unshift(aNewLine);
+                lineCount++;
+            }
+        }
+
+        this.setMatrix(matrix);
+        
+        return lineCount;
+    },
+    
+    setBlockToMatrix : function(oBlockModel, htBlockPos){
+
+        var aBlock = oBlockModel.get('aMatrix'), 
+            sBlockColor = oBlockModel.get('sColor');
+        
+        var matrix = this.getMatrix();
+        var nX, nY;
+
+        for(var i = 0; i < aBlock.length; i++){
+            for(var j = 0; j < aBlock[i].length; j++){
+
+                nX = j + htBlockPos.nX;
+                nY = i + htBlockPos.nY;
+
+                if(matrix[nY] === undefined){
+                    continue;
+                }
+
+                if(matrix[nY][nX] === undefined){
+                    continue;
+                }
+
+                if(matrix[nY][nX].nFlag !== 1){
+                    matrix[nY][nX].nFlag = aBlock[i][j];
+                    matrix[nY][nX].sColor = sBlockColor;
+                }
+            }
+        }
+
+        this.setMatrix(matrix);
+    },
+    
 	setBlockPosXY : function(nX, nY){
-		this.set({ htBlockPos : {nX : nX, nY : nY}});
+		this.set('htBlockPos', {nX : nX, nY : nY});
 	},
 	
 	/**
@@ -1552,7 +1664,11 @@ app.tetris.Game.Model = Backbone.Model.extend({
 		
 		this.setMatrix(matrix);	
 	},
-	
+    
+    initVal : function(){
+        this.initialize();
+    },
+    
 	setMatrix : function(matrix){
 		this.set('aMatrix', matrix);
 	},
@@ -1562,67 +1678,394 @@ app.tetris.Game.Model = Backbone.Model.extend({
 	}
 });
 
+
+app.tetris.Game.Network = {};
+
+app.tetris.Game.Network.close = function(){
+    if(app.tetris.Game.Network.io){
+        app.tetris.Game.Network.io.disconnect();
+    }
+};
+app.tetris.Game.Network.open = function(){
+    if(app.tetris.Game.Network.io){
+        app.tetris.Game.Network.io.reconnect();
+    }
+};
+
+app.tetris.Game.Network.init = function(){
+    app.tetris.Game.Network.io = app.tetris.io.of('/game');
+
+    app.tetris.Game.Network.io
+        .on("reconnect", function(){
+            console.log('connect', arguments);
+//            oGameIo.emit('reqJoinLeague', {
+//            });
+        })
+
+        .on('disconnected', function(){
+            console.log('game disconnected')
+        })
+        .on('brGameStart', function(htObj){
+            console.log('brGameStart');
+            if(htObj.bIsStarted){
+                // play Game
+                app.tetris.Game.Network.sRoomName = htObj.sRoomName;
+            }
+        })
+        .on('brGameInfo', function(htObj){
+            console.log('brGameInfo', arguments);
+        })
+        .on('resStartGame', function(htObj){
+            console.log('resStartGame', arguments);
+
+            if(htObj.code === 400){
+                app.tetris.Game.Network.io.emit('reqRoomInfo', { sRoomId : htObj.sRoomId});
+            }
+            
+            if(htObj.bIsStarted){
+                // play Game
+                console.log('GAME BEGIN');
+                app.tetris.Game.Network.sRoomName = htObj.sRoomName;
+            }
+        })
+        .on('brLeagueClosed', function(){
+            console.log(arguments);
+        });
+};
 (function(){
 
     var StageView = Backbone.View.extend({
         el : '#_container #_single_view',
         template : 'stage/stage.mobile',
-        
+
+
         initialize : function(){
+            this.render();
+            this._setViewProperties();
+            this._initTimer();
+            this.setUIEvents();
+            this.setLogicEvents();
+            
+        },
+
+        setType : function(sType){
+            this._sType = sType;
+        },
+        
+        _setViewProperties: function () {
             this.arColorPos = {
-                'red' : 1,
-                'orange' : 2,
-                'yellow' : 3,
-                'green' : 4,
-                'sky' : 5,
-                'blue' : 6,
-                'purple' : 7,
-                'sand' : 8,
-                'leaf' : 9,
-                'brown' : 10,
-                'leaf2' : 11,
-                'sky2' : 12,
-                'sand2' : 13,
-                'stone' : 14
+                'red': 1,
+                'orange': 2,
+                'yellow': 3,
+                'green': 4,
+                'sky': 5,
+                'blue': 6,
+                'purple': 7,
+                'sand': 8,
+                'leaf': 9,
+                'brown': 10,
+                'leaf2': 11,
+                'sky2': 12,
+                'sand2': 13,
+                'stone': 14
             };
 
-            this.focusMenu('tip');
+            this._onTouchKeyPadWithContext = $.proxy(this._onTouchKeyPad, this);
+            this._isDrawNextGroupBlock = false;
+
+
+            this._onBrRoomInfo = $.proxy(this._onChangeRoomData, this);
+            this._onresQuickGame = $.proxy(function(htData){
+                this.setReady = true;
+                this._onChangeRoomData.apply(this, [htData]);
+            }, this);
+
+            this._onChangeModel = $.proxy(function(){
+                app.tetris.Game.Network.io.emit('brGameInfo', {
+                    sRoomId : this._sRoomId,
+                    aMatrix : this.model.get('aMatrix'),
+                    nScore : this.model.get('nScore')
+                });
+            }, this);
             
+            this._onGameStart = $.proxy(function(htData){
+                console.log(arguments);
+                app.tetris.ui.Option.View.hide();
+                this._startNetworkGame(htData);
+            }, this);
+            
+            this._onWisper = $.proxy( function(htData){
+                console.log('brGameInfo, wisper', arguments);
+
+                var welScoreBoard = this.$el.find('._score_board');
+                
+                if(htData.nMyRank){
+                    welScoreBoard.find('._my_rank').html(app.tetris.Util.getOrdinal(htData.nMyRank)).show();
+                    
+                    if(htData.nTotal){
+                        var nPercent = 100 / (htData.nTotal - 1) * (htData.nMyRank - 1);
+                        welScoreBoard.find('._rank_percent').css('left', nPercent + '%').show();
+                    }
+                }
+                
+                var oModel = null;
+                if(htData.sType === 'im_back'){
+                    oModel = this.backModel;
+                } else if(htData.sType === 'im_front'){
+                    oModel = this.frontModel;
+                }
+
+                if(oModel){
+                    oModel.set({
+                        'sUserId' : htData.sUserId,
+                        'nRank' : htData.nRank,
+                        'nScore' : htData.nScore,
+                        'aMatrix' : htData.aMatrix
+                    });    
+                }
+                
+            }, this);
+        },
+
+        _startNetworkGame : function(htData){
+            this._sRoomId = htData.sRoomId;
+            
+            this.model.unbind('change:nScore', this._onChangeModel);
+            this.model.unbind('change:aMatrixCustomEvent', this._onChangeModel);
+
+            this.model.bind('change:nScore', this._onChangeModel);
+            this.model.bind('change:aMatrixCustomEvent', this._onChangeModel);
+
+            this.startTimer();
+            
+            this.oGameView.start();
+
+            app.tetris.Game.Network.io.emit('brGameInfo', {
+                sRoomId : this._sRoomId,
+                aMatrix : this.model.get('aMatrix'),
+                nScore : this.model.get('nScore')
+            });
+        },
+        
+        _createMenuObject : function(sLabel, fn){
+            return {
+                sLabel : sLabel,
+                fn : fn
+            };
+        },
+
+        renderOtherStage: function (wel, model) {
+            wel.removeClass('pulse animated05').hide().addClass('pulse animated05').show();
+            
+            var nRank = model.get('nRank');
+            var sUserId = model.get('sUserId');
+            var nScore = model.get('nScore');
+            
+            wel.find('._rank').html(nRank > 0 ? app.tetris.Util.getOrdinal(nRank) : '');    
+            wel.find('._text').html(sUserId !== '' ? sUserId + '. ' + nScore : '');    
+            
+        },
+        
+        _onChangeRoomData : function(htData){
+            if(!this.setReady || htData.sRoomId === 'menu'){
+                return;
+            }
 
             
-            this._initTimer();
-
-
-
-
-
-//            onChange : function(){
-//            change:nScore
-//            chnage:aMatrix
-//
-//                var htData = {
-//                    sGuid : this.model.get('sGuid'),
-//                    aMatrix : this.model.get('aMatrix'),
-//                    nScore : this.model.get('nScore')
-//                };
-//                this.oGameIo.emit('sendGameInfo', htData);
-//            }
-
-            this.setUIEvents();
             
-            this.render();
+            
+            app.tetris.Game.Network.io.removeListener('brGameStart', this._onGameStart);
+            app.tetris.Game.Network.io.addListener('brGameStart', this._onGameStart);
 
+            app.tetris.io.removeListener('brGameInfo', this._onWisper);
+            app.tetris.io.addListener('brGameInfo', this._onWisper);
+
+            this.backModel.bind('change:nScore change:aMatrix', $.proxy(function(){
+
+                
+                var wel = $('._back_user_info');
+
+                this.oBackGameView.drawMyStage();
+                this.renderOtherStage(wel, this.backModel);
+
+                if(this.backModel.get('sUserId') === this.frontModel.get('sUserId')){
+                    this.frontModel.initVal();
+                }
+                
+            }, this));
+
+            this.frontModel.bind('change:nScore change:aMatrix', $.proxy(function(){
+                
+                var wel = $('._front_user_info');
+
+                this.oFrontGameView.drawMyStage();
+                this.renderOtherStage(wel, this.frontModel);
+                
+                console.log(this.backModel.get('sUserId') , this.frontModel.get('sUserId'));
+                
+                if(this.backModel.get('sUserId') === this.frontModel.get('sUserId')){
+                    this.backModel.initVal();
+                }
+                
+            }, this));
+            
+            var aMenuList = [
+                this._createMenuObject('Leave Room', $.proxy(function(){
+                    this.setReady = false;
+                    app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId : htData.sRoomId});
+                    this.openMultiGameMenu();
+                    return false;
+                    
+                }, this)),
+                this._createMenuObject('Go to Menu', $.proxy(function(){
+                    this.setReady = false;
+                    app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId : htData.sRoomId});
+                    app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId :'menu'});
+                    app.tetris.Router.navigate('menu', {trigger : true});
+                }, this))
+            ];
+
+            if(app.tetris.io.socket.sessionid === htData.sOwnerId){
+                aMenuList.unshift(
+                    this._createMenuObject('Start Game', $.proxy(function(){
+                        app.tetris.Game.Network.io.emit('reqStartGame', {
+                            sRoomId : htData.sRoomId
+                        });
+                        
+                        return false;   
+                    }, this))
+                );
+            }
+            
+            app.tetris.ui.Option.View.show({
+                sTitle : 'Multi Game<br> User : ' + htData.nMemberCount,
+                aList : aMenuList
+            });
+        },
+
+        initNetworks: function () {
+            app.tetris.Game.Network.io.emit("subscribe", { sRoomId : 'menu' });
+            app.tetris.Game.Network.io.removeListener('resQuickGame', this._onresQuickGame);
+            app.tetris.Game.Network.io.removeListener('brRoomInfo', this._onBrRoomInfo);
+
+            app.tetris.Game.Network.io.addListener('resQuickGame', this._onresQuickGame);
+            app.tetris.Game.Network.io.addListener('brRoomInfo', this._onBrRoomInfo);
+        },
+
+        openMultiQuickJoin : function(sTitle){
+            app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId :'menu'});
+            this.initNetworks();
+
+                        
+            var _onClickQuickGame = function(){
+                app.tetris.Game.Network.io.emit('reqQuickGame', {});
+                app.tetris.ui.Option.View.show(htMultiGameOption);
+                return false;
+            };
+
+            var _onClickMenu = function(){
+                app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId :'menu'});
+                app.tetris.Router.navigate('menu', {trigger : true});
+            };
+
+            var htMultiGameOption = {
+                sTitle : sTitle || 'Multi Game',
+                aList : [
+                    this._createMenuObject('Quick Join', $.proxy(_onClickQuickGame, this)),
+                    this._createMenuObject('Go to Menu', $.proxy(_onClickMenu, this))
+                ]
+            };
+
+            app.tetris.ui.Option.View.show(htMultiGameOption);
+
+            app.tetris.Game.Network.io.emit('reqQuickGame', {});
+            app.tetris.ui.Option.View.show(htMultiGameOption);
+        },
+        
+        openMultiGameMenu : function(sTitle){
+            this.initNetworks();
+            
+            var _onClickQuickGame = function(){
+                app.tetris.Game.Network.io.emit('reqQuickGame', {});
+                app.tetris.ui.Option.View.show(htMultiGameOption);
+                return false;
+            };
+
+            var _onClickMenu = function(){
+                app.tetris.Game.Network.io.emit("unsubscribe", { sRoomId :'menu'});
+                app.tetris.Router.navigate('menu', {trigger : true});
+            };
+            
+            var htMultiGameOption = {
+                sTitle : sTitle || 'Multi Game',
+                aList : [
+                    this._createMenuObject('Quick Join', $.proxy(_onClickQuickGame, this)),
+                    this._createMenuObject('Go to Menu', $.proxy(_onClickMenu, this))
+                ]
+            };
+            
+            app.tetris.ui.Option.View.show(htMultiGameOption);
+        },
+
+        _onTouchKeyPad :function(e){
+            e.stopPropagation();
+            e.preventDefault();
+            var sGameStatus = this.model.get('sGameStatus');
+
+            if(this.model.get('sGameStatus') !== 'play'){
+                return false;
+            }
+
+            if(e.handled !== true) {
+                var id = $(e.currentTarget).attr('id');
+
+                if(id === 'down'){
+                    this.oGameView.moveDown(true);
+                } else if(id === 'right'){
+                    this.oGameView.moveBlock('right');
+                } else if(id === 'left'){
+                    this.oGameView.moveBlock('left');
+                } else if(id === 'up'){
+                    this.oGameView.rotateBlock('right');
+                } else if(id === 'harddown'){
+                    this.oGameView.moveHardDown();
+                }
+
+                e.handled = true;
+            }
+
+            return false;
+        },
+        
+        setLogicEvents: function () {
+
+            app.tetris.Router.on('route', $.proxy(function(sRouteName){
+                if(this.oGameView && 
+                    sRouteName !== 'moveToSingleGame' &&
+                    sRouteName !== 'moveToMultiGame'
+                ){
+                    this.oGameView.stop().unbind();
+                }
+            }, this));
         },
 
         _renderScore : function(){
             var nScore = this.model.get('nScore');
+            var welScore = this.$el.find('.score');
 
-            this.$el.find('.score')
-                .empty()
-                .html(nScore)
-                .parent().removeClass('animated pulse').addClass('animated pulse').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-                    $(this).removeClass('animated pulse');
-                });
+            welScore.empty().html(nScore);
+            this.playUIAnimation(welScore.parent(), 'pulse');
+        },
+        
+        playUIAnimation : function(wel, sType, time){
+            var sAnimationClsss = time === '.5' ? 'animated05' : 'animated';
+            var sEvents = 'webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend';
+                
+            var _onAnimationClose = function(){
+                $(this).removeClass(sAnimationClsss + ' ' + sType);
+            };
+            
+            wel.removeClass(sAnimationClsss + ' ' + sType).addClass(sAnimationClsss + ' ' + sType).one(sEvents, _onAnimationClose);
         },
 
         onBlockChange : function(){
@@ -1636,6 +2079,10 @@ app.tetris.Game.Model = Backbone.Model.extend({
             var aBlocks = this.model.get('oBlockCollection');
             var nBlock = this.model.get('nextBlock')[0];
 
+            if(!aBlocks.at(nBlock)){
+                return;
+            }
+            
             var sBlock = this.getBlockString(aBlocks.at(nBlock).get('aMatrix'), aBlocks.at(nBlock).get('sColor'), 16, 'next');
 
             $('.next_block_container').empty().append(sBlock);
@@ -1645,16 +2092,12 @@ app.tetris.Game.Model = Backbone.Model.extend({
 
                 for(var i = 0; i < 3; i++){
                     nBlock = this.model.get('nextBlock')[i+1];
-                    var sBlock = this.getBlockString(aBlocks.at(nBlock).get('aMatrix'), aBlocks.at(nBlock).get('sColor'), 12, 'next_'+i);
+                    sBlock = this.getBlockString(aBlocks.at(nBlock).get('aMatrix'), aBlocks.at(nBlock).get('sColor'), 12, 'next_'+i);
                     $('.next_group_block_container').append(sBlock + '<div style="clear:both;height:43px;"></div>');
                 }
             }
 
-            $('._next_block')
-                .removeClass('animated fadeInRight').addClass('animated fadeInRight').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-                    $(this).removeClass('animated fadeInRight');
-                });
-
+            this.playUIAnimation($('._next_block'), 'fadeInDown');
         },
 
         getPosPixelByColor : function(sColor, nSize){
@@ -1668,9 +2111,7 @@ app.tetris.Game.Model = Backbone.Model.extend({
             for(var i = 0; i < aBlock.length; i++){
                 for(var j = 0; j < aBlock[i].length; j++){
                     if(aBlock[i][j] == 1){
-
                         nPosX = this.getPosPixelByColor(sColor, nSize);
-
                         str.push('<div class="fill_block_'+nSize+'" style="width:'+nSize+'px;height:'+nSize+'px;background-position:-'+nPosX+'px 0;"></div>');
                     }else{
                         str.push('<div class="empty_block" style="width:'+nSize+'px;height:'+nSize+'px;"></div>');
@@ -1683,79 +2124,105 @@ app.tetris.Game.Model = Backbone.Model.extend({
             return str.join('');
         },
 
+        resetUI: function () {
+            if(this._sType === 'multi'){
+                this.$el.find('._multi').show();
+            } else {
+                this.$el.find('._multi').hide();
+            }
+        },
+        
         render : function(){
             var template = app.tetris.TemplateManager.get(this.template, {});
             this.$el.html(template);
-            if(app.tetris.Util.isMobile()){
-                $('._mobile').show();
-            } else {
-                $('._mobile').hide();
-            }
 
+            this.resetUI();
             return this;
+        },
+
+        clearOldViewObject: function () {
+            if (this.oGameView) this.oGameView.unbind();
+            if (this.oGameView2) this.oGameView2.unbind();
+            if (this.oGameView3) this.oGameView3.unbind();
         },
         
         show : function(){
-        
-            this.$el.show();
-
             if(this.oGameView){
-                this.oGameView.unbind();
+                this.oGameView.stop().unbind();
             }
 
+            this.resetUI();
+            this.$el.show();
+
+            this.clearOldViewObject();
             this.initGame();
             this._renderScore();
+
+            this.playUIAnimation(this.$el.find('._option'), 'rotateIn');
         },
 
-        initGame : function(){
-            this.model = new app.tetris.Game.Model();
+        setGameEvents : function(){
+            this.$el
+                .off('touchstart mousedown', '.jpad', this._onTouchKeyPadWithContext)
+                .on('touchstart mousedown', '.jpad', this._onTouchKeyPadWithContext);
+        },
+
+        bindModelEvents: function () {
             this.model.bind('change:sGameStatus', this.watchGameStatus, this);
             this.model.bind('change:htBlockPos', this.onBlockChange, this);
             this.model.bind('change:nScore', this._renderScore, this);
-            this.model.bind('change:nScore change:htBlockPos', function(){
-                console.log('sendData');
-            });
+        },
 
+        getGameType : function(){
+            return this._sType;
+        },
+        
+        isMultiGame : function(){
+            return this.getGameType() === 'multi';
+        },
+        
+        initGame : function(){
+            this.model = new app.tetris.Game.Model();
+            this.bindModelEvents();
+            
             this.oGameView = new app.tetris.Game.View({
                 el : '#single_game_area',
                 model : this.model,
-                bEventBind : true,
-                bUseWebGL : false,
+                bKeyEventBind : true,
                 bUseSound : true
             });
+            this.setGameEvents();
+            
+            if(this.isMultiGame()){
+                this.openMultiGameMenu();
+                
+            } else {
+                this.startTimer();
+                this.oGameView.start();    
+            }
 
-            this.startTimer();
-            this.oGameView.start();
-
-
-            this.oGameView2 = new app.tetris.Game.View({
+            this.frontModel = new app.tetris.Game.Model();
+            
+            this.oFrontGameView = new app.tetris.Game.View({
                 el : '#other_1_game_area',
-                model : new app.tetris.Game.Model(),
+                model : this.frontModel,
                 bUseWebGL : false,
                 bUseSound : false
             });
 
-            this.oGameView3 = new app.tetris.Game.View({
+            this.backModel = new app.tetris.Game.Model();
+            
+            this.oBackGameView = new app.tetris.Game.View({
                 el : '#other_2_game_area',
-                model : new app.tetris.Game.Model(),
+                model : this.backModel,
                 bUseWebGL : false
             });
-
-//            setInterval(function(){
-//
-//                $('#other_1_game_area').parent().removeClass('tada').hide().addClass('tada').show();
-//            }, 2000);
-//
-//            setInterval(function(){
-//                $('#other_2_game_area').parent().removeClass('tada').hide().addClass('tada').show();
-//            }, 3000);
-
 
             var wel = $(this.$el);
             this._setGameEvents(wel);
         },
 
-        excuteTick : function(){
+        runTick : function(){
             var nGameStartTime = this.nGameStartTime;
             nGameStartTime += 1000;
             
@@ -1771,11 +2238,10 @@ app.tetris.Game.Model = Backbone.Model.extend({
         
         
         drawTime : function(sMin, sSec){
-            this.$el.find('._play_time')
-                .html(sMin + ':' + sSec)
-                .removeClass('animated05 rubberBand').addClass('animated05 rubberBand').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-                    $(this).removeClass('animated05 rubberBand');
-                });
+            var welPlayTime = this.$el.find('._play_time')
+
+            welPlayTime.html(sMin + ':' + sSec);
+            this.playUIAnimation(welPlayTime, 'rubberBand', '.5');
         },
         
         _initTimer : function(){
@@ -1788,9 +2254,9 @@ app.tetris.Game.Model = Backbone.Model.extend({
             
             this.nGameStartTime = this.model.get('nGameStartTime');
             this.stopTimer();
-            this.excuteTick();
+            this.runTick();
             this.timer = setInterval(function(){
-                that.excuteTick();
+                that.runTick();
             },1000);
             
         },
@@ -1809,21 +2275,22 @@ app.tetris.Game.Model = Backbone.Model.extend({
                 this.startTimer();
             } else if(sGameStatus === 'pause'){
                 this.stopTimer();
-                this.createDimmedLayer('Pause');
                 
             } else if(sGameStatus === 'stop'){
                 this._initTimer();
-                this.createDimmedLayer('Hello TETRIS');
+                this.openDimmedLayer('Hello TETRIS');
                 
             } else if(sGameStatus === 'ready'){
-                this.createDimmedLayer('Ready');
+                this.openDimmedLayer('Ready');
                 
             } else if(sGameStatus === 'game'){
-                this.createDimmedLayer('Already Started');
+                this.openDimmedLayer('Already Started');
                 
             } else if(sGameStatus === 'end'){
                 this.stopTimer();
-                this.createDimmedLayer('Game Over');
+                this.openDimmedLayer();
+                
+                this.openGameMenu('Game Over');
                 
             }else {
                 this.stopTimer();
@@ -1837,20 +2304,6 @@ app.tetris.Game.Model = Backbone.Model.extend({
             $('.chat_area').scrollTop($('.chat_area')[0].scrollHeight);
         },
         
-        focusMenu : function(sMenu){
-            $('.tip_btn, .option_btn, .map_btn, .key_btn').css('background-position','');
-            
-            if(sMenu === 'tip'){
-                $('.tip_btn').css('background-position', '-228px 0');
-            }else if(sMenu === 'option'){
-                $('.option_btn').css('background-position', '-224px 0');
-            } else if(sMenu === 'map'){
-                $('.map_btn').css('background-position', '-224px 0');
-            } else {
-                $('.key_btn').css('background-position', '-224px 0');	
-            }
-        },
-
         _setGameEvents: function (wel) {
             wel.find('#start_btn').bind('click', $.proxy(this.oGameView.start, this.oGameView));
             wel.find('#stop_btn').bind('click', $.proxy(this.oGameView.stop, this.oGameView));
@@ -1862,23 +2315,8 @@ app.tetris.Game.Model = Backbone.Model.extend({
         },
 
         setUIEvents : function(){
-            var that = this;
-            
-            $('.chat_input').on('keydown', function(e){
-                if(e.keyCode === 13 && $(this).val() !==''){
-                    that.logChat('me : ' + $(this).val());
-                    $(this).val('');
-                }
-            });
-        
-            $('.pop_btn').on('click', function(){
-                var reg = new RegExp('^(.*)_btn', 'ig');
-                var sId = reg.exec($(this).attr('id'))[1];
-                that.focusMenu(sId);
-            });
             
             var wel = this.$el;
-            
             
             wel.find('#ssamdi').on('click', $.proxy(function(){
                 if(this._bWebGLOn === true){
@@ -1898,37 +2336,125 @@ app.tetris.Game.Model = Backbone.Model.extend({
             wel.find('#fullscreen_btn').bind('click', $.proxy(this._onClickFullScreen, this));
 
 
-
-            var aOptionList = [
-                { sLabel : 'Continue' },
-
-                { sLabel : 'Pause', fn : function(){
-                    }
-                },
-
-                { sLabel : 'Setting', fn : function(){
-
-                    }
-                },
-
-                { sLabel : 'Exit', fn : function(){
-                    app.tetris.Router.navigate('menu', {trigger : true});
-
-                    }
-                }
-             ];
-
-            this.oOptionView = new app.tetris.ui.Option.View({
-                aList : aOptionList
-            });
-
             this.$el.on('click', '._option', $.proxy(function(){
-                this._showOption();
+                this.openOptionMenu();
             }, this));
         },
 
-        _showOption : function(){
-            this.oOptionView.show();
+        openOptionMenu : function(){
+            var _onClickSetting = function(){
+                
+                var aMenuList = [{sLabel : 'Back', fn : $.proxy(this.openOptionMenu, this)}];
+
+                if(app.tetris.Game.Util.isWebGLAvailable()){
+                    aMenuList.unshift({
+                        sLabel : 'Use WebGL',
+                        fn : $.proxy(function(){
+                            if(this.oGameView){
+                                this.oGameView.useWebGL(true);
+                            }
+                    }, this)}
+                    );
+                }
+                
+                app.tetris.ui.Option.View.show({
+                    sTitle : 'Setting',
+                    aList : aMenuList
+                });
+                
+                return false;
+            };
+
+            var _onClickMenu = function(){
+                app.tetris.Router.navigate('menu', {trigger : true});
+            };
+
+            var _onClickPause = function(){
+                this.oGameView.pause();
+
+                app.tetris.ui.Option.View.show({
+                    sTitle: 'Pause',
+                    aList : [
+                        { sLabel : 'Continue', fn : $.proxy(function(){
+                            this.startTimer();
+                            this.oGameView.pause();
+                        }, this)}
+                    ]
+                });
+                return false;
+            };
+
+            var _onClickJoinMultiGame = function(){
+                app.tetris.Router.navigate('menu', {trigger : true});
+                app.tetris.Router.navigate('multi', {trigger : true});
+                return false;
+            };
+            
+            var _onClickRestart = function(){
+                this.oGameView.start();
+            };
+
+            var aMenuList = [];
+            if(this.isMultiGame()){
+                aMenuList = [
+                    { sLabel : 'Continue' },
+                    { sLabel : 'Pause', fn : $.proxy(_onClickPause, this) },
+                    { sLabel : 'Restart', fn : $.proxy(_onClickRestart, this)},
+                    { sLabel : 'Re-join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
+                    { sLabel : 'Setting', fn : $.proxy(_onClickSetting, this) },
+                    { sLabel : 'Exit Multi Game', fn : $.proxy(_onClickMenu, this) }
+                ];
+            } else {
+                aMenuList = [
+                    { sLabel : 'Continue' },
+                    { sLabel : 'Restart', fn : $.proxy(_onClickRestart, this)},
+                    { sLabel : 'Pause', fn : $.proxy(_onClickPause, this) },
+                    { sLabel : 'Join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
+                    { sLabel : 'Setting', fn : $.proxy(_onClickSetting, this) },
+                    { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
+                ];
+            }
+            
+            app.tetris.ui.Option.View.show({
+                aList : aMenuList
+            });
+
+            return false;
+        },
+
+        openGameMenu : function(sTitle){
+            var _onClickReplay = function(){
+                this.oGameView.start();
+            };
+            
+            var _onClickJoinMultiGame = function(){
+                app.tetris.Router.navigate('menu', {trigger : true});
+                app.tetris.Router.navigate('multi', {trigger : true});
+                return false;
+            };
+
+            var _onClickMenu = function(){
+                app.tetris.Router.navigate('menu', {trigger : true});
+            };
+
+            var aMenuList = [];
+            if(this.isMultiGame()){
+                aMenuList = [
+                    { sLabel : 'Re-Join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
+                    { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
+                ];
+            } else {
+                aMenuList = [
+                    { sLabel : 'Replay Game', fn : $.proxy(_onClickReplay, this) },
+                    { sLabel : 'Join Multi Game', fn : $.proxy(_onClickJoinMultiGame, this) },
+                    { sLabel : 'Go to Menu', fn : $.proxy(_onClickMenu, this) }
+                ];
+            }
+            
+            app.tetris.ui.Option.View.show({
+                sTitle : sTitle || '',
+                aList : aMenuList
+            });
         },
 
         _onClickFullScreen : function(){
@@ -1943,24 +2469,15 @@ app.tetris.Game.Model = Backbone.Model.extend({
 
         },
 
-
-        /**
-         * 딤드 레이어 생성용 메서드
-         * @param {String} string
-         */
-        createDimmedLayer : function(string){
+        openDimmedLayer : function(string){
+            string = string || '';
             $('.field .pause').remove();
-            $('#_dimmed_section').prepend(
+            $('#_dimmed_section').html(
                 '<div class="pause" style="z-index:50;width:100%;height:100%;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
-                    '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>');
-
-            // $('#other_1').parent().find('.pause').remove();
-            // $('#other_1').parent().prepend(
-            // '<div class="pause" style="z-index:500;width:100px;height:200px;margin:13px;margin-top:15px;background-color:rgba(0,0,0,.7);position:absolute;color:#FFF;font-size:27px;font-family:Tahoma;">'+
-            // '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:70px;">'+string+'</div></div>');
+                    '<div style="margin:auto;width:100%;height:25px;text-align:center;margin-top:200px;">'+string+'</div></div>').show();
         }
     });
-
+    
     // Stage view is Singleton
     app.tetris.Game.StageView = {
         _oInstance : null,
@@ -1972,63 +2489,165 @@ app.tetris.Game.Model = Backbone.Model.extend({
             return this._oInstance;
         }
     };
-
 })();
+app.tetris.Game.Util = {
+
+    isWebGLAvailable : function(){
+
+        var elCanvas = document.createElement('canvas'); 
+        var names = ["webgl", "experimental-webgl", "webkit-3d", "moz-webgl"];
+        this.ctx = null;
+        for(var index=0; index<names.length; ++index){
+            try{
+                this.ctx = elCanvas.getContext(names[index]);
+            }
+            catch(e){
+                break;
+            }
+            if(this.ctx !== null) break;
+        }
+
+        return this.ctx !== null;
+    },
+    isCollision : function(htBlockPos, oBlock, aMatrix, forward){
+        var result = false
+            , aBlock = oBlock.get('aMatrix')
+            , nX, nY;
+
+        for(var i = 0; i < aBlock.length; i++){
+            for(var j = 0; j < aBlock[i].length; j++){
+
+                nX = j + htBlockPos.nX;
+                nY = i + htBlockPos.nY;
+
+                if(forward === 'bottom'){
+                    nY = nY + 1;
+                } else if(forward === 'left' || forward === 'right'){
+                    nX = (forward === 'left') ? nX - 1 : nX + 1;
+                }
+
+                if(aMatrix[nY] === undefined){
+                    continue;
+                }
+
+                if(aMatrix[nY][nX] === undefined){
+                    continue;
+                }
+
+                if(aMatrix[nY][nX].nFlag === 1 && aBlock[i][j] === 1){
+                    result = true;
+                    break;
+                }
+            }
+        }
+
+        return result;
+    },
+
+    rotateBlockArray : function(sType, oBlockModel, htBlockPos, aMatrix){
+        var aBlock = oBlockModel.get('aMatrix'),
+            sBlockCode = oBlockModel.get('sCode'),
+            nBlockAngle = oBlockModel.get('nAngle');
+
+        var aCopyMatrix = []
+            , aClone
+            , bRotate = false;
+
+        if(sBlockCode !== 'O'){
+            bRotate = true;
+        }
+
+        if(sBlockCode === 'S' || sBlockCode === 'I' || sBlockCode === 'Z') {
+            if(nBlockAngle > 0){
+                sType = 'left';
+            }
+        }
+
+        if(bRotate === true){
+            if(sType === 'right'){
+                nBlockAngle = (nBlockAngle + 90) % 360;
+
+                for(j = aBlock[0].length - 1; j >=0; j--){
+                    aClone = [];
+                    aClone.push(aBlock[3][j]);
+                    for(i = 0; i < aBlock.length - 1; i++){
+                        aClone.push(aBlock[i][j]);
+                    }
+
+                    aCopyMatrix.push(aClone);
+                }
+            } else {
+                nBlockAngle = (nBlockAngle - 90) % 360;
+
+                for(j = 1; j < aBlock.length; j++){
+                    aClone = [];
+                    for( i = aBlock[0].length - 1; i >=0; i--){
+                        aClone.push(aBlock[i][j]);
+                    }
+                    aCopyMatrix.push(aClone);
+                }
+
+                aClone = [];
+                for(var i = aBlock[0].length - 1; i >=0; i--){
+                    aClone.push(aBlock[i][0]);
+                }
+
+                aCopyMatrix.push(aClone);
+            }
+
+            var oNewBlock = oBlockModel.clone().set('aMatrix', aCopyMatrix);
+
+            if(!this.isCollision(htBlockPos, oNewBlock, aMatrix)){
+
+                oBlockModel.set({
+                    aMatrix : aCopyMatrix,
+                    nAngle : nBlockAngle
+                });
+            }
+
+        }
+
+
+        return oBlockModel;
+    }
+};
 app.tetris.Game.View = Backbone.View.extend({
 	
 	defaults : {
 		oWebGLView : {},
-		_bWebGLOn : true
+		_bWebGLOn : false
 	},
-    
-	initialize : function(options){
+
+    initialize : function(options){
+        this.assignProperties(options);
         this.render();
-
-
-		this.oUIView = options.oUIView;
-		this.oGameIo = options.oGameIo || {};
-		
-		this.bEventBind = options.bEventBind || false;
-
-        this._bUseSound = options.bUseSound || false;
-
-        this._fnKeyEvent = $.proxy(this._onKeyAction, this);
-        
 		this.initResources();
-		
         this.resetData();
+        this.useWebGL(this._bWebGLOn);
         this.initCanvas();
 
-        if(this.bEventBind){
+        if(this._bKeyEventBind){
             this.bindEvents();
         }
-
+        
         this.drawMyStage();
-        this.start();
-
-		this._bWebGLOn = options.bUseWebGL ? options.bUseWebGL : false;
-
-        if(this._bWebGLOn){
-            this.oWebGLView = new app.tetris.Game.WebGLView({
-                el : this.$el.find('._tetris_webgl_canvas')
-            });
-        }
-
-        this.nMargin = options.nMargin || 0;
-
-		this.bFullScreen = false;
-		
-		if(this.bEventBind){
-			this.setGameEvents();
-		}
 	},
+    
+    assignProperties: function (options) {
+        this.Util = app.tetris.Game.Util;
+
+        this.oUIView = options.oUIView;
+        this._bKeyEventBind = options.bKeyEventBind || false;
+        this._bUseSound = options.bUseSound || false;
+        this._bWebGLOn = options.bUseWebGL || false;
+        this._fnKeyEvent = $.proxy(this._onKeyAction, this);
+    },
 
     render : function(){
-        this.$el.html(
-            '<canvas class="_tetris_webgl_canvas" style="width:100%;height:100%;position:absolute;z-index:10;left:0px;display:block;"></canvas>' +
-            '<canvas class="_tetris_origin_canvas" style="width:100%;height:100%;"> </canvas>'
-
-        );
+        var aCanvasStr = ['<canvas class="_tetris_webgl_canvas web_gl_cvs" style="width:100%;height:100%;"></canvas>',
+            '<canvas class="_tetris_origin_canvas org_cvs" style="width:100%;height:100%;"> </canvas>'];
+        
+        this.$el.html(aCanvasStr.join(''));
     },
 
 	/**
@@ -2038,7 +2657,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.nTickCnt = 0;
 		this.tickTime = 35;
 		this.nLogicTickCnt = 0;
-		this.nLogicSpeed = 1500;
+		
 		this.nLongPressCnt = 0;
 		this.level = 1;
 		this.model.set('nGameStartTime', 0);
@@ -2093,13 +2712,61 @@ app.tetris.Game.View = Backbone.View.extend({
         }
 
 		this.htSound = {
-            harddrop : new Howl({urls: ['../res/sound/TE_SE_harddrop.mp3'], volume: 0.3}),
-            softdrop : new Howl({urls: ['../res/sound/TE_SE_softdrop.mp3'], volume: 0.3}),
-            lockdown : new Howl({urls: ['../res/sound/TE_SE_lockdown.mp3'], volume: 0.3})
+            harddrop : new Howl({urls: ['./res/sound/TE_SE_harddrop.mp3'], volume: 0.3}),
+            softdrop : new Howl({urls: ['./res/sound/TE_SE_softdrop.mp3'], volume: 0.3}),
+            lockdown : new Howl({urls: ['./res/sound/TE_SE_lockdown.mp3'], volume: 0.3})
         };
 	},
-	
-	/** 
+
+
+    disableSmoothing: function () {
+        this.stage.ctx.imageSmoothingEnabled = false;
+        this.stage.ctx.webkitImageSmoothingEnabled = false;
+        this.stage.ctx.mozImageSmoothingEnabled = false;
+    },
+    
+    assignCanvasSize: function () {
+        this.nWidth = $(this.stage.elCanvas).width();
+        this.nHeight = $(this.stage.elCanvas).height();
+
+        this.stage.nWidth = this.nWidth;
+        this.stage.nHeight = this.nHeight;
+
+        $(this.stage.elCanvas)
+            .attr('width', this.nWidth)
+            .attr('height', this.nHeight);
+    },
+    
+    /**
+     * 전체 캔버스 이니셜라이저
+     */
+    initCanvas : function(){
+        
+        this.stage = this.getOriginCanvasObject();
+
+        this.assignCanvasSize();
+
+        if(this._bWebGLOn){
+            $(this.stage.elCanvas).hide();
+            this.$el.find('._tetris_webgl_canvas').show();
+
+            this._bWebGLOn = this.oWebGLView.isAvailWebGL();
+            
+            if(this._bWebGLOn){
+                
+                console.log('1');
+                this.oWebGLView.initCanvas();    
+            }
+            
+        } else {
+            this.$el.find('._tetris_webgl_canvas').hide();
+            $(this.stage.elCanvas).show();
+        }
+
+        this.disableSmoothing();
+    },
+
+    /** 
 	 * 사운드 제어 
 	 */
 	controlSound : function(sSoundType, sExcutor){
@@ -2117,118 +2784,37 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 	},
 
-	/**
-	 * Game 이벤트 바인딩 
-	 */
 	bindEvents : function(){
-		var wel = $(this.el);
-		
-		this.X = 0;
-		var that = this;
-		this.forward = false;
-		
-		this.startX = 0;
-		var _onMouseMove = function(e){
-			if(that.mouseDownFlag){
-
-
-                var e = e.originalEvent.touches[0] || e.originalEvent;
-
-                var x = e.clientX - $(this).offset().left;
-
-				var w = $(this).width();
-				var deg = (x / w) * 180;
-				that.oWebGLView.fAngleXZ = deg * Math.PI/180;
-				
-				var y = e.clientY - $(this).offset().top;
-				var h = $(this).height();
-				var deg = (y / h) * 90;
-				that.oWebGLView.fAngleYZ = deg * Math.PI/180;
-			}
-		};
-		
-		this.flag = 0;
-		this.startX = 350;
-        var welGlStage = this.$el.find('._tetris_webgl_canvas');
-
-		var animatorFunc = function(){
-			
-			if(that.flag == 0){
-				that.startX--;	
-			} else {
-				that.startX++;
-			}
-				
-			
-			if(that.startX > 350){
-				that.flag = 0;
-			}
-			
-			if(that.startX <= 330){
-				that.flag = 1;
-			}
-			
-			var x = that.startX - welGlStage.offset().left;
-				var w = welGlStage.width();
-				var deg = (x / w) * 180;
-				that.oWebGLView.fAngleXZ = deg * Math.PI/180;
-				
-				
-		};
-		
-		//this.animation = setInterval(animatorFunc, 100);
-
-        welGlStage.mousewheel(function(event, delta, deltaX, deltaY) {
-		    
-			that.oWebGLView.fCameraDistance += (delta * 10);
-		    
-		    return false;
-		});
-
-//        $('body').on('touchmove', _onMouseMove);
-
-        welGlStage.on('mousedown touchstart', function(e){
-			that.mouseDownFlag = true;
-			
-		});
-		
-		$(document).on('touchcancel touchend', function(e){
-//			that.mouseDownFlag = false;
-//            welGlStage.off('mousemove touchmove', _onMouseMove);
-		});
-
         var self = this;
         $(window).on('resize', function(){
             self.initCanvas();
         });
 	},
 
-	/**
-	 * Ghost Block 그리기 메서드 
-	 */
 	drawGhostBlock : function(){
 		var htBlock = this.model.get('htBlockPos');
 		var nY = 0;
 		
 		for(var i = 0; i < 35; i++){
 			nY = htBlock.nY + i;
-			if(this.checkCollision({nX : htBlock.nX, nY : htBlock.nY + i}, this.aBlock, 'bottom')){
-				this.drawMovingBlock(this.aBlock, {nX : htBlock.nX, nY : nY}, true);
+			if(this.Util.isCollision(
+                {nX : htBlock.nX, nY : htBlock.nY + i}, 
+                this.model.get('currentBlock'), 
+                this.model.get('aMatrix'), 
+                'bottom'
+            )){
+				this.drawMovingBlock(this.model.get('currentBlock'), {nX : htBlock.nX, nY : nY}, true);
 				break;
 			}
 		}
 	},
 	
-	/**
-	 * 움직이는 블럭을 그린다
-	 * @param {Object} aBlock
-	 * @param {Object} htBlockPos
-	 * @param {Object} bIsGhost
-	 */
-	drawMovingBlock : function(aBlock, htBlockPos, bIsGhost){
-		var htBlockPos = htBlockPos || this.model.get('htBlockPos') 
-		, aBlock = aBlock || this.aBlock
-		, stage = this.ctx.stage
+	drawMovingBlock : function(oBlockModel, htBlockPos, bIsGhost){
+		htBlockPos = htBlockPos || this.model.get('htBlockPos');
+        
+		var aBlock = oBlockModel ? oBlockModel.get('aMatrix') : this.model.get('currentBlock').get('aMatrix')
+        , sBlockColor = oBlockModel ? oBlockModel.get('sColor') : this.model.get('currentBlock').get('sColor')
+		, stage = this.stage
 		, nX, nY, bDraw;
 
 		if(aBlock === undefined){
@@ -2240,7 +2826,6 @@ app.tetris.Game.View = Backbone.View.extend({
 				bDraw = false;
 					
 				if(aBlock[i][j] === 1){
-					sBlockColor = this.sBlockColor;
 					bDraw = true;	
 				}
 				
@@ -2250,7 +2835,6 @@ app.tetris.Game.View = Backbone.View.extend({
 				}
 				
 				if(bDraw){
-
 					nX = j + htBlockPos.nX - 1;
 					nY = i + htBlockPos.nY;
 					this.drawBlock(stage.ctx, sBlockColor, stage.nBlockSize, nX, nY, bIsGhost ? 0.2 : 1);	
@@ -2263,28 +2847,10 @@ app.tetris.Game.View = Backbone.View.extend({
 	 * 내 스테이지 그리기 
 	 */	
 	drawMyStage : function(){
-		var arMatrix = this.getMatrix()
-		, htStage = this.ctx.stage;
-		
-		this.drawStage(htStage, arMatrix);
+		this.drawStage(this.stage, this.getMatrix());
 		
 		if(this.debugMode){
 			this.drawDebugStage();
-		}
-	},
-	
-	/**
-	 * 다른 사람의 스테이지 영역 그리기
-	 * @param {Object} nSeq
-	 * @param {Object} arMatrix
-	 */
-	drawOtherStage : function(nSeq, arMatrix){
-		var htOtherStage = this.ctx.others[nSeq];
-		try{
-			if(arMatrix.length>0)
-				this.drawStage(htOtherStage, arMatrix, 10);	
-		}catch(e){
-			
 		}
 	},
 	
@@ -2308,8 +2874,6 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		for(var i = 0; i < nRows; i++){
 			for(var j = 0; j < nCols; j++){
-				
-
 				if(matrix[i][j].nFlag === 1){
 					var sColor = matrix[i][j].sColor;
 					this.drawBlock(ctx, sColor, nBlockSize, j - 1, i, 1, nTopMargin);
@@ -2318,26 +2882,43 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 
 	},
-	
-	drawBoardStage : function(sId, arMatrix){
-		var htOtherStage = this.getOriginCanvasObject();
-		this.drawStage(htOtherStage, arMatrix, 0);	
-	},
-	
-	drawBlock : function(ctx, sColor, nBlockSize, nX, nY, nOpacity, nTopMargin){
-		if(sColor === undefined){
-			return false;
-		}
-		
-		if(ctx === undefined){
+
+    drawToWebGL: function (nBlockSize, nX, nY, sColor, nOpacity) {
+        var matrix = this.getMatrix(), nRows = matrix.length, nCols = matrix[0].length;
+        var MoveX = ( (nCols - 1) * nBlockSize) / 2 - 10;
+        var MoveY = ( (nRows + 1) / 2) * nBlockSize;
+        var MoveZ = -50.0;
+        this.oWebGLView.bCameraPerspective = true;
+        this.oWebGLView.arCameraLookAt = [MoveX, MoveY, MoveZ];
+        this.oWebGLView.drawBlock(nX, nRows - nY, nBlockSize, this.arColorPos[sColor], [1.0, 1.0, 1.0, nOpacity]);
+    },
+
+    drawToCanvas: function (nBlockSize, nX, nY, sColor, nOpacity, nTopMargin) {
+        
+        var ctx = this.stage.ctx;
+        if (nTopMargin === undefined) {
+            nTopMargin = this.stage.nHeight / 20;
+        }
+
+        var nBlockPosX = this.getPosPixelByColor(sColor, nBlockSize);
+        ctx.globalAlpha = nOpacity;
+        var RESIZE_W = this.stage.nWidth / 10;
+        var RESIZE_H = this.stage.nHeight / 20;
+
+        ctx.drawImage(this.blockImg[nBlockSize], nBlockPosX, 0, nBlockSize, nBlockSize, nX * RESIZE_W, nY * RESIZE_H - nTopMargin, RESIZE_W, RESIZE_H);
+        ctx.globalAlpha = 1;
+    },
+    
+    drawBlock : function(ctx, sColor, nBlockSize, nX, nY, nOpacity, nTopMargin){
+		if(sColor === undefined || ctx === undefined){
 			return false;
 		}
 		
 		var bWebGLEnable = this._bWebGLOn;
 
 		if(this.ctx){
-			if( (ctx == this.ctx.stage.ctx) && (this.oWebGLView !== undefined) ){
-				if(this.oWebGLView.isAvailWebGL() && this._bWebGLOn === true){
+			if( (ctx == this.stage.ctx) && (this.oWebGLView !== undefined) ){
+				if(this._bWebGLOn === true){
 					bWebGLEnable = true;
 				} else {
 					bWebGLEnable = false;
@@ -2346,39 +2927,10 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 
 		if(bWebGLEnable) {
-			var matrix = this.getMatrix(), nRows = matrix.length, nCols = matrix[0].length;
-			var MoveX = ((nCols-1)*nBlockSize)/2 -22;
-			var MoveY = ((nRows+1)/2)*nBlockSize +5;
-			var MoveZ = 0.0;
-			//this.bCameraPerspective = false;
-			//this.oWebGLView.fAngleYZ = 0.0;
-			//this.oWebGLView.fAngleXZ = Math.PI/2.0;
-			//this.oWebGLView.fCameraDistance = 900.0;
-			this.oWebGLView.bCameraPerspective = true;
-			
-			this.oWebGLView.arCameraLookAt = [MoveX,MoveY,MoveZ];
-			
-			this.oWebGLView.drawBlock(nX, nRows-nY, nBlockSize, this.arColorPos[sColor], [1.0,1.0,1.0,nOpacity]);
-			//console.log(nX,nY);
-		} else {
-			if(nTopMargin === undefined){
-				nTopMargin = this.ctx.stage.nHeight / 20;
-			}
-
-			var nBlockPosX = this.getPosPixelByColor(sColor, nBlockSize);
-
-			ctx.globalAlpha = nOpacity;
-
-//            RESIZE_W = 17.4;// 174 / 10
-//            RESIZE_H = 19.9;// 398 / 20
-
-            var RESIZE_W = this.ctx.stage.nWidth / 10;
-            var RESIZE_H = this.ctx.stage.nHeight / 20;
-
-			ctx.drawImage(this.blockImg[nBlockSize], nBlockPosX, 0, nBlockSize, nBlockSize, nX * RESIZE_W, nY * RESIZE_H - nTopMargin, RESIZE_W, RESIZE_H);
-			ctx.globalAlpha = 1;
-		}
-
+            this.drawToWebGL(nBlockSize, nX, nY, sColor, nOpacity);
+        } else {
+            this.drawToCanvas(nBlockSize, nX, nY, sColor, nOpacity, nTopMargin);
+        }
 	},
 	
 	/**
@@ -2392,8 +2944,8 @@ app.tetris.Game.View = Backbone.View.extend({
 		if(this.ctx === undefined)
 		return null;
 		
-		if( (stage.ctx == this.ctx.stage.ctx) && (this.oWebGLView !== undefined) ){
-			if(this.oWebGLView.isAvailWebGL()){
+		if( (stage.ctx == this.stage.ctx) && (this.oWebGLView !== undefined) ){
+			if(this._bWebGLOn){
 				this.oWebGLView.clear();
 			}	
 		}
@@ -2431,48 +2983,6 @@ app.tetris.Game.View = Backbone.View.extend({
         }
     },
 
-	/** 
-	 * 전체 캔버스 이니셜라이저
-	 */
-	initCanvas : function(){
-		this.ctx = {
-			stage : this.getOriginCanvasObject(),
-			others : [
-//				this.getCanvasObject('other_1'),
-//				this.getCanvasObject('other_2')
-			]
-		};
-
-
-		this.nWidth = $(this.ctx.stage.elCanvas).width();
-		this.nHeight = $(this.ctx.stage.elCanvas).height();
-
-        this.ctx.stage.nWidth = this.nWidth;
-        this.ctx.stage.nHeight = this.nHeight;
-
-        $(this.ctx.stage.elCanvas)
-            .attr('width', this.nWidth + 'px')
-            .attr('height', this.nHeight + 'px');
-
-        this.ctx.stage.ctx.imageSmoothingEnabled = false;
-        this.ctx.stage.ctx.webkitImageSmoothingEnabled = false;
-        this.ctx.stage.ctx.mozImageSmoothingEnabled = false;
-
-//        _tetris_ogirin_canvas;
-
-		if(this._bWebGLOn){
-
-            if(this.oWebGLView.isAvailWebGL()){
-                this.oWebGLView.initCanvas();
-
-                this.oWebGLView.fAngleYZ = Math.PI/180 * 0;
-                this.oWebGLView.fAngleXZ = Math.PI/180 * 90;
-
-                this.oWebGLView.fCameraDistance = 300.0;
-            }
-		}
-	},
-	
 	setGameStatus : function(sStatus){
 		this.model.set('sGameStatus', sStatus);
 		
@@ -2484,70 +2994,11 @@ app.tetris.Game.View = Backbone.View.extend({
 	},
 	
 	bindKeyEvents : function(){
-		
 		this.htKeyState = {};
 
 		$(document)
-			.unbind('keydown keyup', this._fnKeyEvent)
-			.bind('keydown keyup', this._fnKeyEvent);
-	},
-	
-	setGameEvents : function(){
-
-		$('.jpad').on('touchstart mousedown', $.proxy(function(e){
-	        e.stopPropagation();
-    		e.preventDefault();
-    		
-    		
-    		if(this.getGameStatus() !== 'play'){
-            	return false;
-            }
-            
-	        if(e.handled !== true) {
-		        var id = $(e.currentTarget).attr('id');    
-	
-				if(id === 'down'){
-					this.moveDown(true);
-				} else if(id === 'right'){
-					this.moveBlock('right');
-				} else if(id === 'left'){
-					this.moveBlock('left');
-				} else if(id === 'up'){
-					this.rotateBlock('right');
-				} else if(id === 'harddown'){
-					this.moveHardDown();
-				}
-	
-	            e.handled = true;
-	        }
-	        
-	        return false;
-		}, this));
-		
-	 	$('#game_area').on('hold tap swipe', $.proxy(function (event) {
-			event.stopPropagation();
-    		event.preventDefault();
-    		
-            if(this.getGameStatus() !== 'play'){
-            	return false;
-            }
-            
-            if(event.direction === 'right' && event.type =='swipe'){
-            	this.moveBlock('right');
-            } else if(event.direction ==='left' && event.type =='swipe'){
-            	this.moveBlock('left');
-            } else if(event.direction ==='down' && event.type =='swipe'){
-            	this.moveHardDown();
-            } else if(event.direction ==='up' && event.type =='swipe'){
-            	this.rotateBlock('left');
-            	
-            	
-            } else if(event.type === 'hold'){
-            	this.start();
-            }
-            
-            
-        }, this));
+			.off('keydown keyup', this._fnKeyEvent)
+			.on('keydown keyup', this._fnKeyEvent);
 	},
 	
 	getGameStatus : function(){
@@ -2558,19 +3009,29 @@ app.tetris.Game.View = Backbone.View.extend({
      * @todo 로직 개선 & 리펙토링
      */
 	checkLevelUp : function(){
-		
-		if(this.model.get('nScore') >= 100 && this.level < 2){
-//			this.level = 2;
-//			this.nLogicSpeed = 250;
-		} else if(this.model.get('nScore') >= 1000 && this.level < 3){
-//			this.level = 3;
-//			this.nLogicSpeed = 200;
-		} else if(this.model.get('nScore') >= 2000 && this.level < 4){
-//			this.level = 3;
-//			this.nLogicSpeed = 100;
-		}
+        
+        app.tetris.Rules.filterRules(this.model.get('nScore'), $.proxy(function(oLevel){
+            this.model.set('nLogicSpeed', oLevel.nLogicSpeed);
+            this.model.set("nLevel", oLevel.nLevel);
+            
+        }, this));
 	},
-	
+
+    useWebGL : function(bFlag){
+        
+        this._bWebGLOn = bFlag;
+        
+        if(!this.oWebGLView){
+            this.oWebGLView = new app.tetris.Game.WebGLView({
+                el : this.$el.find('._tetris_webgl_canvas')
+            });    
+        }
+        
+        
+        
+        this.initCanvas();
+    },
+    
 	renderCanvas : function(){
 		this.drawMyStage();
 		this.drawMovingBlock();
@@ -2578,16 +3039,17 @@ app.tetris.Game.View = Backbone.View.extend({
 	},
 	
 	tick : function(){
-
+        this.checkLevelUp();
 		this.renderCanvas();
 		
 		this.nTickCnt += this.tickTime;
 		this.nLogicTickCnt += this.tickTime;
-		
-		if(this.nLogicTickCnt > this.nLogicSpeed){
+        var nLogicSpeed = this.model.get('nLogicSpeed');
+        
+		if(this.nLogicTickCnt > nLogicSpeed){
 			this.setGameStatus('play');
 			this.moveDown(true);
-			this.nLogicTickCnt -= this.nLogicSpeed;
+			this.nLogicTickCnt -= nLogicSpeed;
 		}
 		
 		if(this.keyPressFlag == true){
@@ -2630,14 +3092,15 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		this.makeNewBlock();
 
-        if(this.bEventBind){
-            this.bindKeyEvents();
-        }
-
         this.stopAnimationLoop();
         this.startAnimationLoop();
         
 		this.tick();
+
+        if(this._bKeyEventBind){
+            clearTimeout(this.keyLongPressChecker);
+            this.bindKeyEvents();
+        }
 	},
 	
     stopAnimationLoop : function(){
@@ -2672,12 +3135,16 @@ app.tetris.Game.View = Backbone.View.extend({
 	},
 	
 	pause : function(){
-		if(this.model.get('sGameStatus') == 'pause'){
+		if(this.model.get('sGameStatus') === 'pause'){
+            $(document).off('keydown', this._fnKeyEvent);
 			this.setGameStatus('play');
 			this.startAnimationLoop();
 		}else{
             this.stopAnimationLoop();
 			this.setGameStatus('pause');
+            if(this._bKeyEventBind){
+                this.bindKeyEvents();    
+            }
 		}
 	},
 	
@@ -2685,11 +3152,10 @@ app.tetris.Game.View = Backbone.View.extend({
 	 * Game 정지시킨다 
 	 */
 	stop : function(){
-		$(document).unbind('keydown', $.proxy(this._onKeyAction, this));
-
 		this.setGameStatus('stop');
 		$('.pause').remove();
 
+        clearTimeout(this.keyLongPressChecker);
         cancelAnimationFrame(this.ticker);
 		
 		$(this.el).find('#active').remove();
@@ -2698,76 +3164,10 @@ app.tetris.Game.View = Backbone.View.extend({
 		this.resetData();
 		
 		$('#debug_area').empty().hide();
-	},
 
-    /**
-     * ready 신호 전송
-     */
-	reqReady : function(){
-		this.stop();
-		
-		var wel = $(this.el);
-		wel.find('#start_btn').hide();
-		wel.find('#ready_btn').hide();
-		wel.find('#cancel_btn').show();
-		wel.find('#stop_btn').hide();
-				
-		this.oGameIo.emit('reqReady');
-
-        this.setGameStatus('ready');
-	},
-	
-	resReady : function(htData){
-		if(htData.sStatus === 'ok'){
-
-		}else if(htData.sStatus === 'game'){
-			var wel = $(this.el);
-			wel.find('#start_btn').show();
-			wel.find('#ready_btn').show();
-			wel.find('#cancel_btn').hide();
-			wel.find('#stop_btn').show();
-			
-		}else{
-			var wel = $(this.el);
-			wel.find('#start_btn').show();
-			wel.find('#ready_btn').show();
-			wel.find('#cancel_btn').hide();
-			wel.find('#stop_btn').show();
-			
-			alert('resReady에서 오류가 났습니다.');
-		}
-	},
-	
-	reqCancel : function(){
-		var wel = $(this.el);
-		wel.find('#start_btn').show();
-		wel.find('#ready_btn').show();
-		wel.find('#cancel_btn').hide();
-		wel.find('#stop_btn').hide();
-				
-		this.oGameIo.emit('reqCancel');
-	},
-	
-	resCancel : function(htData){
-		if(htData.sStatus === 'ok'){
-
-		}else if(htData.sStatus === 'game'){
-			var wel = $(this.el);
-			wel.find('#start_btn').hide();
-			wel.find('#ready_btn').hide();
-			wel.find('#cancel_btn').show();
-			wel.find('#stop_btn').hide();
-			
-			alert('이미 게임이 시작되었습니다.');
-		}else{
-			var wel = $(this.el);
-			wel.find('#start_btn').hide();
-			wel.find('#ready_btn').hide();
-			wel.find('#cancel_btn').show();
-			wel.find('#stop_btn').hide();
-			
-			alert('resCancel에서 오류가 났습니다.');
-		}
+        $(document).off('keydown', this._fnKeyEvent);
+        
+        return this;
 	},
 	
 	makeNewBlock : function(){
@@ -2782,49 +3182,8 @@ app.tetris.Game.View = Backbone.View.extend({
         var nextBlock = this.model.get('nextBlock');
         nextBlock.push(this.model.getRandomRange());
 
-		this.aBlock = aBlocks.at(nNumber).get('aMatrix');
-		this.sBlockCode = aBlocks.at(nNumber).get('sCode');
-		this.sBlockColor = aBlocks.at(nNumber).get('sColor');
-		this.nBlockAngle = aBlocks.at(nNumber).get('nAngle');
-
+        this.model.set('currentBlock', aBlocks.at(nNumber).clone());
 		this.model.setBlockPosXY(4,-1);
-        this.checkLevelUp();
-
-
-	},
-	
-	checkCollision : function(htBlockPos, aBlock, forward){
-		var matrix = this.model.get('aMatrix')
-		 ,  result = false
-		 , nX, nY;
-		 
-		for(var i = 0; i < aBlock.length; i++){
-			for(var j = 0; j < aBlock[i].length; j++){
-				nX = j + htBlockPos.nX;
-				nY = i + htBlockPos.nY;
-				
-				if(forward === 'bottom'){
-					nY = nY + 1;
-				}else if(forward === 'left' || forward === 'right'){
-					nX = (forward === 'left') ? nX - 1 : nX +1;	
-				}
-
-				if(matrix[nY] === undefined){
-					continue;
-				}
-				
-				if(matrix[nY][nX] === undefined){
-					continue;
-				}
-				
-				if(matrix[nY][nX].nFlag === 1 && aBlock[i][j] === 1){
-					result = true;
-					break;
-				}					
-			}
-		}
-
-		return result;
 	},
 	
 	moveDown : function(bPlaySound){
@@ -2834,7 +3193,7 @@ app.tetris.Game.View = Backbone.View.extend({
 		
 		var htBlockPos = this.model.get('htBlockPos')
 		, result = false
-		, bChk = this.checkCollision(htBlockPos, this.aBlock, 'bottom');
+		, bChk = this.Util.isCollision(htBlockPos, this.model.get('currentBlock'), this.model.get('aMatrix'), 'bottom');
 		
 		if(!bChk){
 			htBlockPos.nY++;
@@ -2844,9 +3203,9 @@ app.tetris.Game.View = Backbone.View.extend({
                 this.controlSound('lockdown','play');
             }
 
-			this.setBlockToMatrix();
-			this.makeNewBlock();
-
+            this.model.trigger('change:aMatrixCustomEvent');
+            this.model.setBlockToMatrix(this.model.get('currentBlock'), this.model.get('htBlockPos'));
+            this.makeNewBlock();
 			result = true;
 		}
 		
@@ -2861,88 +3220,43 @@ app.tetris.Game.View = Backbone.View.extend({
 	},
 	
 	clearFullLine : function(){
-		var matrix = this.model.get('aMatrix')
-			, nCols = this.model.get('nCols')
-			, nRows = this.model.get('nRows')
-			, lineCount = 0
-			, nFlag
-			, nCnt
-			, aNewLine;
-		
-		for(var i = 0; i < nRows + 2; i++){
-			nCnt = 0;
-			for(var j = 1; j < nCols + 1; j++){
-				if(matrix[i][j].nFlag == 1){
-					nCnt++;
-				}
-			}
-			
-			if(nCnt == nCols && i < nRows + 1){
-				matrix.splice(i, 1);
-				
-				aNewLine = [];
-				for(var k = 0; k <= nCols + 1; k++){
-					nFlag = (k === 0 || k === nCols + 1) ? 1 : 0;
-					aNewLine.push({nFlag : nFlag});
-				}
-				
-				matrix.unshift(aNewLine);
-				lineCount++;
-			}
-		}
-		
-		this.setMatrix(matrix);
-		if(lineCount > 0){
-			this.model.plusScore(lineCount * 2);
-		}
+		var lineCount = this.model.clearFullLine();
+		this._addScoreBy(lineCount);
 	},
 	
+    _addScoreBy : function(lineCount){
+        if(lineCount > 0){
+            // Fast Drop give Bonus Point
+            var nBonus = 0;
+            if(this._nHardBlockPosY <= 2){
+                nBonus = (this._nHardBlockPosY + 1) * 50;
+            }
+    
+            this.model.plusScore(lineCount * 100 + nBonus);
+        }
+    },
+    
 	moveBlock : function(sDirection){
-
-		if(sDirection === 'left'){
-			if(!this.checkCollision(this.model.get('htBlockPos'), this.aBlock, 'left')){
-				this.model.get('htBlockPos').nX--;	
-			}
-		} else if(sDirection === 'right'){
-			if(!this.checkCollision(this.model.get('htBlockPos'), this.aBlock, 'right')){
-				this.model.get('htBlockPos').nX++;	
-			}
+        var htBlockPos = this.model.get('htBlockPos');
+        
+        var bCollision = this.Util.isCollision(
+            this.model.get('htBlockPos'), 
+            this.model.get('currentBlock'), 
+            this.model.get('aMatrix'), 
+            sDirection);
+        
+		if(sDirection === 'left' && !bCollision){
+            htBlockPos.nX--;
+            this.model.set('htBlockPos', htBlockPos);
+		} else if(sDirection === 'right' && !bCollision){
+            htBlockPos.nX++;
+            this.model.set('htBlockPos', htBlockPos);
 		}
-		
-		
 		
 		if(this.debugMode) {
 			this.drawMyStage();
 			this.drawMovingBlock();
 		}
-	},
-	
-	setBlockToMatrix : function(){
-		var matrix = this.getMatrix();
-		var nX, nY;
-		
-		for(var i = 0; i < this.aBlock.length; i++){
-			for(var j = 0; j < this.aBlock[i].length; j++){
-				
-				nX = j + this.model.get('htBlockPos').nX;
-				nY = i + this.model.get('htBlockPos').nY;
-				
-				if(matrix[nY] === undefined){
-					continue;
-				}
-				
-				if(matrix[nY][nX] === undefined){
-					continue;
-				}
-				
-				if(matrix[nY][nX].nFlag !== 1){
-					matrix[nY][nX].nFlag = this.aBlock[i][j];
-					matrix[nY][nX].sColor = this.sBlockColor;
-				}
-			}
-		}
-		
-		this.setMatrix(matrix);
 	},
 	
 	setMatrix : function(matrix){
@@ -2962,97 +3276,45 @@ app.tetris.Game.View = Backbone.View.extend({
 	},
 	
 	rotateBlock : function(sType){
-		this.aBlock = this.rotateBlockArray(this.aBlock, sType);
-		
+		var oBlockModel = this.Util.rotateBlockArray(
+            sType,
+            this.model.get('currentBlock'), 
+            this.model.get('htBlockPos'), 
+            this.model.get('aMatrix')
+        );
+
+        this.model.set('currentBlock', oBlockModel);
+
 		if(this.debugMode) {
 			this.drawMyStage();
 			this.drawMovingBlock();
 		}
 	},
 	
-	rotateBlockArray : function(aBlock, sType){
-		var aCopy = []
-		, aClone
-		, htBlockPos = this.model.get('htBlockPos')
-		, bRotate = false;
-		
-		if(this.sBlockCode !== 'O'){
-			bRotate = true;
-		} 
-		
-		if(this.sBlockCode === 'S' || this.sBlockCode === 'I' || this.sBlockCode === 'Z') {
-			if(this.nBlockAngle > 0){
-				sType = 'left';
-			}
-		}
-		
-		if(bRotate === true){
-			
-			if(sType === 'right'){
-				this.nBlockAngle = (this.nBlockAngle + 90) % 360;
-			
-				for(var j = aBlock[0].length - 1; j >=0; j--){
-					aClone = [];
-					aClone.push(aBlock[3][j]);
-					for(var i = 0; i < aBlock.length - 1; i++){
-						aClone.push(aBlock[i][j]);
-					}
-					
-					aCopy.push(aClone);
-				}
-			} else {
-				this.nBlockAngle = (this.nBlockAngle - 90) % 360;
-				
-				for(var j = 1; j < aBlock.length; j++){
-					aClone = [];
-					for(var i = aBlock[0].length - 1; i >=0; i--){
-						aClone.push(aBlock[i][j]);
-					}
-					aCopy.push(aClone);
-				}
-				
-				aClone = [];
-				for(var i = aBlock[0].length - 1; i >=0; i--){
-					aClone.push(aBlock[i][0]);
-				}
-				
-				aCopy.push(aClone);
-			}
-			
-		} else {
-			aCopy = aBlock;
-		}
-
-		
-		if(this.checkCollision(htBlockPos, aCopy)){
-			aCopy = aBlock;
-		}
-		
-		return aCopy;
-	},
-
     isGameOver: function () {
         var matrix = this.getMatrix();
         var nCnt = 0;
-
-        for (var j = 1; j < this.model.get('nCols') + 1; j++) {
+        var nLen = this.model.get('nCols') + 1;
+        
+        for (var j = 1; j < nLen; j++) {
             if (matrix[0][j].nFlag == 1) {
                 nCnt++;
             }
         }
         return nCnt > 0;
-    }, /**
+    },
+    
+    /**
 	 * 게임 오버 상태를 체크하는 메서드 
 	 */
 	checkGameOver : function(){
 
 		if(this.isGameOver()){
-
 			$(this.el).find('#active').remove();
             this.stopAnimationLoop();
 			this.setGameStatus('end');
 			
-			$(document).unbind('keydown', $.proxy(this.keyAction, this));
+			$(document).off('keydown', this._fnKeyEvent);
 			
 			return true;
 		}
@@ -3063,7 +3325,25 @@ app.tetris.Game.View = Backbone.View.extend({
     clearLongPress: function () {
         clearInterval(this.keyLongPressChecker);
         this.nLongPressCnt = 0;
-    }, 
+    },
+
+    resetBlockPos: function (htBlockPos) {
+        htBlockPos = this.model.get('htBlockPos');
+        htBlockPos.nY = -1;
+        this.model.set('htBlockPos', htBlockPos);
+    },
+    
+    playBoundEffect: function () {
+        if (!this._bWebGLOn) {
+            this.$el
+                .removeClass('bounceDrops animatedDrops')
+                .addClass('bounceDrops animatedDrops')
+                .show()
+                .one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function () {
+                    $(this).removeClass('bounceDrops animatedDrops');
+                });
+        }
+    },
     
     /**
 	 * SpaceBar로 빠르게 블럭을 내린다 
@@ -3071,24 +3351,24 @@ app.tetris.Game.View = Backbone.View.extend({
 	moveHardDown : function(){
         this.clearLongPress();
 
-//        this.$el
-//            .removeClass().addClass('bounceDrops animatedDrops').one('webkitAnimationEnd mozAnimationEnd MSAnimationEnd oanimationend animationend', function(){
-//                $(this).removeClass();
-//            });
-
+        this.playBoundEffect();
+        
 		this.controlSound('harddrop', 'play');
 
-		var rst = false;
+		var bIsCollision = false;
+        
+        this._nHardBlockPosY = this.model.get('htBlockPos').nY;
+        
 		for(var i = 0, nRows = this.model.get('nRows'); i < nRows; i++){
-			if(rst == true){
-				this.model.get('htBlockPos').nY = -1;
-				break;
+			if(bIsCollision === true){
+                this.resetBlockPos();
+                this.model.trigger('change:aMatrixCustomEvent');
+                break;
 			}else{
                 var bPlaySound = false;
-				rst = this.moveDown(bPlaySound);
+				bIsCollision = this.moveDown(bPlaySound);
 			}
 		}
-
 	},
 	
 	/**
@@ -3096,7 +3376,6 @@ app.tetris.Game.View = Backbone.View.extend({
 	 */
 	_onKeyAction : function(htData){
 		var nKeyCode = htData.keyCode;
-	
 		
 		if(htData.type =='keydown' && this.nLongPressCnt === 0){
 			this.htKeyState[htData.keyCode || htData.which] = true;
@@ -3104,15 +3383,11 @@ app.tetris.Game.View = Backbone.View.extend({
 			
 			clearInterval(this.keyLongPressChecker);
 			
-			var that = this;
-
-			this.keyLongPressChecker = setInterval(function(){
-				that.nLongPressCnt++;
-				that.keyPressFlag  = (that.nLongPressCnt > 5) ? true : false;
-			}, 400);
+//			this.keyLongPressChecker = setInterval($.proxy(function(){
+//				this.nLongPressCnt++;
+//                this.keyPressFlag = this.nLongPressCnt > 5;
+//            }, this), 400);
 		}
-
-
 
 		if(htData.type =='keyup'){
 			this.htKeyState[htData.keyCode || htData.which] = false;
@@ -3129,9 +3404,6 @@ app.tetris.Game.View = Backbone.View.extend({
 		}
 
 		switch(nKeyCode){
-			case 16 :
-			this.pause();
-			break;
 			
 			case 32 :
 			this.moveHardDown();
@@ -3200,20 +3472,32 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		bWebGLAvailable : false
 	},
 
+    initialize : function(){
+        this.vertexShaderText = WebGLUtil.loadShader('res/shader/model.vs');
+        this.fragmentShaderText = WebGLUtil.loadShader('res/shader/model.fs');
+    },
+
 	isAvailWebGL : function(){
 		return !!window.WebGLRenderingContext;
 	},
 
 	initCanvas : function(){
+        
+        
         var elCanvas = this.$el[0];
 
-		this.nWidth = elCanvas.width;
-		this.nHeight = elCanvas.height;
-		this.arCameraEye = [0.0,0.0,0.0];
-		this.arCameraLookAt = [0.0,0.0,0.0];
+        
+		this.nWidth = this.$el.parent().width();
+		this.nHeight = this.$el.parent().height();
+        
+        this.$el.attr('width', this.nWidth);
+        this.$el.attr('height', this.nHeight);
+       
+		this.arCameraEye = [0, 0, 0];
+		this.arCameraLookAt = [0, 0, 0];
 		this.fAngleYZ = 0.0;
 		this.fAngleXZ = Math.PI / 2.0;
-		this.fCameraDistance = 100.0;
+		this.fCameraDistance = 300.0;
 		this.bCameraPerspective = false;
 		this.nFov = 45;
 
@@ -3238,7 +3522,91 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
         this.initResource();
 		this.initShader();
 		this.clear();
+        
+        this.setEvents();
 	},
+
+    setEvents : function(){
+
+        var that = this;
+        this.forward = false;
+        this.startX = 0;
+
+        this._nMovedViewX = 0;
+        this._nMovedViewY = 0;
+
+        var _onMouseMove = function(e){
+            if(this.mouseDownFlag){
+                var w = welGlStage.width();
+                var left = welGlStage.offset().left;
+                var top = welGlStage.offset().top;
+                var h = welGlStage.height();
+
+                if( e.originalEvent.changedTouches){
+                    e = e.originalEvent.changedTouches[0]
+                } else {
+                    e = e.originalEvent;
+                }
+
+                var x = e.clientX - left - this._nMovedViewX;
+                var y = e.clientY - top - this._nMovedViewY;
+
+                var deg = (x / w) * 180;
+                this.fAngleXZ = deg * Math.PI/180;
+
+                deg = (y / h) * 90;
+                this.fAngleYZ = deg * Math.PI/180;
+
+                this._nViewX = x;
+                this._nViewY = y;
+            }
+        };
+
+        this.flag = 0;
+        this.startX = 350;
+        var welGlStage = this.$el;
+
+        var animatorFunc = function(){
+
+            if(that.flag == 0){
+                that.startX--;
+            } else {
+                that.startX++;
+            }
+
+            if(that.startX > 350){
+                that.flag = 0;
+            }
+
+            if(that.startX <= 330){
+                that.flag = 1;
+            }
+
+            var x = that.startX - welGlStage.offset().left;
+            var w = welGlStage.width();
+            var deg = (x / w) * 180;
+            that.fAngleXZ = deg * Math.PI/180;
+        };
+
+        //this.animation = setInterval(animatorFunc, 100);
+
+        welGlStage.mousewheel(function(event, delta, deltaX, deltaY) {
+            that.fCameraDistance += (delta * 10);
+            return false;
+        });
+
+        var _onMouseMoveWithContext = $.proxy(_onMouseMove, this);
+
+        welGlStage.on('mousedown touchstart', function(e){
+            that.mouseDownFlag = true;
+            $(document).on('touchmove mousemove', _onMouseMoveWithContext);
+        });
+
+        $(document).on('mouseup touchcancel touchend', $.proxy(function(e){
+            this.mouseDownFlag = false;
+            $(document).off('mousemove touchmove', _onMouseMoveWithContext);
+        }, this));
+    },
 
 	initResource : function(){
 		var gl = this.ctx;
@@ -3347,12 +3715,8 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		gl.useProgram(null);
 	},
 
-	initialize : function(){
-        this.vertexShaderText = WebGLUtil.loadShader('res/shader/model.vs');
-        this.fragmentShaderText = WebGLUtil.loadShader('res/shader/model.fs');
-	},
-
 	drawBlock : function(nPosX, nPosY, nBlockSize, nTexturePos, vColor){
+
 		var gl = this.ctx;
 
 		gl.useProgram(this.gl_Shader_RenderProgram);
@@ -3361,10 +3725,12 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		gl.enableVertexAttribArray(this.gl_Attribute_VertexCordinate);
 
 
-		var arCameraGap = [0.0,0.0,0.0];
-        arCameraGap[0] = this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.cos(this.fAngleXZ);	//X
-        arCameraGap[1] = this.fCameraDistance * Math.sin(this.fAngleYZ);	//Y
-		arCameraGap[2] = this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.sin(this.fAngleXZ);	//Z
+		var arCameraGap = [
+            this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.cos(this.fAngleXZ),	// X
+            this.fCameraDistance * Math.sin(this.fAngleYZ),                             // Y
+            this.fCameraDistance * Math.cos(this.fAngleYZ) * Math.sin(this.fAngleXZ)    // Z
+        ];
+        
 		this.arCameraEye[0] = this.arCameraLookAt[0] + arCameraGap[0];
 		this.arCameraEye[1] = this.arCameraLookAt[1] + arCameraGap[1];
 		this.arCameraEye[2] = this.arCameraLookAt[2] + arCameraGap[2];
@@ -3372,14 +3738,21 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		var WorldMatrix = mat4.create();
 		var ViewMatrix = mat4.create();
 		var ProjectionMatrix = mat4.create();
+
+        
 		mat4.identity(WorldMatrix);
 		mat4.scale(WorldMatrix, [nBlockSize,nBlockSize,nBlockSize], WorldMatrix);
 		mat4.translate(WorldMatrix, [nPosX,nPosY,0.0], WorldMatrix);
 		mat4.lookAt(this.arCameraEye, this.arCameraLookAt, [0.0,1.0,0.0], ViewMatrix);
-		if(this.bCameraPerspective == true)		
-			mat4.perspective(this.nFov, this.nWidth/this.nHeight, 0.1, 1000.0, ProjectionMatrix);
-		else if(this.bCameraPerspective == false)
-			mat4.ortho(-this.nWidth/2, this.nWidth/2, -this.nHeight/2, this.nHeight/2, 0.1, 1000.0, ProjectionMatrix);
+        
+        
+		if(this.bCameraPerspective == true){
+            mat4.perspective(this.nFov, this.nWidth/this.nHeight, 0.1, 1000.0, ProjectionMatrix);
+            
+        } else if(this.bCameraPerspective == false){
+            mat4.ortho(-this.nWidth/2 , this.nWidth/2, -this.nHeight/2, this.nHeight/2, 0.1, 1000.0, ProjectionMatrix);
+        }
+        
 		gl.uniformMatrix4fv(this.gl_Uniform_WorldMatrix, false, WorldMatrix);
 		gl.uniformMatrix4fv(this.gl_Uniform_ViewMatrix, false, ViewMatrix);
 		gl.uniformMatrix4fv(this.gl_Uniform_ProjectionMatrix, false, ProjectionMatrix);
@@ -3434,6 +3807,52 @@ app.tetris.Game.WebGLView = Backbone.View.extend({
 		gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	}
 });
+app.tetris.Rules.filterRules = function(nScore, cb){
+
+    var nLevel = 1;
+    
+    // DEFAULT SPEED
+    var nLogicSpeed = 1500;
+    
+    // 50000 : level 6
+    // 20000 : level 5
+    // 10000 : level 4
+    // 5000 : level 3
+    // 1000 : level 2
+    
+    var aLevels = [
+        {nLv : 8, nScore : 10000, nLogicSpeed : 100},
+        {nLv : 7, nScore : 5000, nLogicSpeed : 150},
+        {nLv : 6, nScore : 2500, nLogicSpeed : 200},
+        {nLv : 5, nScore : 2000, nLogicSpeed : 300},
+        {nLv : 4, nScore : 1500, nLogicSpeed : 400},
+        {nLv : 3, nScore : 1000, nLogicSpeed : 600},
+        {nLv : 2, nScore : 500, nLogicSpeed : 1000},
+        {nLv : 1, nScore : 0, nLogicSpeed : 1500}
+    ];
+   
+    var _getLevelBy = function(nScore){
+        var aLevel = _.filter(aLevels, function(oLevel){
+            return (oLevel.nScore <= nScore);
+        });
+        
+        if(aLevel.length > 0){
+            return aLevel[0];    
+        }
+    };
+
+//    _getLevelBy(1000);
+//    _getLevelBy(1500);
+//    _getLevelBy(5000);
+//    _getLevelBy(5500);
+//    _getLevelBy(15500);
+  
+    cb(_getLevelBy(nScore));
+};
+
+/**
+ * app.arBlockList
+ */
 app.tetris.Rules.BlockList = {
 
     create : function(){
@@ -3541,8 +3960,6 @@ app.tetris.Rules.BlockList = {
         initialize : function(){
             this.render();
 
-            this.oBgm = new Howl({urls: ['../res/sound/FF_8_OST.mp3'], volume : 0.1, format : 'mp3'});
-
             app.tetris.Network.Model.on('change:nRegisterUser change:nConnectedUser', $.proxy(function(oModel){
                 this.onChangeCount(oModel);
             }, this));
@@ -3580,16 +3997,11 @@ app.tetris.Rules.BlockList = {
                 }
             }, 200);
 
-//            this.oBgm.stop();
-//            this.oBgm.play();
-            
         },
         
         hide : function(){
 //            this.$el.hide();
             this.$el.addClass('animated').removeClass('fadeInDown').addClass('fadeOutUp');
-
-//            this.oBgm.stop();
         },
         
         render : function(){
@@ -3617,11 +4029,14 @@ app.tetris.Rules.BlockList = {
 })();
 app.tetris.init = function(sMode){
     app.tetris.config.setEnv(sMode || 'development');
+//    return;
+
+    app.tetris.Network.init();
 
     // initialize Singleton
-    app.tetris.Game.StageView = app.tetris.Game.StageView.getInstance();
     app.tetris.Router = app.tetris.Router.getInstance();
-
+    app.tetris.Game.StageView = app.tetris.Game.StageView.getInstance();
+    
     app.tetris.Network.startSession();
 
     app.tetris.ui.BackButton.setEvents();
@@ -3635,7 +4050,6 @@ app.tetris.init = function(sMode){
     var t = app.tetris;
     
     var TetrisRouter = Backbone.Router.extend({
-    
         routes: {
             login : "moveToStart",
             menu : "moveToMenu",
@@ -3645,6 +4059,7 @@ app.tetris.init = function(sMode){
             board :'moveToGameBoard',
             credit : "moveToCredit",
             logout : "moveToLogout",
+            quick : "moveToQuickJoin",
             
             '':  'moveToStart'
         },
@@ -3652,10 +4067,11 @@ app.tetris.init = function(sMode){
         execute: function(callback, args) {
             app.tetris.Account.Info.load();
             var sFrag = Backbone.history.fragment;
-            
+
             if(!app.tetris.Account.Info.isAuthenticated() && sFrag !== 'login'){
-//                this.navigate('login', {trigger : true});
-//                return;
+                this.navigate('login', {trigger : true});
+                app.tetris.Account.Network.io.emit('reqLogin', app.tetris.Account.Info.getAccount());
+                return;
             }
             
             if (callback) callback.apply(this, args);
@@ -3663,15 +4079,12 @@ app.tetris.init = function(sMode){
         
         initialize : function(){
             this._welContainer = $('#_container');
-            
             this._hideAllScreens();
         },
 
         _hideAllScreens : function(){
             this._welContainer.find('#_dimmed_section').hide();
-
             this._welContainer.find('._screen').hide();
-
             this._welContainer.removeClass('animated').removeClass('fadeInDown');
 
             t.ui.Header.View.hide();
@@ -3689,22 +4102,38 @@ app.tetris.init = function(sMode){
             this.navigate('login', {trigger : true});
         },
 
+        moveToQuickJoin : function(){
+            this._hideAllScreens();
+            t.ui.BackButton.show();
+
+            t.Game.StageView.setType('multi');
+            t.Game.StageView.show();
+            t.Game.StageView.openMultiQuickJoin();
+        },
+        
+        moveToSingleGame : function(){
+            this._hideAllScreens();
+            t.ui.BackButton.show();
+
+            t.Game.StageView.setType('single');
+            t.Game.StageView.show();
+        },
 
         moveToMultiGame : function(){
             this._hideAllScreens();
-            t.Menu.View.show();
+            t.ui.BackButton.show();
+
+            t.Game.StageView.setType('multi');
+            t.Game.StageView.show();
         },
         
         moveToGameBoard : function(){
             this._hideAllScreens();
             
-            
             t.Board.init();
             t.Board.View.show();
-
             t.ui.Header.View.changeTitle('GameBoard').show();
             t.ui.Footer.View.show();
-
             t.ui.BackButton.show();
         },
 
@@ -3712,31 +4141,11 @@ app.tetris.init = function(sMode){
             this._hideAllScreens();
             t.Credit.View.show();
             t.ui.Header.View.changeTitle('Credit').show();
-            
             t.ui.BackButton.show();
         },
 
         moveBack : function(){
             window.history.back();
-        },
-
-        moveToSingleGame : function(){
-            this._hideAllScreens();
-
-            t.ui.BackButton.show();
-            t.Game.StageView.show();
-            
-            // Game Init
-            var oTetris = t.Game.init({
-                sTargetId  : 'game_area',
-                bUseWebGL : true
-            });
-
-            return;
-            oTetris.on('ready', function(context){
-                context.oGameView.show();
-            });
-            
         },
 
         moveToMenu : function(){

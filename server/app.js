@@ -13,7 +13,7 @@ var _ = require('underscore');
 var mongoose = require('mongoose');
 var User = mongoose.model('User');
 
-var oSocketIo = SocketIo.listen(process.env.port || 3000);
+var oSocketIo = SocketIo.listen(process.env.port || 8080);
 
 oSocketIo.configure(function(){
     oSocketIo.enable('browser client minification');  // send minified client
@@ -110,7 +110,7 @@ app.use(session({
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', function(req, res){
-    
+
     getRoomInfoWithUserId(function(info){
         res.render('index', { roomInfo : info });
     });
@@ -152,5 +152,5 @@ app.use(function(err, req, res, next) {
 
 module.exports = app;
 
-app.listen(8080);
+app.listen(3000);
 

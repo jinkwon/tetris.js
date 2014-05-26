@@ -14,13 +14,13 @@ app.tetris.config._refresh = function(){
 
     switch(app.tetris.config.sMode){
         case 'production' :
-            sSrvUrl = 'http://srv.bdyne.net:3000';
+            sSrvUrl = 'http://srv.bdyne.net:8080';
             break;
         case 'staging' :
-            sSrvUrl = 'http://' + document.location.hostname + ':3000';
+            sSrvUrl = 'http://' + document.location.hostname + ':8080';
             break;
         default :
-            sSrvUrl = 'http://' + document.location.hostname + ':3000';
+            sSrvUrl = 'http://' + document.location.hostname + ':8080';
             break;
     }
 

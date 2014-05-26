@@ -37,7 +37,10 @@ module.exports = function (grunt) {
         },
         uglify: {
             options: {
-                banner: '<%= banner %>'
+                banner: '<%= banner %>',
+                compress : {
+                    drop_console: true
+                }
             },
             dist: {
                 src: '<%= concat.dist.dest %>',
@@ -132,6 +135,12 @@ module.exports = function (grunt) {
             phonegap : {
                 src : ['platforms/**'],
                 dest : 'public/phonegap/'
+            },
+
+            moveToServer : {
+
+                src : ['www/**'],
+                dest : '../server/public/'
             }
 
         },
@@ -312,7 +321,8 @@ module.exports = function (grunt) {
         'copy:package',
         'concat',
         'uglify',
-        'uglify:loader'
+        'uglify:loader',
+        'copy:moveToServer'
     ]);
 
     // deploy task.

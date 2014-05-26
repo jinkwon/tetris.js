@@ -103,9 +103,9 @@ app.tetris.Game.View = Backbone.View.extend({
         }
 
 		this.htSound = {
-            harddrop : new Howl({urls: ['../res/sound/TE_SE_harddrop.mp3'], volume: 0.3}),
-            softdrop : new Howl({urls: ['../res/sound/TE_SE_softdrop.mp3'], volume: 0.3}),
-            lockdown : new Howl({urls: ['../res/sound/TE_SE_lockdown.mp3'], volume: 0.3})
+            harddrop : new Howl({urls: ['./res/sound/TE_SE_harddrop.mp3'], volume: 0.3}),
+            softdrop : new Howl({urls: ['./res/sound/TE_SE_softdrop.mp3'], volume: 0.3}),
+            lockdown : new Howl({urls: ['./res/sound/TE_SE_lockdown.mp3'], volume: 0.3})
         };
 	},
 

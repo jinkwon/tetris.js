@@ -97,3 +97,17 @@ May 17 23:32:19 Jinkwon-ui-MacBook-Air.local Tetris[15638] <Error>: CGImageCreat
 >>>> frameSizeChanged = 4096
 >>>> frameSizeChanged = 4096
 2014-05-18 00:35:34.038 Tetris[18028:70b] setting movie path: 
+2014-05-23 16:23:50.839 Tetris[46422:70b] Multi-tasking -> Device: YES, App: YES
+2014-05-23 16:23:50.890 Tetris[46422:70b] Unlimited access to network resources
+2014-05-23 16:23:51.667 Tetris[46422:70b] Resetting plugins due to page load.
+2014-05-23 16:23:52.453 Tetris[46422:70b] Finished load of: file:///Users/jinkwonlee/Library/Application%20Support/iPhone%20Simulator/7.1/Applications/4651920B-6408-4F62-9D48-46D0CD18A118/Tetris.app/www/index.html
+>>>> frameSizeChanged = 4096
+>>>> frameSizeChanged = 4096
+2014-05-23 17:19:51.179 Tetris[49555:70b] Multi-tasking -> Device: YES, App: YES
+2014-05-23 17:19:51.382 Tetris[49555:70b] Unlimited access to network resources
+2014-05-23 17:19:52.072 Tetris[49555:70b] Resetting plugins due to page load.
+2014-05-23 17:19:52.738 Tetris[49555:70b] Finished load of: file:///Users/jinkwonlee/Library/Application%20Support/iPhone%20Simulator/7.1/Applications/4651920B-6408-4F62-9D48-46D0CD18A118/Tetris.app/www/index.html
+>>>> frameSizeChanged = 4096
+>>>> frameSizeChanged = 4096
+2014-05-23 17:41:00.092 Tetris[49555:ce83] 17:41:00.089 WARNING:   235: Default audio device changed. Restart the simulator to have it use the newly-selected device.
+2014-05-23 19:24:36.365 Tetris[49555:a90f] 19:24:36.059 WARNING:   235: Default audio device changed. Restart the simulator to have it use the newly-selected device.
