@@ -4,7 +4,6 @@
     <description>
     A sample Apache Cordova application that responds to the deviceready event.
     </description>
-    <access origin="*" />
     <content src="index.html" />
     <name>Tetris</name>
     <description>
@@ -53,5 +52,5 @@
     <gap:splash gap:platform="ios" height="1024" src="res/screen/ios/screen-ipad-portrait.png" width="768" />
     <gap:splash gap:platform="ios" height="768" src="res/screen/ios/screen-ipad-landscape.png" width="1024" />
     <gap:splash gap:platform="winphone" src="res/screen/windows-phone/screen-portrait.jpg" />
-    <access origin="http://127.0.0.1*" />
+    <access origin="*" />
 </widget>

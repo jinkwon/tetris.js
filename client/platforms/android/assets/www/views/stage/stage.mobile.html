@@ -1,30 +1,18 @@
-<style type="text/css">
-    .other_stage{
-        border-top:1px solid #FFF;
-        border-bottom:1px solid #FFF;
-    }
-
-    .option_btn{
-        cursor:pointer;z-index:1;position:absolute;top:10px;right:50px;font-size:14px;line-height:1.8;width:30px;height:30px;border:2px solid #FFF;border-radius:50%;
-    }
-
-</style>
 <link rel="stylesheet" href="res/css/game.css"/>
-
 
 <div class="_option option_btn">
     <i class="fa fa-cog"></i>
 </div>
 
-<div class="_mobile" style="position:absolute;margin-left:0px;left:10px;width:300px;z-index:100;bottom:10px;display:block;">
-    <div class="jpad" id="up" style="margin-left:40px;border-bottom:0;"><i class="fa fa-angle-up"></i></div>
+<div class="_mobile keypad_arrow_btn">
+    <div class="jpad up" id="up"><i class="fa fa-angle-up"></i></div>
     <div style="clear:both;">
-        <div class="jpad" id="left" style="border-right:0;"><i class="fa fa-angle-left"></i></div><div class="jpad" id="down" style="box-shadow:none;border-right:1px solid rgba(255,255,255,0.9);"><i class="fa fa-angle-down"></i></div>
+        <div class="jpad" id="left" style="border-right:0;"><i class="fa fa-angle-left"></i></div><div class="jpad down" id="down"><i class="fa fa-angle-down"></i></div>
         <div class="jpad" id="right" style="border-left:0;"><i class="fa fa-angle-right"></i></div>
     </div>
 </div>
 
-<div class="_mobile" style="position:absolute;right:10px;bottom:10px;z-index:100;">
+<div class="_mobile keypad_action_btn">
     <div class="jpad" id="harddown">
         <i class="fa fa-angle-double-down"></i>
     </div>
@@ -33,9 +21,9 @@
 <div class="container" style="position:relative;height:100%;box-sizing:border-box;padding-bottom:20px;">
 
     <div class="_score_board _multi" style="display:none;height:100px;position:absolute;width:100%;">
-        <div style="position:absolute;left:10%;border-left:1px solid #FFF;margin-top:15px;">
+        <div class="_rank_percent" style="display:none;position:absolute;left:10%;border-left:1px solid #FFF;margin-top:15px;">
             <div style="padding:1px 3px;border-radius:0 5px 0 0;text-align:left;margin-bottom:8px;border-bottom:1px solid #FFF;font-size:11px;background-color:rgba(255,255,255,.3)">
-                You are <b>50st</b>
+                You are <b class="_my_rank">0st</b>
             </div>
             <div style="width: 0;margin-left:-6px;margin-bottom:-1px;height: 0;border-left: 5px solid transparent;border-right: 5px solid transparent;border-top: 5px solid #FFF;"></div>
         </div>
@@ -46,7 +34,6 @@
             <div style="float:left;margin:5px 0 0 0;-webkit-transform:rotate(90deg);">1st</div>
             <div style="float:right;margin:5px 0 0 0;-webkit-transform:rotate(90deg);">last</div>
         </div>
-
     </div>
 
     <div class="field_container" id="touch_area" style="box-sizing:border-box;background:none;z-index:0;position:absolute;top:0;bottom:0;width:100%;">
@@ -58,36 +45,31 @@
         <div class="field" style="box-sizing:border-box;">
             <div id="debug_area" class="debug_area"> </div>
 
-            <div class="_multi animated" style="width:22.5%;padding:0 10px;left:0;top:50%;margin-top:-100px;bottom:0;position:absolute;height:120px;">
-                <div>45st</div>
+            <div class="_multi animated _front_user_info" style="width:22.5%;padding:0 10px;left:0;top:50%;margin-top:-100px;bottom:0;position:absolute;height:120px;">
+                <div class="_rank"></div>
                 <div id="other_1_game_area" style="height:120px;" class="other_stage"></div>
-                <div>Diablo. 200</div>
+                <div class="_text"></div>
             </div>
 
+            <div class="" style="position:absolute;width:100%;left:0px;top:15px;overflow:hidden;"><span class="_play_time" style="font-size:15px;width:100px;margin:auto;display:block;"></span></div>
 
-            <div class="" style="position:absolute;width:100%;left:0px;top:15px;overflow:hidden;">
-                <span class="_play_time" style="font-size:15px;width:100px;margin:auto;display:block;"></span>
-            </div>
+            <div id="single_game_area" class="box" style="background-color:rgba(50,50,50,.2);box-shadow:inset 0 0 5px #222;border:1px solid rgba(255,255,255,.7);"> </div>
 
-            <div id="single_game_area" style="overflow:hidden;width:55%;position:absolute;left:22.5%;margin-top:-200px;top:50%;height:400px;background-color:rgba(50,50,50,.2);box-shadow:inset 0 0 5px #222;border:1px solid rgba(255,255,255,.7);"> </div>
-
-            <div class="_multi animated" style="width:22.5%;padding:0 10px;right:0;top:50%;margin-top:-100px;bottom:0;position:absolute;height:120px;">
-                <div>52st</div>
+            <div class="_multi animated _back_user_info" style="width:22.5%;padding:0 10px;right:0;top:50%;margin-top:-100px;bottom:0;position:absolute;height:120px;">
+                <div class="_rank"></div>
                 <div id="other_2_game_area" style="height:120px;" class="other_stage" ></div>
-                <div>Wow. 200</div>
+                <div class="_text"></div>
             </div>
 
         </div>
     </div>
 
-
     <div class="col3 _next_block" style="overflow:hidden;display:block;position:absolute;margin:auto;bottom:65px;right:5px;width:60px;height:60px;">
-
         <div style="position:absolute;margin:auto;text-align:center;line-height:1;left:10px;top:3px;color:rgba(255,255,255,1);width:45px;padding-bottom:3px;z-index:1;border-bottom:1px solid #FFF;">
             <span style="font-size:15px;">Next</span>
 
         </div>
-        <div class="next_block" style="position:relative;margin-left:8px;margin-top:2px;-webkit-transform:scale(0.7);">
+        <div class="next_block" style="position:relative;margin-left:8px;margin-top:2px;-webkit-transform:scale(0.7);-moz-transform:scale(0.7);">
             <div class="next_block_container" style="width:67px;height:67px;position:relative;"> </div>
         </div>
         <div class="next_block_group">

@@ -4,7 +4,7 @@
  * 파일 의존성 관리 및 앱 호출
  */
 requirejs.config({
-    baseUrl : '',
+    baseUrl : './',
     urlArgs : '',
     waitSeconds : 45,
     paths : {
