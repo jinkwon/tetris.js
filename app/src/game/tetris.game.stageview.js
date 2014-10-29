@@ -571,13 +571,12 @@
         },
         
         _setGameEvents: function (wel) {
-            wel.find('#start_btn').bind('click', $.proxy(this.oGameView.start, this.oGameView));
-            wel.find('#stop_btn').bind('click', $.proxy(this.oGameView.stop, this.oGameView));
-            wel.find('#ready_btn').bind('click', $.proxy(this.oGameView.reqReady, this.oGameView));
-            wel.find('#cancel_btn').bind('click', $.proxy(this.oGameView.reqCancel, this.oGameView));
-            wel.find('#start_touch').bind('click', $.proxy(this.oGameView.start, this.oGameView));
-
-            wel.find('#debug_btn').bind('click', $.proxy(this.oGameView.debugStart, this.oGameView));
+            wel.find('#start_btn').on('click', $.proxy(this.oGameView.start, this.oGameView));
+            wel.find('#stop_btn').on('click', $.proxy(this.oGameView.stop, this.oGameView));
+            wel.find('#ready_btn').on('click', $.proxy(this.oGameView.reqReady, this.oGameView));
+            wel.find('#cancel_btn').on('click', $.proxy(this.oGameView.reqCancel, this.oGameView));
+            wel.find('#start_touch').on('click', $.proxy(this.oGameView.start, this.oGameView));
+            wel.find('#debug_btn').on('click', $.proxy(this.oGameView.debugStart, this.oGameView));
         },
 
         setUIEvents : function(){
