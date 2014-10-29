@@ -6,8 +6,11 @@ lee.jinkwon@nhn.com
 
 ## installation
 
-   cd client  
+   cd app
    bower install  
-   
+
+   cd package
+   grunt deploy
+
    cd server  
    npm install  
