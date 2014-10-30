@@ -66,14 +66,6 @@
 
             var template = app.tetris.TemplateManager.get(this.template, htVars);
             this.$el.html(template);
-
-            this.myScroll = new IScroll('#wrapper_scroll', {
-                scrollX: false,
-                scrollY: true,
-                momentum: true,
-                click: true
-            });
-
             return this;
         }
     });

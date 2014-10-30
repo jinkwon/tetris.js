@@ -80,11 +80,12 @@
         },
         
         moveToGameBoard : function(){
+
             this._hideAllScreens();
             
             t.Board.init();
             t.Board.View.show();
-            t.ui.Header.View.changeTitle('GameBoard').show();
+            t.ui.Header.View.changeTitle('ScoreBoard').show();
             t.ui.Footer.View.show();
             t.ui.BackButton.show();
         },
@@ -101,7 +102,6 @@
         },
 
         moveToMenu : function(){
-            
             this._hideAllScreens();
             t.Menu.View.show();
         }

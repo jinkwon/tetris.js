@@ -18,6 +18,13 @@ var League = new Schema({
     'created_at' : Date
 });
 
+var Score = new Schema({
+
+    "userId" : String,
+    "sessionId" : {type : String, index : true},
+    "nScore" : Number,
+    "created_at" : { type: Date, default: Date.now }
+});
 
 var roomUser = new Schema({ 
     _id : Schema.ObjectId,
@@ -40,12 +47,10 @@ var Room = new Schema({
 mongoose.model('User', User);
 mongoose.model('League', League);
 mongoose.model('Room', Room);
-
+mongoose.model('Score', Score);
 
 //User.method.pre('save', function(){
-//   
 //    console.log(document);
-//    
 //    next();
 //});
 

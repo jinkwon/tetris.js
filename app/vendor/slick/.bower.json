@@ -1,0 +1,15 @@
+{
+  "name": "slick",
+  "main": "dist/slick.js",
+  "homepage": "https://github.com/shashankmehta/slick.js",
+  "_release": "f9c0229f1c",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "f9c0229f1c218cb616f111151b8819a9c2f9fb95"
+  },
+  "_source": "git://github.com/shashankmehta/slick.js.git",
+  "_target": "*",
+  "_originalSource": "slick",
+  "_direct": true
+}
