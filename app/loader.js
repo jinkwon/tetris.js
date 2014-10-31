@@ -16,7 +16,8 @@ requirejs.config({
 		'socket.io' : '../vendor/socket.io-client/dist/socket.io.min',
 		'glmatrix' : '../lib/glmatrix',
         'howler' : '../vendor/howler/howler.min',
-        'fastclick' : '../vendor/fastclick/lib/fastclick'
+        'fastclick' : '../vendor/fastclick/lib/fastclick',
+        'slick' : '../vendor/slick/dist/slick.min'
 	},
 
 	shim : {
@@ -24,7 +25,7 @@ requirejs.config({
 		'backbone' : { deps : ['underscore', 'jquery'], exports : 'Backbone' },
 		'jquery' : { exports : '$' },
 		'jquery-ui' : { deps : ['jquery'] },
-
+        'slick' : {deps : ['jquery']},
         // Package Begin
 
         'tetris' : {
@@ -36,6 +37,7 @@ requirejs.config({
 
                 'fastclick',
                 'iscroll',
+                'slick',
                 'common/tetris.util'
             ]
         },
@@ -69,7 +71,7 @@ requirejs.config({
                 'jquery-ui',
 
                 'tetris',
-                'board/tetris.board.view', 
+                'board/tetris.board.view',
                 'common/tetris.network'
             ]
         },

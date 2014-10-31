@@ -8,6 +8,7 @@ var mongoose = require('mongoose');
 var League = mongoose.model('League');
 var Room = mongoose.model('Room');
 var User = mongoose.model('User');
+var Score = mongoose.model('Score');
 
 var _ = require('underscore');
 
@@ -241,22 +242,55 @@ var onUnsubscribe = function(data, oGame) {
         }
     })
 };
+var updateMaxScore = function(obj, oGame, oUser){
+
+    if(oUser.sessionId){
+        var $p = Score.findOne({userId : oUser.userId}).exec();
+    } else {
+        var $p = Score.findOne({sessionId : oGame.id}).exec();
+    }
+
+    $p.then(function(oScore){
+
+        if(oScore){
+            if(oScore.nScore >= obj.nScore){
+                return;
+            }
+
+            oScore.nScore = obj.nScore;
+            oScore.save(function(){
+            });
+
+        } else {
+            oScore = new Score({
+                nScore : obj.nScore,
+                sessionId : oGame.id,
+                userId : oUser ? oUser.userId : ''
+            });
+
+            oScore.save(function(){});
+        }
+
+        brScoreBoard(oGame);
+    });
+
+};
 
 var onBrGameInfo = function(obj, oGame){
     var sRoomId = obj.sRoomId || '';
 
     var $p = User.findOne({sessionId : oGame.id}).exec();
-
-    $p.then(function(err, oUser){
+    $p.then(function(oUser){
 
         var $p = Room.findOne({roomId : sRoomId}).exec();
-
         $p.then(function(oRoom){
             if(!oUser){
                 oUser = {
                     userId : 'guest_' + guid().substr(0, 5)
                 }
             }
+
+            updateMaxScore(obj, oGame, oUser);
 
             var bExist = _.find(oRoom.users, function(user){
                 return (user.sessionId === oGame.id);
@@ -282,7 +316,6 @@ var onBrGameInfo = function(obj, oGame){
                 });
 
             } else {
-
 
                 var idx = null;
                 for(var i = 0; i < oRoom.users.length; i++){
@@ -387,13 +420,41 @@ var onDisconnect = function(oGame){
 };
 
 
+function brScoreBoard(oGame) {
+    var $p = Score.find().limit(10).sort({nScore: 'desc'}).exec();
+
+    $p.then(function (results) {
+        if (!results) {
+            return;
+        }
+
+        var aScores = [];
+
+        _.each(results, function (score) {
+            aScores.push({
+                userId: score.userId,
+                score: score.nScore
+            });
+        });
+
+        oGame.emit('brScoreBoard', {
+            aScores: aScores
+        });
+
+        console.log('brScoreBoard');
+    });
+}
+
 module.exports = {
     init : function(oSocketIo){
         var oGameIo = oSocketIo.of('/game');
-        
+
         oGameIo.on('connection', function(oGame){
             console.log(('CONNECTED : ' + oGame.id).magenta);
             oGame
+                .on('reqScoreBoard', function(data){
+                    brScoreBoard(oGame);
+                })
                 .on('subscribe', function(data) {
                     oGame.join(data.sRoomId);
                 })
