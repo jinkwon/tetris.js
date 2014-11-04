@@ -6,10 +6,10 @@
     </feature>
     <name>Tetris</name>
     <description>
-        Hello World sample application that responds to the deviceready event.
+        Tetris with OpenSource
     </description>
-    <author email="support@phonegap.com" href="http://phonegap.com">
-        PhoneGap Team
+    <author email="lee.jinkwon@nhn.com" href="http://bdyne.net">
+        LeeJinKwon
     </author>
     <preference name="permissions" value="none" />
     <preference name="Orientation" value="portrait" />
@@ -26,5 +26,6 @@
     <preference name="disable-cursor" value="false" />
     <preference name="android-minSdkVersion" value="7" />
     <preference name="android-installLocation" value="auto" />
+    <content src="index.html" />
     <access origin="*" />
 </widget>

@@ -1,22 +1,31 @@
-<link rel="stylesheet" href="res/css/gameboard.css" />
+<style type="text/css">
+    .credit_list {
 
-<div class="container" style="padding-top:50px;">
+    }
+    .credit_list li{
+        font-size:14px;
+    }
 
-    <div style="width:100%;height:30px;overflow-x:scroll;overflow-y:hidden;">
-        <ul id="_connectedPeople" class="ul_list" style="width:4024px;height:600px;border-radius:10px;">
+    .highlight{
+        padding:10px 0 5px 0;
+        font-weight:bold;
+        border-bottom:1px solid #EEE;
+    }
+</style>
+<div>
+    <div style="width: 250px;
+	height: 300px;
+	position: absolute;
+	top:0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	margin: auto;
+">
 
+        <ul class="credit_list">
+            <li class="highlight">Scoreboard</li>
+            <ul class="_score_list"></ul>
         </ul>
     </div>
-    <div style="width:100%;height:25px;overflow-x:scroll;overflow-y:hidden;">
-        <ul id="_gamePeople" class="ul_list" style="width:232px;height:600px;border-radius:10px;">
-
-        </ul>
-    </div>
-
-    <div class="stage" id="stage">
-        <ul id="_watch">
-
-        </ul>
-    </div>
-
 </div>

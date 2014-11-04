@@ -12,12 +12,13 @@ app.tetris.Rules.filterRules = function(nScore, cb){
     // 1000 : level 2
     
     var aLevels = [
-        {nLv : 8, nScore : 10000, nLogicSpeed : 100},
-        {nLv : 7, nScore : 5000, nLogicSpeed : 150},
-        {nLv : 6, nScore : 2500, nLogicSpeed : 200},
-        {nLv : 5, nScore : 2000, nLogicSpeed : 300},
-        {nLv : 4, nScore : 1500, nLogicSpeed : 400},
-        {nLv : 3, nScore : 1000, nLogicSpeed : 600},
+        {nLv : 9, nScore : 10000, nLogicSpeed : 100},
+        {nLv : 8, nScore : 6000, nLogicSpeed : 150},
+        {nLv : 7, nScore : 4000, nLogicSpeed : 250},
+        {nLv : 6, nScore : 2500, nLogicSpeed : 350},
+        {nLv : 5, nScore : 2000, nLogicSpeed : 450},
+        {nLv : 4, nScore : 1500, nLogicSpeed : 550},
+        {nLv : 3, nScore : 1000, nLogicSpeed : 650},
         {nLv : 2, nScore : 500, nLogicSpeed : 1000},
         {nLv : 1, nScore : 0, nLogicSpeed : 1500}
     ];

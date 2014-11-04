@@ -1,4 +1,4 @@
-/*! Tetris - v0.1.0 - 2014-10-29
+/*! Tetris - v0.1.0 - 2014-11-04
 * https://github.com/Jinkwon/tetris.js
 * Copyright (c) 2014 LeeJinKwon; Licensed MIT */
 var app = app ? app : {};
@@ -165,111 +165,6 @@ app.tetris.Network.init = (function(htOptions){
         app.tetris.Game.Network.init();
         app.tetris.Account.Network.init();
     }
-
-    return;
-
-	//if($.cookie('SMSESSION')
-	var htOptions = htOptions ? htOptions : {}
-	  , oView
-	  , oGameIo
-	  , oChatIo
-	  , sEmpNo = ''
-	  , sEmpNm = ''
-	  , sDeptNm = '';
-	
-    iOS = false;
-    
-	var moveToLogin = function(){
-		
-		if(iOS){
-			if(htOptions.fRunLogin){
-				htOptions.fRunLogin();
-			}
-		} else {
-			window.location.href = 'login.html';
-		}
-	};
-
-    
-	var initialize = function(){
-		initGameIo();
-		initChatIo();
-	}
-	
-	var initGameIo = function(){
-		oGameIo = io.connect(app.tetris.config.sGameUrl);
-		
-
-		oGameIo.on('connect', function(){
-			
-			var htReq = {
-				sEmpNo : sEmpNo,
-				sEmpNm : sEmpNm,
-				sDeptNm : sDeptNm
-			};
-	
-			oGameIo.emit('reqJoin', htReq);
-
-		}).on('disconnect', function(){
-			//alert('서버와의 접속이 끊어졌습니다.');
-			//moveToLogin();
-			oGameIo = io.connect(app.tetris.config.sGameUrl);
-			
-		}).on('resJoin', function(htData){
-			if(htData.sStatus === 'ok'){
-				$('#ready_btn').show();
-				
-			}else if(htData.sStatus === 'exist'){
-				sEmpNo = $.cookie('sEmpNo');
-				sEmpNm = $.cookie('sEmpNm');
-	  			sDeptNm = $.cookie('sDeptNm');
-				
-				oGameIo.emit('reqReJoin', htReq);
-				
-			}else if(htData.sStatus === 'game'){
-				alert('이미 게임이 시작하였습니다.');
-			}else{
-				alert('서버와 접속이 원활하지 않습니다.');
-				moveToLogin();
-			}
-			
-		}).on('pushGameDone', function(htData){
-			$('#ready_btn').show();
-		}).on('resReady', function(htData){
-			oView.resReady(htData);
-		}).on('resCancel', function(htData){
-			oView.resCancel(htData);
-		}).on('pushStart', function(){
-			oView.start(true);
-		}).on('pushStop', function(){
-			oView.stop(true);
-		});
-	}
-	
-	var initChatIo = function(){
-		oChatIo = io.connect(app.tetris.sChatUrl);
-		
-		oChatIo.on('connect', function(){
-			oChatIo.emit('sendJoin', {
-				sEmpNo : sEmpNo,
-				sEmpNm : sEmpNm,
-				sDeptNm : sDeptNm
-			});
-		});
-	}
-
-	var bindViewer = function(oViewer){
-		oView = oViewer;
-	};
-	
-	initialize();
-
-
-	return {
-		oGameIo : oGameIo, 
-		oChatIo : oChatIo,
-		bindViewer : bindViewer
-	};
 });
 
 
@@ -1180,10 +1075,33 @@ app.tetris.Board.init = function(htOptions){
 
         initialize : function(){
             this.render();
+
+        },
+
+        initNetwork : function(){
+            if(!app.tetris.io){
+                return;
+            }
+
+            var oGameIo = app.tetris.io.of('/game');
+            oGameIo.emit('reqScoreBoard');
+            oGameIo.on('brScoreBoard', $.proxy(function(data){
+                this.updateScoreDisplay(data.aScores);
+            }, this));
+        },
+
+        updateScoreDisplay : function(aScores){
+            var aScoresHtml = [];
+            _.each(aScores, function(oScore, idx){
+                aScoresHtml.push('<li>' + (idx+1) + ". " + oScore.userId +  ': '+ oScore.score);
+            });
+
+            this.$el.find('._score_list').html(aScoresHtml.join(""));
         },
 
         show : function(){
             this.$el.hide().stop().fadeIn(300);
+            this.initNetwork();
         },
 
         hide : function(){
@@ -1195,18 +1113,16 @@ app.tetris.Board.init = function(htOptions){
         },
 
         render : function(){
-            app.tetris.TemplateManager.get(this.template, {}, $.proxy(function(template){
-                this.$el.html(template);
-            }, this));
-
-            return this;
+            var htVars = {};
+            var template = app.tetris.TemplateManager.get(this.template, htVars);
+            this.$el.html(template);
         }
     });
-    
+
     app.tetris.Board.View = new BoardView();
 })();
 
-    
+
 
 (function(){
 
@@ -2305,13 +2221,12 @@ app.tetris.Game.Network.init = function(){
         },
         
         _setGameEvents: function (wel) {
-            wel.find('#start_btn').bind('click', $.proxy(this.oGameView.start, this.oGameView));
-            wel.find('#stop_btn').bind('click', $.proxy(this.oGameView.stop, this.oGameView));
-            wel.find('#ready_btn').bind('click', $.proxy(this.oGameView.reqReady, this.oGameView));
-            wel.find('#cancel_btn').bind('click', $.proxy(this.oGameView.reqCancel, this.oGameView));
-            wel.find('#start_touch').bind('click', $.proxy(this.oGameView.start, this.oGameView));
-
-            wel.find('#debug_btn').bind('click', $.proxy(this.oGameView.debugStart, this.oGameView));
+            wel.find('#start_btn').on('click', $.proxy(this.oGameView.start, this.oGameView));
+            wel.find('#stop_btn').on('click', $.proxy(this.oGameView.stop, this.oGameView));
+            wel.find('#ready_btn').on('click', $.proxy(this.oGameView.reqReady, this.oGameView));
+            wel.find('#cancel_btn').on('click', $.proxy(this.oGameView.reqCancel, this.oGameView));
+            wel.find('#start_touch').on('click', $.proxy(this.oGameView.start, this.oGameView));
+            wel.find('#debug_btn').on('click', $.proxy(this.oGameView.debugStart, this.oGameView));
         },
 
         setUIEvents : function(){
@@ -3821,12 +3736,13 @@ app.tetris.Rules.filterRules = function(nScore, cb){
     // 1000 : level 2
     
     var aLevels = [
-        {nLv : 8, nScore : 10000, nLogicSpeed : 100},
-        {nLv : 7, nScore : 5000, nLogicSpeed : 150},
-        {nLv : 6, nScore : 2500, nLogicSpeed : 200},
-        {nLv : 5, nScore : 2000, nLogicSpeed : 300},
-        {nLv : 4, nScore : 1500, nLogicSpeed : 400},
-        {nLv : 3, nScore : 1000, nLogicSpeed : 600},
+        {nLv : 9, nScore : 10000, nLogicSpeed : 100},
+        {nLv : 8, nScore : 6000, nLogicSpeed : 150},
+        {nLv : 7, nScore : 4000, nLogicSpeed : 250},
+        {nLv : 6, nScore : 2500, nLogicSpeed : 350},
+        {nLv : 5, nScore : 2000, nLogicSpeed : 450},
+        {nLv : 4, nScore : 1500, nLogicSpeed : 550},
+        {nLv : 3, nScore : 1000, nLogicSpeed : 650},
         {nLv : 2, nScore : 500, nLogicSpeed : 1000},
         {nLv : 1, nScore : 0, nLogicSpeed : 1500}
     ];
@@ -4013,14 +3929,6 @@ app.tetris.Rules.BlockList = {
 
             var template = app.tetris.TemplateManager.get(this.template, htVars);
             this.$el.html(template);
-
-            this.myScroll = new IScroll('#wrapper_scroll', {
-                scrollX: false,
-                scrollY: true,
-                momentum: true,
-                click: true
-            });
-
             return this;
         }
     });
@@ -4129,11 +4037,12 @@ app.tetris.init = function(sMode){
         },
         
         moveToGameBoard : function(){
+
             this._hideAllScreens();
             
             t.Board.init();
             t.Board.View.show();
-            t.ui.Header.View.changeTitle('GameBoard').show();
+            t.ui.Header.View.changeTitle('ScoreBoard').show();
             t.ui.Footer.View.show();
             t.ui.BackButton.show();
         },
@@ -4150,7 +4059,6 @@ app.tetris.init = function(sMode){
         },
 
         moveToMenu : function(){
-            
             this._hideAllScreens();
             t.Menu.View.show();
         }
