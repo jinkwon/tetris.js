@@ -17,7 +17,7 @@ module.exports = function (grunt) {
         banner: '/*! <%= pkg.title || pkg.name %> - v<%= pkg.version %> - ' + '<%= grunt.template.today("yyyy-mm-dd") %>\n' + '<%= pkg.homepage ? "* " + pkg.homepage + "\\n" : "" %>' + '* Copyright (c) <%= grunt.template.today("yyyy") %> <%= pkg.author.name %>;' + ' Licensed <%= _.pluck(pkg.licenses, "type").join(", ") %> */\n',
         // Task configuration.
         clean: {
-            files: ['www', 'public/releases']
+            files: ['www', 'public/releases', 'archive']
         },
 
         concat: {
@@ -137,6 +137,11 @@ module.exports = function (grunt) {
                 dest : 'www/'
             },
 
+            apk : {
+                 src : ['platforms/android/ant-build/Tetris-release.apk'],
+                dest : 'archive/tetris.apk'
+            },
+
             loader : {
                 src : ['../app/loader.dist.js'],
                 dest : 'www/loader.js'
@@ -212,7 +217,8 @@ module.exports = function (grunt) {
             build : {
                 options: {
                     command: 'build',
-                    platforms: ['ios', 'android']
+                    platforms: ['android', 'ios'],
+                    args: ['--release']
                 }
             },
             emulate_android: {
@@ -230,7 +236,47 @@ module.exports = function (grunt) {
                     args : ['--emulate']
                 }
             }
+        },
+
+        compress : {
+            nw_win : {
+                options: {
+                    mode: 'zip',
+                    archive : 'archive/tetris.win.zip'
+                },
+                expand: true,
+                cwd: 'public/releases/Tetris/win/',
+                src: ['**/*']
+            },
+
+            nw_osx : {
+                options: {
+                    mode: 'zip',
+                    archive : 'archive/tetris.osx.zip'
+                },
+                expand: true,
+                cwd: 'public/releases/Tetris/mac/',
+                src: ['**/*']
+            }
+        },
+
+        scp : {
+            options: {
+                host: 'srv.bdyne.net',
+                username: '',
+                password: ''
+            },
+            your_target: {
+                files: [{
+                    cwd: 'archive',
+                    src: '**/*',
+                    filter: 'isFile',
+                    // path on the server
+                    dest: '/home/www/public/archive/tetris'
+                }]
+            }
         }
+
     });
 
     // livereload for dev
@@ -249,8 +295,9 @@ module.exports = function (grunt) {
         'copy:moveToServer'
     ]);
 
+    grunt.registerTask('pack_nw', ['nodewebkit', 'compress:nw_win', 'compress:nw_osx']);
+    grunt.registerTask('pack_mobile', ['cordovacli:build', 'copy:apk']);
     // deploy task.
-    grunt.registerTask('deploy', ['build', 'nodewebkit']);
-    //grunt.registerTask('phonegap', ['copy:phonegap', 'phonegap:release:android']);
+    grunt.registerTask('deploy', ['build', 'pack_nw', 'pack_mobile']);
 
 };

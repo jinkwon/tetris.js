@@ -38,6 +38,11 @@
     "grunt-node-webkit-builder": "^0.1.21",
     "grunt-sloc": "^0.5.2",
     "load-grunt-tasks": "^1.0.0",
-    "maxmin": "^1.0.0"
+    "maxmin": "^1.0.0",
+    "grunt-contrib-compress": "^0.12.0",
+    "shelljs": "^0.3.0",
+    "q": "^1.0.1",
+    "which": "^1.0.5",
+    "grunt-scp": "^0.1.7"
   }
 }
