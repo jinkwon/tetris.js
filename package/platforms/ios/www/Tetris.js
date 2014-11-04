@@ -2631,6 +2631,14 @@ app.tetris.Game.View = Backbone.View.extend({
             softdrop : new Howl({urls: ['./res/sound/TE_SE_softdrop.mp3'], volume: 0.3}),
             lockdown : new Howl({urls: ['./res/sound/TE_SE_lockdown.mp3'], volume: 0.3})
         };
+
+        document.addEventListener('deviceready', $.proxy(function(){
+            this.htSound = {
+                harddrop : new Media('./res/sound/TE_SE_harddrop.mp3', null, null),
+                softdrop : new Media('./res/sound/TE_SE_softdrop.mp3', null, null),
+                lockdown : new Media('./res/sound/TE_SE_lockdown.mp3', null, null)
+            };
+        }, this), false);
 	},
 
 

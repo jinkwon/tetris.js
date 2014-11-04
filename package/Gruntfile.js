@@ -217,7 +217,7 @@ module.exports = function (grunt) {
             build : {
                 options: {
                     command: 'build',
-                    platforms: ['android'],
+                    platforms: ['android', 'ios'],
                     args: ['--release']
                 }
             },
@@ -249,16 +249,34 @@ module.exports = function (grunt) {
                 src: ['**/*']
             },
 
-            nw_mac : {
+            nw_osx : {
                 options: {
                     mode: 'zip',
-                    archive : 'archive/tetris.mac.zip'
+                    archive : 'archive/tetris.osx.zip'
                 },
                 expand: true,
                 cwd: 'public/releases/Tetris/mac/',
                 src: ['**/*']
             }
+        },
+
+        scp : {
+            options: {
+                host: 'srv.bdyne.net',
+                username: '',
+                password: ''
+            },
+            your_target: {
+                files: [{
+                    cwd: 'archive',
+                    src: '**/*',
+                    filter: 'isFile',
+                    // path on the server
+                    dest: '/home/www/public/archive/tetris'
+                }]
+            }
         }
+
     });
 
     // livereload for dev
@@ -277,7 +295,7 @@ module.exports = function (grunt) {
         'copy:moveToServer'
     ]);
 
-    grunt.registerTask('pack_nw', ['nodewebkit', 'compress:nw_win', 'compress:nw_mac']);
+    grunt.registerTask('pack_nw', ['nodewebkit', 'compress:nw_win', 'compress:nw_osx']);
     grunt.registerTask('pack_mobile', ['cordovacli:build', 'copy:apk']);
     // deploy task.
     grunt.registerTask('deploy', ['build', 'pack_nw', 'pack_mobile']);

@@ -42,6 +42,7 @@
     "grunt-contrib-compress": "^0.12.0",
     "shelljs": "^0.3.0",
     "q": "^1.0.1",
-    "which": "^1.0.5"
+    "which": "^1.0.5",
+    "grunt-scp": "^0.1.7"
   }
 }
