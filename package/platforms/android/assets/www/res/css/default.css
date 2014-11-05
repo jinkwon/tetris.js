@@ -84,3 +84,8 @@ table {/* border-collapse:collapse;table-layout:fixed; */
     border-collapse: collapse;
     border-spacing: 0
 }
+
+*:not(input,textarea) {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none; /* Disable selection/Copy of UIWebView */
+}
