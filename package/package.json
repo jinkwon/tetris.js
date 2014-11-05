@@ -32,17 +32,18 @@
   "dependencies": {
     "chalk": "^0.5.1",
     "cordova": "^4.0.0",
+    "grunt-contrib-compress": "^0.12.0",
     "grunt-contrib-copy": "^0.5.0",
     "grunt-contrib-uglify": "^0.4.0",
     "grunt-cordovacli": "^0.5.1",
     "grunt-node-webkit-builder": "^0.1.21",
+    "grunt-processhtml": "^0.3.3",
+    "grunt-scp": "^0.1.7",
     "grunt-sloc": "^0.5.2",
     "load-grunt-tasks": "^1.0.0",
     "maxmin": "^1.0.0",
-    "grunt-contrib-compress": "^0.12.0",
-    "shelljs": "^0.3.0",
     "q": "^1.0.1",
-    "which": "^1.0.5",
-    "grunt-scp": "^0.1.7"
+    "shelljs": "^0.3.0",
+    "which": "^1.0.5"
   }
 }

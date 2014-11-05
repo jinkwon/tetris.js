@@ -2,6 +2,10 @@
 <html lang="en-US">
 <head>
     <meta charset="UTF-8">
+    <title>Tetris</title>
+    <meta name="date" content="Wed Nov 05 2014 20:12:55 GMT+0900 (KST)"/>
+    <script>window.APP_VERSION = '0.1.0';</script>
+
     <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Lato">
@@ -10,14 +14,17 @@
 
     <link rel="stylesheet" href="res/css/default.css"/>
     <link rel="stylesheet" href="vendor/animate.css/animate.min.css"/>
+
+    <script src="cordova.js"></script>
     <script data-main="loader" src="vendor/requirejs/require.js"></script>
 
     <style type="text/css">
+
         body{
             height:100%;
             font-family: 'Lato', serif;
         }
-        
+
         ._screen{
             display:none;
             position:absolute;
@@ -26,11 +33,9 @@
         }
     </style>
 </head>
-<body style="overflow:hidden;width:100%;">
+<body>
 
 <div id="_container" style="overflow:hidden;height:100%;">
-
-
     <div id="_header" class="header" style="display:none;"></div>
 
     <div id="_option" class="_screen"></div>
@@ -40,17 +45,14 @@
         <div class="_close animated" style="cursor:pointer;position:absolute;z-index:1;border:2px solid #FFF;border-radius:50%;width:30px;height:30px;right:10px;top:10px;display:none;line-height:1.1;content:'\2716';font-size:25px;color: #FFF;font-weight: 100;font-family: Arial, sans-serif;">&times;</div>
 
         <div class="_screen" id="_single_view"></div>
-        
+
         <div class="_screen" id="_credit_view"></div>
         <div class="_screen" id="_start_view"></div>
         <div class="_screen" id="_menu_view"></div>
         <div class="_screen" id="_gameboard_view"></div>
     </div>
-    
+
     <div id="_footer" class="footer" style="display:none;"></div>
-
-
 </div>
-
 </body>
 </html>

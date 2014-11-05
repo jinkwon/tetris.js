@@ -1,6 +1,57 @@
 /*! Tetris - v0.1.0 - 2014-11-05
 * https://github.com/Jinkwon/tetris.js
 * Copyright (c) 2014 LeeJinKwon; Licensed MIT */
+
+// Cordova Polyfill
+var CordovaUtil = function() {
+    var oldAlert = window.alert;
+    window.alert = function(message, titleLabel, buttonLabel){
+        titleLabel = titleLabel ? titleLabel : 'Alert';
+        buttonLabel = buttonLabel ? buttonLabel : 'OK';
+
+        if(navigator.notification){
+            navigator.notification.alert(message, null, titleLabel, buttonLabel);
+        } else {
+            oldAlert(message);
+        }
+    };
+
+    function handleExternalURLs() {
+        // Handle click events for all external URLs
+        if (device.platform.toUpperCase() === 'ANDROID') {
+            $(document).on('click', 'a[href^="http"]', function (e) {
+                var url = $(this).attr('href');
+                navigator.app.loadUrl(url, {openExternal: true});
+                e.preventDefault();
+            });
+        }
+        else if (device.platform.toUpperCase() === 'IOS') {
+            $(document).on('click', 'a[href^="http"]', function (e) {
+                var url = $(this).attr('href');
+                window.open(url, '_system');
+                e.preventDefault();
+            });
+        }
+        else {
+            // Leave standard behaviour
+        }
+    }
+
+    var init = function(){
+        // Mock device.platform property if not available
+        if (!window.device) {
+            window.device = {platform: 'Browser'};
+        }
+
+        handleExternalURLs();
+    };
+
+    init();
+};
+
+document.addEventListener('deviceready', function(){
+    CordovaUtil.apply(this, arguments);
+}, false);
 var app = app ? app : {};
 
 /**
@@ -258,20 +309,6 @@ app.tetris.Util.isMobile = function(){
             clearTimeout(id);
         };
 }());
-
-// Cordova Polyfill
-(function(){
-    window.alert = function(message, titleLabel, buttonLabel){
-
-        if(navigator.notification){
-            return navigator.notification.alert(message, titleLabel, buttonLabel);
-        } else {
-            return alert(message);
-        }
-    };
-})();
-
-
 var WebGLUtil = {};
 
 WebGLUtil.createShader = function( gl, src, type ) {
@@ -695,7 +732,7 @@ app.tetris.Account.Network.init = function(cb){
                 console.log('disconnected');
             })
             .on('error', function(){
-                alert('Cannot connect to Server');
+                alert('Cannot connect to Server', 'Server Error');
 
             })
             .on('reconnect_failed', function(){
@@ -3958,7 +3995,6 @@ app.tetris.init = function(sMode){
     app.tetris.config.setEnv(sMode || 'development');
 //    return;
 
-    FastClick.attach(document.body);
     app.tetris.Network.init();
 
     // initialize Singleton
@@ -3973,7 +4009,12 @@ app.tetris.init = function(sMode){
     var sNavigation = Backbone.history.fragment ? Backbone.history.fragment : false;
 
     app.tetris.Router.navigate(sNavigation, {trigger: true});
+
+    $(function() {
+        FastClick.attach(document.body);
+    });
 };
+
 (function () {
     var t = app.tetris;
     

@@ -4,7 +4,22 @@
         "uninstalled": []
     },
     "config_munge": {
-        "files": {}
+        "files": {
+            "config.xml": {
+                "parents": {
+                    "/*": [
+                        {
+                            "xml": "<permission description=\"Enables the app to implement a browser in an iframe.\" name=\"browser\" privileged=\"true\" />",
+                            "count": 1
+                        },
+                        {
+                            "xml": "<feature name=\"Notification\"><param name=\"firefoxos-package\" value=\"Notification\" /></feature>",
+                            "count": 1
+                        }
+                    ]
+                }
+            }
+        }
     },
     "installed_plugins": {
         "com.ququplay.websocket.WebSocket": {
@@ -14,6 +29,12 @@
             "PACKAGE_NAME": "com.jk.tetrisjs"
         },
         "org.apache.cordova.statusbar": {
+            "PACKAGE_NAME": "com.jk.tetrisjs"
+        },
+        "org.apache.cordova.inappbrowser": {
+            "PACKAGE_NAME": "com.jk.tetrisjs"
+        },
+        "org.apache.cordova.dialogs": {
             "PACKAGE_NAME": "com.jk.tetrisjs"
         }
     },

@@ -3,7 +3,7 @@
 <!-- config.xml reference: https://build.phonegap.com/docs/config-xml -->
 <widget xmlns     = "http://www.w3.org/ns/widgets"
         xmlns:gap = "http://phonegap.com/ns/1.0"
-        id        = "com.jk.tetrisjs"
+        id        = "com.nts.tetrisjs"
         version   = "1.0.0">
 
     <name>Tetris</name>
@@ -32,11 +32,12 @@
     <preference name="fullscreen"                 value="false" />           <!-- all: hides the status bar at the top of the screen -->
     <preference name="webviewbounce"              value="false" />           <!-- ios: control whether the screen 'bounces' when scrolled beyond the top -->
 
-    <preference name="StatusBarBackgroundColor"   value="#FFFFFF"/>
+    <preference name="StatusBarBackgroundColor"   value="#000000"/>
     <preference name="StatusBarStyle"             value="lightcontent"/>
     <preference name="StatusBarOverlaysWebView"   value="false" />
 
     <preference name="webviewbounce"              value="false" />
+    <preference name="DisallowOverscroll"              value="true" />
 
     <preference name="prerendered-icon"           value="true" />           <!-- ios: if icon is prerendered, iOS will not apply it's gloss to the app's icon on the user's home screen -->
     <preference name="stay-in-webview"            value="true" />          <!-- ios: external links should open in the default browser, 'true' would use the webview the app lives in -->
@@ -51,4 +52,30 @@
 
     <content src="index.html" />
     <access origin="*" />
+
+
+    <icon src="cordova/cordova_128.png"/>
+    <platform name="android">
+        <icon src="cordova/cordova_android_36.png" gap:platform="android" gap:density="ldpi"/>
+        <icon src="cordova/cordova_android_48.png" gap:platform="android" gap:density="mdpi"/>
+        <icon src="cordova/cordova_android_72.png" gap:platform="android" gap:density="hdpi"/>
+        <icon src="cordova/cordova_android_96.png" gap:platform="android" gap:density="xhdpi"/>
+
+        <splash src="cordova/res/screen/android_ldpi_portrait.png.png" gap:platform="android" gap:density="ldpi"/>
+        <splash src="cordova/res/screen/android_mdpi_portrait.png" gap:platform="android" gap:density="mdpi"/>
+        <splash src="cordova/res/screen/android_hdpi_portrait.png" gap:platform="android" gap:density="hdpi"/>
+        <splash src="cordova/res/screen/android_xhdpi_portrait.png" gap:platform="android" gap:density="xhdpi"/>
+    </platform>
+
+    <platform name="ios">
+        <icon src="cordova/cordova_ios_57.png" gap:platform="ios" width="57" height="57"/>
+        <icon src="cordova/cordova_ios_72.png" gap:platform="ios" width="72" height="72"/>
+        <icon src="cordova/cordova_ios_114.png" gap:platform="ios" width="114" height="114"/>
+        <icon src="cordova/cordova_ios_144.png" gap:platform="ios" width="144" height="144"/>
+
+        <splash src="cordova/res/screen/iphone_portrait.png" gap:platform="ios" width="320" height="480"/>
+        <splash src="cordova/res/screen/iphone_retina_portrait.png" gap:platform="ios" width="640" height="960"/>
+        <splash src="cordova/res/screen/ipad_portrait.png" gap:platform="ios" width="768" height="1024"/>
+        <splash src="cordova/res/screen/ipad_landscape.png" gap:platform="ios" width="1024" height="768"/>
+    </platform>
 </widget>

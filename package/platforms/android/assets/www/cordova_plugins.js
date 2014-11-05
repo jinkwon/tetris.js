@@ -29,6 +29,27 @@ module.exports = [
         ]
     },
     {
+        "file": "plugins/org.apache.cordova.inappbrowser/www/inappbrowser.js",
+        "id": "org.apache.cordova.inappbrowser.inappbrowser",
+        "clobbers": [
+            "window.open"
+        ]
+    },
+    {
+        "file": "plugins/org.apache.cordova.dialogs/www/notification.js",
+        "id": "org.apache.cordova.dialogs.notification",
+        "merges": [
+            "navigator.notification"
+        ]
+    },
+    {
+        "file": "plugins/org.apache.cordova.dialogs/www/android/notification.js",
+        "id": "org.apache.cordova.dialogs.notification_android",
+        "merges": [
+            "navigator.notification"
+        ]
+    },
+    {
         "file": "plugins/org.apache.cordova.file/www/DirectoryEntry.js",
         "id": "org.apache.cordova.file.DirectoryEntry",
         "clobbers": [
@@ -181,6 +202,8 @@ module.exports.metadata =
     "com.ququplay.websocket.WebSocket": "0.1.0",
     "org.apache.cordova.media": "0.2.14",
     "org.apache.cordova.statusbar": "0.1.8",
+    "org.apache.cordova.inappbrowser": "0.5.3",
+    "org.apache.cordova.dialogs": "0.2.10",
     "org.apache.cordova.file": "1.3.1"
 }
 // BOTTOM OF METADATA

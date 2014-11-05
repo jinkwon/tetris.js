@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.jk.tetrisjs" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
+<widget id="com.nts.tetrisjs" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
     <preference name="AllowInlineMediaPlayback" value="false" />
     <preference name="AutoHideSplashScreen" value="true" />
     <preference name="BackupWebStorage" value="cloud" />
@@ -30,6 +30,20 @@
         <param name="ios-package" onload="true" value="CDVStatusBar" />
     </feature>
     <preference name="StatusBarOverlaysWebView" value="true" />
+    <feature name="InAppBrowser">
+        <param name="ios-package" value="CDVInAppBrowser" />
+    </feature>
+    <feature name="Notification">
+        <param name="ios-package" value="CDVNotification" />
+    </feature>
+    <icon gap:platform="ios" height="57" src="cordova/cordova_ios_57.png" width="57" />
+    <icon gap:platform="ios" height="72" src="cordova/cordova_ios_72.png" width="72" />
+    <icon gap:platform="ios" height="114" src="cordova/cordova_ios_114.png" width="114" />
+    <icon gap:platform="ios" height="144" src="cordova/cordova_ios_144.png" width="144" />
+    <splash gap:platform="ios" height="480" src="cordova/res/screen/iphone_portrait.png" width="320" />
+    <splash gap:platform="ios" height="960" src="cordova/res/screen/iphone_retina_portrait.png" width="640" />
+    <splash gap:platform="ios" height="1024" src="cordova/res/screen/ipad_portrait.png" width="768" />
+    <splash gap:platform="ios" height="768" src="cordova/res/screen/ipad_landscape.png" width="1024" />
     <name>Tetris</name>
     <description>
         Tetris with OpenSource
@@ -41,10 +55,11 @@
     <preference name="Orientation" value="portrait" />
     <preference name="target-device" value="universal" />
     <preference name="fullscreen" value="false" />
-    <preference name="StatusBarBackgroundColor" value="#FFFFFF" />
+    <preference name="StatusBarBackgroundColor" value="#000000" />
     <preference name="StatusBarStyle" value="lightcontent" />
     <preference name="StatusBarOverlaysWebView" value="false" />
     <preference name="webviewbounce" value="false" />
+    <preference name="DisallowOverscroll" value="true" />
     <preference name="prerendered-icon" value="true" />
     <preference name="stay-in-webview" value="true" />
     <preference name="ios-statusbarstyle" value="black-opaque" />
@@ -57,4 +72,5 @@
     <preference name="android-installLocation" value="auto" />
     <content src="index.html" />
     <access origin="*" />
+    <icon src="cordova/cordova_128.png" />
 </widget>

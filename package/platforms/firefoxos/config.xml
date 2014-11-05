@@ -30,4 +30,8 @@
     <preference name="android-installLocation" value="auto" />
     <content src="index.html" />
     <access origin="*" />
+    <permission description="Enables the app to implement a browser in an iframe." name="browser" privileged="true" />
+    <feature name="Notification">
+        <param name="firefoxos-package" value="Notification" />
+    </feature>
 </widget>

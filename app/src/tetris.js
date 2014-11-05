@@ -2,7 +2,6 @@ app.tetris.init = function(sMode){
     app.tetris.config.setEnv(sMode || 'development');
 //    return;
 
-    FastClick.attach(document.body);
     app.tetris.Network.init();
 
     // initialize Singleton
@@ -17,4 +16,8 @@ app.tetris.init = function(sMode){
     var sNavigation = Backbone.history.fragment ? Backbone.history.fragment : false;
 
     app.tetris.Router.navigate(sNavigation, {trigger: true});
+
+    $(function() {
+        FastClick.attach(document.body);
+    });
 };

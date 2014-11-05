@@ -27,6 +27,7 @@ module.exports = function (grunt) {
             },
             dist: {
                 src: [
+                    '../app/src/cordova/cordova.util.js',
                     '../app/src/namespace.js',
                     '../app/src/tetris.config.js',
                     '../app/src/common/**/*.js',
@@ -114,12 +115,29 @@ module.exports = function (grunt) {
                 }
             }
         },
+
+        processhtml: {
+            dist : {
+                process : true,
+                options: {
+                    data: {
+                        version : '<%= pkg.version %>',
+                        appName: '<%= pkg.name %>',
+                        date: new Date().toString()
+                    }
+                },
+                files: {
+                    'www/index.html': ['../app/index.dist.html']
+                }
+            }
+        },
+
         copy: {
             lib : {
                 expand : true,
                 filter : 'isFile',
                 cwd : '../app/',
-                src: ['lib/**/*', 'vendor/**', 'res/css/**', 'res/img/**', 'res/shader/**', 'res/sound/**'
+                src: ['lib/**/*', 'vendor/**', 'res/css/**', 'res/img/**', 'res/shader/**', 'res/sound/**', 'cordova.js', 'cordova.util.js'
                 ],
                 dest: './www/'
             },
@@ -310,6 +328,7 @@ module.exports = function (grunt) {
         'concat',
         'uglify',
         'uglify:loader',
+        'processhtml',
         'copy:moveToServer'
     ]);
 
