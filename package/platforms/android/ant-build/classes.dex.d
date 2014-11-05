@@ -54,4 +54,8 @@
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/ant-build/classes/org/apache/cordova/media/AudioPlayer$STATE.class \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/ant-build/classes/org/apache/cordova/media/AudioPlayer.class \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/ant-build/classes/org/apache/cordova/media/FileHelper.class \
+/Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/ant-build/classes/org/apache/cordova/statusbar/StatusBar$1.class \
+/Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/ant-build/classes/org/apache/cordova/statusbar/StatusBar$2.class \
+/Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/ant-build/classes/org/apache/cordova/statusbar/StatusBar$3.class \
+/Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/ant-build/classes/org/apache/cordova/statusbar/StatusBar.class \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/ant-build/dexedLibs/classes-921913ddb1bc328e4871b57e48f66d44.jar \

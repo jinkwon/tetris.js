@@ -56,4 +56,15 @@ app.tetris.Util.isMobile = function(){
         };
 }());
 
+// Cordova Polyfill
+(function(){
+    window.alert = function(message, titleLabel, buttonLabel){
+
+        if(navigator.notification){
+            return navigator.notification.alert(message, titleLabel, buttonLabel);
+        } else {
+            return alert(message);
+        }
+    };
+})();
 

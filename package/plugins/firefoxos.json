@@ -12,6 +12,9 @@
         },
         "org.apache.cordova.media": {
             "PACKAGE_NAME": "com.jk.tetrisjs"
+        },
+        "org.apache.cordova.statusbar": {
+            "PACKAGE_NAME": "com.jk.tetrisjs"
         }
     },
     "dependent_plugins": {

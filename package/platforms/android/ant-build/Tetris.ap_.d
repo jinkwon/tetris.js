@@ -41,6 +41,7 @@
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/com.ququplay.websocket.WebSocket \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/org.apache.cordova.file \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/org.apache.cordova.media \
+/Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/org.apache.cordova.statusbar \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/com.ququplay.websocket.WebSocket/www \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/com.ququplay.websocket.WebSocket/www/phonegap-websocket.js \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/org.apache.cordova.file/www \
@@ -69,6 +70,8 @@
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/org.apache.cordova.media/www \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/org.apache.cordova.media/www/Media.js \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/org.apache.cordova.media/www/MediaError.js \
+/Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/org.apache.cordova.statusbar/www \
+/Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/plugins/org.apache.cordova.statusbar/www/statusbar.js \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/res/css \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/res/img \
 /Users/jinkwonlee/LabSpace/tetris.js/package/platforms/android/assets/www/res/shader \
