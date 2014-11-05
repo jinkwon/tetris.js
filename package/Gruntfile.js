@@ -161,8 +161,8 @@ module.exports = function (grunt) {
                 build_dir: './public', // Where the build version of my node-webkit app is saved
                 mac: true, // We want to build it for mac
                 win: true, // We want to build it for win
-                linux32: false, // We don't need linux32
-                linux64: false // We don't need linux64
+                linux32: true, // We don't need linux32
+                linux64: true // We don't need linux64
             },
             src: ['./www/**/*'] // Your node-webkit app
         },
@@ -257,6 +257,24 @@ module.exports = function (grunt) {
                 expand: true,
                 cwd: 'public/releases/Tetris/mac/',
                 src: ['**/*']
+            },
+            nw_linux32 : {
+                options: {
+                    mode: 'zip',
+                    archive : 'archive/tetris.linux.32.zip'
+                },
+                expand: true,
+                cwd: 'public/releases/Tetris/linux32/',
+                src: ['**/*']
+            },
+            nw_linux64 : {
+                options: {
+                    mode: 'zip',
+                    archive : 'archive/tetris.linux.64.zip'
+                },
+                expand: true,
+                cwd: 'public/releases/Tetris/linux64/',
+                src: ['**/*']
             }
         },
 
@@ -295,7 +313,7 @@ module.exports = function (grunt) {
         'copy:moveToServer'
     ]);
 
-    grunt.registerTask('pack_nw', ['nodewebkit', 'compress:nw_win', 'compress:nw_osx']);
+    grunt.registerTask('pack_nw', ['nodewebkit', 'compress:nw_win', 'compress:nw_osx', 'compress:nw_linux32', 'compress:nw_linux64']);
     grunt.registerTask('pack_mobile', ['cordovacli:build', 'copy:apk']);
     // deploy task.
     grunt.registerTask('deploy', ['build', 'pack_nw', 'pack_mobile']);
