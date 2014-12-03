@@ -32,6 +32,7 @@
             var oGameIo = app.tetris.io.of('/game');
             oGameIo.emit('reqScoreBoard');
             oGameIo.on('brScoreBoard', $.proxy(function(data){
+                console.log('brScoreBoard');
                 this.updateScoreDisplay(data.aScores);
             }, this));
         },
